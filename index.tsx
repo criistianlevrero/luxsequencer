@@ -1,7 +1,193 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import type { Project } from './types';
+
+const defaultProjectData = {
+  "globalSettings": {
+    "midiMappings": {
+      "scaleSize": 35,
+      "scaleSpacing": 39,
+      "verticalOverlap": 43,
+      "horizontalOffset": 37,
+      "shapeMorph": 40,
+      "scaleBorderWidth": 44,
+      "animationSpeed": 17,
+      "animationDirection": 25
+    },
+    "isSequencerPlaying": true,
+    "renderer": "webgl"
+  },
+  "sequences": [
+    {
+      "id": "seq-default-1",
+      "name": "Secuencia Principal",
+      "interpolationSpeed": 0.6,
+      "animateOnlyChanges": false,
+      "sequencer": {
+        "numSteps": 16,
+        "steps": [
+          "25cfb369-8530-4679-ae80-f4b6e078e01a",
+          null,
+          null,
+          "76592e70-5a42-47a5-8a08-0d1a2ae1d521",
+          null,
+          "25cfb369-8530-4679-ae80-f4b6e078e01a",
+          null,
+          "76592e70-5a42-47a5-8a08-0d1a2ae1d521",
+          null,
+          "21a360aa-66d0-4c26-8feb-5beb5b6379ec",
+          null,
+          null,
+          null,
+          null,
+          "76592e70-5a42-47a5-8a08-0d1a2ae1d521",
+          null
+        ],
+        "bpm": 37
+      },
+      "patterns": [
+        {
+          "id": "25cfb369-8530-4679-ae80-f4b6e078e01a",
+          "name": "Memoria 1",
+          "settings": {
+            "scaleSize": 388,
+            "scaleSpacing": 0.14877999999998592,
+            "verticalOverlap": -0.1,
+            "horizontalOffset": 0.5,
+            "shapeMorph": 1,
+            "animationSpeed": 2.5,
+            "animationDirection": 268,
+            "textureRotation": 0,
+            "textureRotationSpeed": 0,
+            "scaleBorderColor": "#5e5c64",
+            "scaleBorderWidth": 0,
+            "gradientColors": [
+              {
+                "id": "color-1",
+                "color": "#ff8a00",
+                "hardStop": false
+              },
+              {
+                "id": "color-2",
+                "color": "#e52e71",
+                "hardStop": false
+              },
+              {
+                "id": "color-3",
+                "color": "#2472d4",
+                "hardStop": false
+              },
+              {
+                "id": "color-4",
+                "color": "#c061cb",
+                "hardStop": false
+              },
+              {
+                "id": "color-5",
+                "color": "#e9ea6b",
+                "hardStop": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "76592e70-5a42-47a5-8a08-0d1a2ae1d521",
+          "name": "Memoria 2",
+          "settings": {
+            "scaleSize": 388,
+            "scaleSpacing": 0.48,
+            "verticalOverlap": -0.1,
+            "horizontalOffset": 0.5,
+            "shapeMorph": 0,
+            "animationSpeed": 2.5,
+            "animationDirection": 268,
+            "textureRotation": 0,
+            "textureRotationSpeed": 0,
+            "scaleBorderColor": "#5e5c64",
+            "scaleBorderWidth": 0,
+            "gradientColors": [
+              {
+                "id": "color-1",
+                "color": "#ff8a00",
+                "hardStop": false
+              },
+              {
+                "id": "color-2",
+                "color": "#e52e71",
+                "hardStop": false
+              },
+              {
+                "id": "color-3",
+                "color": "#2472d4",
+                "hardStop": false
+              },
+              {
+                "id": "color-4",
+                "color": "#c061cb",
+                "hardStop": false
+              },
+              {
+                "id": "color-5",
+                "color": "#e9ea6b",
+                "hardStop": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "21a360aa-66d0-4c26-8feb-5beb5b6379ec",
+          "name": "Memoria 3",
+          "settings": {
+            "scaleSize": 45,
+            "scaleSpacing": 1.8866141732283466,
+            "verticalOverlap": -0.022047244094488216,
+            "horizontalOffset": 0.7952755905511811,
+            "shapeMorph": 0.5354330708661418,
+            "animationSpeed": 2.5,
+            "animationDirection": 268,
+            "textureRotation": 0,
+            "textureRotationSpeed": 0,
+            "scaleBorderColor": "#5e5c64",
+            "scaleBorderWidth": 0,
+            "gradientColors": [
+              {
+                "id": "color-1",
+                "color": "#ff8a00",
+                "hardStop": true
+              },
+              {
+                "id": "color-2",
+                "color": "#e52e71",
+                "hardStop": true
+              },
+              {
+                "id": "color-3",
+                "color": "#2472d4",
+                "hardStop": true
+              },
+              {
+                "id": "color-4",
+                "color": "#c061cb",
+                "hardStop": true
+              },
+              {
+                "id": "color-5",
+                "color": "#e9ea6b",
+                "hardStop": true
+              },
+              {
+                "id": "1fb087d7-08cb-402f-abf6-4926052c4570",
+                "color": "#ffffff",
+                "hardStop": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+};
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,8 +196,8 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-const startApp = async () => {
-  let initialProject = null;
+const startApp = () => {
+  let initialProject: Project | null = null;
   const LOCAL_STORAGE_KEY = 'textureAppProject';
 
   // 1. Try to load from localStorage
@@ -35,28 +221,11 @@ const startApp = async () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   }
 
-  // 2. If not loaded from localStorage, fetch the default project
+  // 2. If not loaded from localStorage, use the imported default project
   if (!initialProject) {
-    try {
-      const response = await fetch('/default-project.json');
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      initialProject = await response.json();
-      console.log("Default project loaded from file.");
-    } catch (error) {
-        console.error("Failed to load initial project data:", error);
-        root.render(
-            <div className="bg-gray-900 text-red-400 min-h-screen flex items-center justify-center p-4">
-                <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
-                    <h1 className="text-2xl font-bold mb-4">Error Crítico</h1>
-                    <p>No se pudo cargar la configuración inicial del proyecto.</p>
-                    <p className="text-sm text-gray-400 mt-2">Por favor, revisa la consola para más detalles.</p>
-                </div>
-            </div>
-        );
-        return; // Stop execution if default project fails to load
-    }
+    // The JSON is imported directly, so it's guaranteed to be available.
+    initialProject = defaultProjectData as Project;
+    console.log("Default project loaded.");
   }
   
   // 3. Render the application with the loaded project
