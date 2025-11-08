@@ -198,6 +198,27 @@ export const yourSchema: ControlSection[] = [
 
 ## Key Conventions
 
+### Commit Messages (Conventional Commits)
+Use semantic prefixes for automated changelog generation:
+- **feat:** New features (e.g., `feat: add property sequencer`)
+- **fix:** Bug fixes (e.g., `fix: resolve timing drift in sequencer`)
+- **docs:** Documentation changes (e.g., `docs: update API examples`)
+- **refactor:** Code refactoring without behavior change
+- **perf:** Performance improvements
+- **test:** Adding or updating tests
+- **chore:** Tooling, dependencies, or maintenance tasks
+
+**Format**: `<type>: <short description>`
+
+Multi-line example:
+```
+fix: resolve sequencer glitch caused by race condition
+
+- Add sequencerStartTime to track precise timing
+- Skip settings updates during pattern animations
+- Implement timestamp-based scheduling
+```
+
 ### File Organization
 - **Shared components**: `components/shared/` for cross-renderer UI (icons, CollapsibleSection)
 - **Renderer-specific**: Keep renderer logic isolated in their folders
