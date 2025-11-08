@@ -1,8 +1,9 @@
-
 import { createWithEqualityFn } from 'zustand/traditional';
 import { produce } from 'immer';
 import { shallow } from 'zustand/shallow';
-import type { Project, ControlSettings, Pattern, GradientColor, MidiLogEntry } from './types';
+import { renderers } from './components/renderers';
+// FIX: `ControlSection` and `SliderControlConfig` are moved to `types.ts` so this import will now work.
+import type { Project, ControlSettings, Pattern, GradientColor, MidiLogEntry, PropertyTrack, Keyframe, ControlSection, SliderControlConfig } from './types';
 
 const LOCAL_STORAGE_KEY = 'textureAppProject';
 
@@ -29,6 +30,7 @@ interface State {
     animationFrameRef: number | null;
     lastAppliedSettingsRef: ControlSettings | null;
     previousGradient: GradientColor[] | null;
+    previousBackgroundGradient: GradientColor[] | null;
     transitionProgress: number;
     midi: MidiState;
     midiLog: MidiLogEntry[];
@@ -62,6 +64,13 @@ interface Actions {
     setSequencerSteps: (steps: (string | null)[]) => void;
     setSequencerNumSteps: (numSteps: number) => void;
     _tickSequencer: () => void;
+    
+    // Property Sequencer Actions
+    addPropertyTrack: (property: keyof ControlSettings) => void;
+    removePropertyTrack: (trackId: string) => void;
+    addKeyframe: (trackId: string, step: number) => void;
+    updateKeyframeValue: (trackId: string, step: number, value: number) => void;
+    removeKeyframe: (trackId: string, step: number) => void;
 
     // MIDI control
     connectMidi: () => void;
@@ -73,7 +82,7 @@ interface Actions {
     // UI and Logs
     clearMidiLog: () => void;
     setViewportMode: (mode: 'default' | 'desktop' | 'mobile') => void;
-    setRenderer: (renderer: 'canvas2d' | 'webgl') => void;
+    setRenderer: (renderer: string) => void;
 }
 
 // --- Helper Functions ---
@@ -89,9 +98,10 @@ const controlConfigs = {
   textureRotationSpeed: { min: -5, max: 5 },
 };
 
+const lerp = (a: number, b: number, t: number) => a * (1 - t) + b * t;
+
 // --- Zustand Store Definition ---
 
-// FIX: Update to `createWithEqualityFn` and set `shallow` as the default equality function to resolve deprecation warning.
 export const useTextureStore = createWithEqualityFn<State & Actions>((set, get): State & Actions => ({
     // --- Initial State ---
     project: null,
@@ -100,6 +110,14 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         scaleSize: 150, scaleSpacing: 0, verticalOverlap: 0, horizontalOffset: 0.5, shapeMorph: 0,
         animationSpeed: 1, animationDirection: 90, textureRotation: 0, textureRotationSpeed: 0,
         scaleBorderColor: '#000000', scaleBorderWidth: 0, gradientColors: [],
+        backgroundGradientColors: [{ id: 'bg-color-1', color: '#1f2937', hardStop: false }],
+        concentric_repetitionSpeed: 0.5,
+        concentric_growthSpeed: 0.5,
+        concentric_initialSize: 10,
+        concentric_gradientColors: [
+          { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
+          { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
+        ]
     },
     textureRotation: 0,
     isPatternDirty: false,
@@ -110,6 +128,7 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
     animationFrameRef: null,
     lastAppliedSettingsRef: null,
     previousGradient: null,
+    previousBackgroundGradient: null,
     transitionProgress: 1,
     midi: {
         devices: [],
@@ -124,10 +143,14 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
     // --- Actions ---
 
     initializeProject: (project) => {
+        const initialSettings = project.sequences[0].patterns[0]?.settings || get().currentSettings;
         set({
             project,
-            currentSettings: project.sequences[0].patterns[0]?.settings || get().currentSettings,
-            textureRotation: project.sequences[0].patterns[0]?.settings.textureRotation || 0,
+            textureRotation: initialSettings.textureRotation || 0,
+            currentSettings: {
+                ...get().currentSettings,
+                ...initialSettings
+            }
         });
         
         // Start texture rotation animation loop
@@ -191,10 +214,15 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
               if (!data.globalSettings || !data.sequences) throw new Error("Invalid project file");
 
               data.globalSettings.isSequencerPlaying = false;
+              const settings = data.sequences[0]?.patterns[0]?.settings;
+              
               set({
                   project: data,
                   activeSequenceIndex: 0,
-                  currentSettings: data.sequences[0]?.patterns[0]?.settings,
+                  currentSettings: {
+                      ...get().currentSettings, // Keep defaults
+                      ...settings, // Overwrite with loaded
+                  },
                   selectedPatternId: null,
                   sequencerCurrentStep: 0,
               });
@@ -206,8 +234,6 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
       reader.readAsText(file);
     },
 
-    // FIX: Add explicit types to the generic `setCurrentSetting` implementation to match the `Actions` interface.
-    // This resolves a TypeScript inference issue that caused "Expected 0-1 arguments, but got 2" errors in multiple components.
     setCurrentSetting: <K extends keyof ControlSettings>(key: K, value: ControlSettings[K]) => {
         set(state => ({
             currentSettings: { ...state.currentSettings, [key]: value },
@@ -257,8 +283,9 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
 
         if (animationFrameRef) cancelAnimationFrame(animationFrameRef);
         
+        // Ensure new settings from pattern have defaults from current state
+        const endSettings = { ...get().currentSettings, ...pattern.settings };
         const startSettings = currentSettings;
-        const endSettings = pattern.settings;
         const baseSettings = lastAppliedSettingsRef || startSettings;
         
         const settingsToApply: Partial<ControlSettings> = activeSequence.animateOnlyChanges
@@ -270,33 +297,51 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         const duration = activeSequence.interpolationSpeed * 1000;
 
         if (duration === 0) {
-            set({ currentSettings: endSettings, lastAppliedSettingsRef: endSettings, previousGradient: null, transitionProgress: 1, selectedPatternId: id, isPatternDirty: false });
+            set({ 
+                currentSettings: endSettings, 
+                lastAppliedSettingsRef: endSettings, 
+                previousGradient: null, 
+                previousBackgroundGradient: null,
+                transitionProgress: 1, 
+                selectedPatternId: id, 
+                isPatternDirty: false 
+            });
             return;
         }
 
-        if ('gradientColors' in settingsToApply && settingsToApply.gradientColors) {
-            set({ previousGradient: startSettings.gradientColors, transitionProgress: 0 });
-        } else {
-            set({ previousGradient: null, transitionProgress: 1 });
-        }
+        const gradientChanged = 'gradientColors' in settingsToApply;
+        const backgroundGradientChanged = 'backgroundGradientColors' in settingsToApply;
+        const concentricGradientChanged = 'concentric_gradientColors' in settingsToApply;
 
-        set({ selectedPatternId: id, isPatternDirty: false });
+        set({
+            previousGradient: gradientChanged ? startSettings.gradientColors : null,
+            previousBackgroundGradient: backgroundGradientChanged ? startSettings.backgroundGradientColors : null,
+            transitionProgress: (gradientChanged || backgroundGradientChanged || concentricGradientChanged) ? 0 : 1,
+            selectedPatternId: id,
+            isPatternDirty: false
+        });
 
         let startTime: number | null = null;
         const animate = (timestamp: number) => {
             if (!startTime) startTime = timestamp;
             const progress = Math.min((timestamp - startTime) / duration, 1);
             
+            if (gradientChanged || backgroundGradientChanged || concentricGradientChanged) {
+                set({ transitionProgress: progress });
+            }
+
             const newSettings = { ...get().currentSettings };
 
-            if ('gradientColors' in settingsToApply) set({ transitionProgress: progress });
-
             Object.entries(settingsToApply).forEach(([key, value]) => {
-                if (key === 'gradientColors') {
-                    if (progress >= 1 && Array.isArray(value)) newSettings.gradientColors = value;
+                 const settingKey = key as keyof ControlSettings;
+
+                if (settingKey === 'gradientColors' || settingKey === 'backgroundGradientColors' || settingKey === 'concentric_gradientColors') {
+                     if (progress >= 1 && Array.isArray(value)) {
+                        (newSettings[settingKey]) = value;
+                    }
                     return;
                 }
-                const settingKey = key as keyof ControlSettings;
+               
                 if (typeof startSettings[settingKey] === 'number' && typeof value === 'number') {
                     (newSettings[settingKey] as number) = startSettings[settingKey] as number + (value - (startSettings[settingKey] as number)) * progress;
                 } else if (progress >= 1 && typeof value === 'string') {
@@ -309,7 +354,14 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
             if (progress < 1) {
                 set({ animationFrameRef: requestAnimationFrame(animate) });
             } else {
-                set({ animationFrameRef: null, lastAppliedSettingsRef: endSettings, currentSettings: { ...get().currentSettings, ...settingsToApply }, previousGradient: null, transitionProgress: 1 });
+                set({ 
+                    animationFrameRef: null, 
+                    lastAppliedSettingsRef: endSettings, 
+                    currentSettings: { ...get().currentSettings, ...settingsToApply }, 
+                    previousGradient: null,
+                    previousBackgroundGradient: null,
+                    transitionProgress: 1 
+                });
             }
         };
         set({ animationFrameRef: requestAnimationFrame(animate) });
@@ -368,17 +420,84 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
     },
     
     _tickSequencer: () => {
-        const { project, activeSequenceIndex } = get();
+        const { project, activeSequenceIndex, selectedPatternId } = get();
         if (!project || !project.globalSettings.isSequencerPlaying) return;
         
-        const numSteps = project.sequences[activeSequenceIndex].sequencer.numSteps;
+        const activeSequence = project.sequences[activeSequenceIndex];
+        const { sequencer } = activeSequence;
+        const numSteps = sequencer.numSteps;
+        
         const nextStep = (get().sequencerCurrentStep + 1) % numSteps;
         set({ sequencerCurrentStep: nextStep });
         
-        const patternIdToLoad = project.sequences[activeSequenceIndex].sequencer.steps[nextStep];
-        if (patternIdToLoad) get().loadPattern(patternIdToLoad);
+        const patternIdToLoad = sequencer.steps[nextStep];
         
-        const interval = (60 / project.sequences[activeSequenceIndex].sequencer.bpm) * 1000 / 4;
+        // --- 1. Load base pattern if it changes ---
+        if (patternIdToLoad && patternIdToLoad !== selectedPatternId) {
+            get().loadPattern(patternIdToLoad);
+        }
+
+        // --- 2. Calculate and apply property automation ---
+        const basePattern = activeSequence.patterns.find(p => p.id === (patternIdToLoad || selectedPatternId));
+        
+        // Start with the last applied settings to avoid jumps when automation starts/stops
+        let automatedSettings = { ...get().currentSettings, ...(basePattern?.settings || {}) };
+
+        const { propertyTracks } = sequencer;
+        if (propertyTracks && propertyTracks.length > 0) {
+            const rendererId = project.globalSettings.renderer;
+            const renderer = renderers[rendererId];
+            
+            const sliderConfigs = renderer?.controlSchema
+                .flatMap(section => section.controls)
+                .filter(c => c.type === 'slider')
+                .reduce((acc, c: any) => {
+                    acc[c.id] = c;
+                    return acc;
+                }, {} as { [key: string]: any });
+
+            propertyTracks.forEach(track => {
+                const sortedKeyframes = [...track.keyframes].sort((a, b) => a.step - b.step);
+                if (sortedKeyframes.length === 0) return;
+
+                let prevKeyframe = sortedKeyframes.find(k => k.step <= nextStep) || sortedKeyframes[sortedKeyframes.length - 1];
+                let nextKeyframe = sortedKeyframes.find(k => k.step > nextStep) || sortedKeyframes[0];
+
+                if (sortedKeyframes.every(k => k.step > nextStep)) {
+                    prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
+                }
+                 if (sortedKeyframes.every(k => k.step <= nextStep)) {
+                    nextKeyframe = sortedKeyframes[0];
+                }
+                
+                let interpolatedValue: number;
+                if (prevKeyframe.step === nextKeyframe.step) {
+                    interpolatedValue = prevKeyframe.value;
+                } else {
+                    let stepDiff = nextKeyframe.step - prevKeyframe.step;
+                    let progress = nextStep - prevKeyframe.step;
+                    
+                    if (stepDiff < 0) { // Loop around
+                        stepDiff += numSteps;
+                        if (progress < 0) progress += numSteps;
+                    }
+                    const t = progress / stepDiff;
+                    interpolatedValue = lerp(prevKeyframe.value, nextKeyframe.value, t);
+                }
+
+                if (sliderConfigs && sliderConfigs[track.property]) {
+                     (automatedSettings as any)[track.property] = interpolatedValue;
+                }
+            });
+        }
+        
+        // Apply the final computed settings for this step
+        set({ 
+            currentSettings: automatedSettings,
+            lastAppliedSettingsRef: automatedSettings, // Update ref for smooth transitions
+        });
+        
+        const interval = (60 / sequencer.bpm) * 1000 / 4;
         const timeoutId = window.setTimeout(get()._tickSequencer, interval);
         set({ sequencerTimeoutId: timeoutId });
     },
@@ -417,6 +536,86 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         });
         get().setProject(newProject);
     },
+    
+    // --- Property Sequencer Actions ---
+    addPropertyTrack: (property) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+        
+        const newTrack: PropertyTrack = {
+            id: crypto.randomUUID(),
+            property,
+            keyframes: [],
+        };
+
+        const newProject = produce(project, draft => {
+            const sequencer = draft.sequences[activeSequenceIndex].sequencer;
+            if (!sequencer.propertyTracks) sequencer.propertyTracks = [];
+            sequencer.propertyTracks.push(newTrack);
+        });
+        get().setProject(newProject);
+    },
+
+    removePropertyTrack: (trackId) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+        
+        const newProject = produce(project, draft => {
+            const sequencer = draft.sequences[activeSequenceIndex].sequencer;
+            sequencer.propertyTracks = sequencer.propertyTracks.filter(t => t.id !== trackId);
+        });
+        get().setProject(newProject);
+    },
+
+    addKeyframe: (trackId, step) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+
+        const newProject = produce(project, draft => {
+            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            if (!track || track.keyframes.some(k => k.step === step)) return;
+
+            const rendererId = draft.globalSettings.renderer;
+            const renderer = renderers[rendererId];
+            const control = renderer?.controlSchema.flatMap(s => s.controls).find(c => c.type === 'slider' && c.id === track.property) as SliderControlConfig | undefined;
+            
+            if (control) {
+                const defaultValue = control.min + (control.max - control.min) * 0.5;
+                const newKeyframe: Keyframe = { step, value: defaultValue, interpolation: 'linear' };
+                track.keyframes.push(newKeyframe);
+            }
+        });
+        get().setProject(newProject);
+    },
+
+    updateKeyframeValue: (trackId, step, value) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+        
+        const newProject = produce(project, draft => {
+            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            if (!track) return;
+            const keyframe = track.keyframes.find(k => k.step === step);
+            if (keyframe) {
+                keyframe.value = value;
+            }
+        });
+        get().setProject(newProject);
+    },
+
+    removeKeyframe: (trackId, step) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+        
+        const newProject = produce(project, draft => {
+            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            if (track) {
+                track.keyframes = track.keyframes.filter(k => k.step !== step);
+            }
+        });
+        get().setProject(newProject);
+    },
+
 
     // --- MIDI ---
     connectMidi: async () => {
@@ -512,7 +711,6 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         else if (command === 176) {
             const controller = data1;
             const value = data2;
-            // FIX: Correctly destructure learningControl from the nested midi state object.
             const { midi: { learningControl }, project } = get();
             
             if (learningControl) { // Learn a new mapping

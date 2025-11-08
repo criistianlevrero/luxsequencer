@@ -1,11 +1,11 @@
 
 import React, { useRef } from 'react';
-import { useTextureStore } from '../store';
-import { TrashIcon, DownloadIcon, UploadIcon } from './icons';
-import { renderers } from './renderers';
-import MidiLearnButton from './renderers/shared/MidiLearnButton';
-import CollapsibleSection from './renderers/shared/CollapsibleSection';
-import RendererControls from './renderers/shared/RendererControls';
+import { useTextureStore } from '../../store';
+import { TrashIcon, DownloadIcon, UploadIcon } from '../shared/icons';
+import { renderers } from '../renderers';
+import MidiLearnButton from '../midi/MidiLearnButton';
+import CollapsibleSection from '../shared/CollapsibleSection';
+import RendererControls from '../renderers/shared/RendererControls';
 
 const ControlPanel: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);

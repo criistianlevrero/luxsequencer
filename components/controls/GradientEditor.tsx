@@ -1,8 +1,7 @@
 
-
 import React from 'react';
-import { PlusIcon, TrashIcon, SplitIcon } from './icons';
-import type { GradientColor } from '../types';
+import { PlusIcon, TrashIcon, SplitIcon } from '../shared/icons';
+import type { GradientColor } from '../../types';
 
 interface GradientEditorProps {
   title: string;

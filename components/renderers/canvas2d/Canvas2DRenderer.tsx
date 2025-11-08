@@ -1,14 +1,9 @@
 
-
 import React, { useEffect, useRef } from 'react';
-import { useTextureStore } from '../store';
-import type { ControlSettings, GradientColor } from '../types';
+import { useTextureStore } from '../../../store';
+import type { ControlSettings, GradientColor } from '../../../types';
 
 type RGBColor = { r: number, g: number, b: number };
-
-interface TextureCanvasProps {
-  className?: string;
-}
 
 // --- Helper Functions ---
 
@@ -103,7 +98,7 @@ const calculateScaleShapePoints = (size: number, shapeMorph: number): number[][]
     }
 };
 
-const TextureCanvas: React.FC<TextureCanvasProps> = ({ className }) => {
+const InnerCanvas: React.FC<{ className?: string }> = ({ className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const timeRef = useRef<number>(0);
@@ -167,7 +162,6 @@ const TextureCanvas: React.FC<TextureCanvasProps> = ({ className }) => {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // --- Background Gradient ---
         const lerpGradientColors = (gradA: GradientColor[], gradB: GradientColor[], amount: number): GradientColor[] => {
             return gradA.map((colorA, i) => {
                 const colorB = gradB[i];
@@ -325,4 +319,13 @@ const TextureCanvas: React.FC<TextureCanvasProps> = ({ className }) => {
   );
 };
 
-export default TextureCanvas;
+
+const Canvas2DRenderer: React.FC<{className?: string}> = ({ className }) => {
+    return (
+        <div style={{ width: '320%', height: '320%', transformOrigin: 'top left', transform: 'scale(0.3125)' }} className={className}>
+            <InnerCanvas className="w-full h-full" />
+        </div>
+    );
+}
+
+export default Canvas2DRenderer;

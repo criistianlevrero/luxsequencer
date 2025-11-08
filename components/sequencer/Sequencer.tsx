@@ -1,9 +1,10 @@
+
 import React from 'react';
-import { useTextureStore } from '../store';
-import { PlayIcon, StopIcon, PlusIcon, TrashIcon } from './icons';
-import CollapsibleSection from './renderers/shared/CollapsibleSection';
+import { useTextureStore } from '../../store';
+import { PlayIcon, StopIcon, PlusIcon, TrashIcon } from '../shared/icons';
+import CollapsibleSection from '../shared/CollapsibleSection';
 import PropertySequencer from './PropertySequencer';
-import type { Sequence } from '../types';
+import type { Sequence } from '../../types';
 
 const Sequencer: React.FC = () => {
     const {

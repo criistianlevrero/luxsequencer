@@ -1,4 +1,5 @@
 
+
 {
   "globalSettings": {
     "midiMappings": {
@@ -40,7 +41,8 @@
           "76592e70-5a42-47a5-8a08-0d1a2ae1d521",
           null
         ],
-        "bpm": 37
+        "bpm": 37,
+        "propertyTracks": []
       },
       "patterns": [
         {
@@ -59,31 +61,21 @@
             "scaleBorderColor": "#5e5c64",
             "scaleBorderWidth": 0,
             "gradientColors": [
-              {
-                "id": "color-1",
-                "color": "#ff8a00",
-                "hardStop": false
-              },
-              {
-                "id": "color-2",
-                "color": "#e52e71",
-                "hardStop": false
-              },
-              {
-                "id": "color-3",
-                "color": "#2472d4",
-                "hardStop": false
-              },
-              {
-                "id": "color-4",
-                "color": "#c061cb",
-                "hardStop": false
-              },
-              {
-                "id": "color-5",
-                "color": "#e9ea6b",
-                "hardStop": false
-              }
+              { "id": "color-1", "color": "#ff8a00", "hardStop": false },
+              { "id": "color-2", "color": "#e52e71", "hardStop": false },
+              { "id": "color-3", "color": "#2472d4", "hardStop": false },
+              { "id": "color-4", "color": "#c061cb", "hardStop": false },
+              { "id": "color-5", "color": "#e9ea6b", "hardStop": false }
+            ],
+            "backgroundGradientColors": [
+              { "id": "bg-color-1", "color": "#1f2937", "hardStop": false }
+            ],
+            "concentric_repetitionSpeed": 0.5,
+            "concentric_growthSpeed": 0.5,
+            "concentric_initialSize": 10,
+            "concentric_gradientColors": [
+              { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
+              { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
             ]
           }
         },
@@ -103,31 +95,22 @@
             "scaleBorderColor": "#5e5c64",
             "scaleBorderWidth": 0,
             "gradientColors": [
-              {
-                "id": "color-1",
-                "color": "#ff8a00",
-                "hardStop": false
-              },
-              {
-                "id": "color-2",
-                "color": "#e52e71",
-                "hardStop": false
-              },
-              {
-                "id": "color-3",
-                "color": "#2472d4",
-                "hardStop": false
-              },
-              {
-                "id": "color-4",
-                "color": "#c061cb",
-                "hardStop": false
-              },
-              {
-                "id": "color-5",
-                "color": "#e9ea6b",
-                "hardStop": false
-              }
+              { "id": "color-1", "color": "#ff8a00", "hardStop": false },
+              { "id": "color-2", "color": "#e52e71", "hardStop": false },
+              { "id": "color-3", "color": "#2472d4", "hardStop": false },
+              { "id": "color-4", "color": "#c061cb", "hardStop": false },
+              { "id": "color-5", "color": "#e9ea6b", "hardStop": false }
+            ],
+             "backgroundGradientColors": [
+              { "id": "bg-color-1", "color": "#1f2937", "hardStop": false }
+            ],
+            "concentric_repetitionSpeed": 0.2,
+            "concentric_growthSpeed": 1,
+            "concentric_initialSize": 20,
+            "concentric_gradientColors": [
+              { "id": "c-color-1", "color": "#f0ff00", "hardStop": false },
+              { "id": "c-color-2", "color": "#00eaff", "hardStop": true },
+              { "id": "c-color-3", "color": "#e52e71", "hardStop": false }
             ]
           }
         },
@@ -147,36 +130,22 @@
             "scaleBorderColor": "#5e5c64",
             "scaleBorderWidth": 0,
             "gradientColors": [
-              {
-                "id": "color-1",
-                "color": "#ff8a00",
-                "hardStop": true
-              },
-              {
-                "id": "color-2",
-                "color": "#e52e71",
-                "hardStop": true
-              },
-              {
-                "id": "color-3",
-                "color": "#2472d4",
-                "hardStop": true
-              },
-              {
-                "id": "color-4",
-                "color": "#c061cb",
-                "hardStop": true
-              },
-              {
-                "id": "color-5",
-                "color": "#e9ea6b",
-                "hardStop": true
-              },
-              {
-                "id": "1fb087d7-08cb-402f-abf6-4926052c4570",
-                "color": "#ffffff",
-                "hardStop": true
-              }
+              { "id": "color-1", "color": "#ff8a00", "hardStop": true },
+              { "id": "color-2", "color": "#e52e71", "hardStop": true },
+              { "id": "color-3", "color": "#2472d4", "hardStop": true },
+              { "id": "color-4", "color": "#c061cb", "hardStop": true },
+              { "id": "color-5", "color": "#e9ea6b", "hardStop": true },
+              { "id": "1fb087d7-08cb-402f-abf6-4926052c4570", "color": "#ffffff", "hardStop": true }
+            ],
+             "backgroundGradientColors": [
+              { "id": "bg-color-1", "color": "#1f2937", "hardStop": false }
+            ],
+            "concentric_repetitionSpeed": 1,
+            "concentric_growthSpeed": 0.2,
+            "concentric_initialSize": 5,
+            "concentric_gradientColors": [
+              { "id": "c-color-1", "color": "#ffffff", "hardStop": false },
+              { "id": "c-color-2", "color": "#000000", "hardStop": false }
             ]
           }
         }

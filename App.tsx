@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTextureStore } from './store';
-import ControlPanel from './components/ControlPanel';
-import TextureCanvas from './components/TextureCanvas';
-import TextureCanvasWebGl from './components/TextureCanvasWebGl';
-import { FishIcon, ConsoleIcon, EnterFullscreenIcon, ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon } from './components/icons';
-import MidiConsole from './components/MidiConsole';
-import ViewportControls from './components/ViewportControls';
-import Sequencer from './components/Sequencer';
+import ControlPanel from './components/controls/ControlPanel';
+import { renderers } from './components/renderers';
+import { FishIcon, ConsoleIcon, EnterFullscreenIcon, ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon } from './components/shared/icons';
+import MidiConsole from './components/midi/MidiConsole';
+import ViewportControls from './components/controls/ViewportControls';
+import Sequencer from './components/sequencer/Sequencer';
 import type { Project } from './types';
 
 interface AppProps {
@@ -35,7 +34,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
   const setViewportMode = useTextureStore(state => state.setViewportMode);
   const midiLog = useTextureStore(state => state.midiLog);
   const clearMidiLog = useTextureStore(state => state.clearMidiLog);
-  const renderer = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
+  const rendererId = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
 
 
   const handleFullscreenChange = useCallback(() => {
@@ -89,7 +88,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
 
   const controlPanel = <ControlPanel />;
   const sequencerPanel = <Sequencer />;
-  const CanvasComponent = renderer === 'webgl' ? TextureCanvasWebGl : TextureCanvas;
+  const CanvasComponent = renderers[rendererId]?.component;
 
   return (
     <div ref={appRef} className="bg-gray-900">
@@ -129,12 +128,12 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                 `}>
                     <ViewportControls mode={viewportMode} onModeChange={setViewportMode} />
                     <div className="w-full h-full overflow-hidden rounded-xl bg-gray-800">
-                      {renderer === 'canvas2d' ? (
-                        <div style={{ width: '320%', height: '320%', transformOrigin: 'top left', transform: 'scale(0.3125)' }}>
-                          <CanvasComponent className="w-full h-full" />
-                        </div>
-                      ) : (
+                      {CanvasComponent ? (
                         <CanvasComponent className="w-full h-full" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            Error: Renderer no encontrado.
+                        </div>
                       )}
                     </div>
                 </div>
@@ -151,7 +150,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
         </div>
       ) : (
          <div className="fixed inset-0 w-full h-full">
-            <CanvasComponent className="w-full h-full" />
+            {CanvasComponent && <CanvasComponent className="w-full h-full" />}
             <div
               className={`fixed top-4 left-4 right-4 flex justify-between items-center transition-opacity duration-300 z-50 ${isOverlayVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             >
@@ -180,13 +179,6 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
               </button>
             </div>
              
-            {isDrawerOpen && (
-                <div
-                    className="fixed inset-0 bg-black/30 z-30"
-                    onClick={() => setIsDrawerOpen(false)}
-                />
-            )}
-
             <div
               className={`fixed top-0 left-0 h-full bg-gray-800/90 backdrop-blur-sm border-r border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out z-40 w-full max-w-md ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
             >

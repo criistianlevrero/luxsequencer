@@ -1,0 +1,63 @@
+
+import React from 'react';
+import { useTextureStore } from '../../../store';
+import GradientEditor from '../../controls/GradientEditor';
+// FIX: Import `ControlSection` from the root `types.ts` file.
+import type { ControlSection } from '../../../types';
+
+// FIX: Correctly defined as a functional component returning JSX.
+// Custom component for the concentric gradient editor
+// FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
+const ConcentricGradientEditor: React.FC = () => {
+    const colors = useTextureStore(state => state.currentSettings.concentric_gradientColors ?? []);
+    const { setCurrentSetting } = useTextureStore.getState();
+    return React.createElement('div', { className: "pt-4 border-t border-gray-700/50" },
+        React.createElement(GradientEditor, {
+            title: "Gradiente de Hexágono",
+            colors: colors,
+            onColorsChange: (newColors) => setCurrentSetting('concentric_gradientColors', newColors),
+            minColors: 2
+        })
+    );
+};
+
+export const concentricSchema: ControlSection[] = [
+    {
+        title: "Controles Concénctricos",
+        defaultOpen: true,
+        controls: [
+            {
+                type: 'slider',
+                id: 'concentric_repetitionSpeed',
+                label: "Velocidad de Repetición",
+                min: 0.1,
+                max: 5,
+                step: 0.1,
+                formatter: (v) => `${v.toFixed(1)}s`
+            },
+            {
+                type: 'slider',
+                id: 'concentric_growthSpeed',
+                label: "Velocidad de Crecimiento",
+                min: 0.1,
+                max: 5,
+                step: 0.1,
+                formatter: (v) => `${v.toFixed(1)}x`
+            },
+            {
+                type: 'slider',
+                id: 'concentric_initialSize',
+                label: "Tamaño Inicial",
+                min: 1,
+                max: 100,
+                step: 1,
+                formatter: (v) => `${v}px`
+            },
+            {
+                type: 'custom',
+                id: 'concentric_gradient',
+                component: ConcentricGradientEditor,
+            }
+        ]
+    }
+];

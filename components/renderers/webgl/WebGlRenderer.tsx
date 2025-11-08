@@ -1,8 +1,7 @@
 
-
 import React, { useEffect, useRef } from 'react';
-import { useTextureStore } from '../store';
-import type { ControlSettings, GradientColor } from '../types';
+import { useTextureStore } from '../../../store';
+import type { ControlSettings, GradientColor } from '../../../types';
 
 type RGBColor = { r: number, g: number, b: number };
 
@@ -230,7 +229,7 @@ const fragmentShaderSource = `
   }
 `;
 
-const TextureCanvas: React.FC<TextureCanvasProps> = ({ className }) => {
+const WebGlRenderer: React.FC<TextureCanvasProps> = ({ className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const timeRef = useRef<number>(0);
@@ -424,4 +423,4 @@ const TextureCanvas: React.FC<TextureCanvasProps> = ({ className }) => {
   return <canvas ref={canvasRef} className={className} />;
 };
 
-export default TextureCanvas;
+export default WebGlRenderer;
