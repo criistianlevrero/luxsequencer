@@ -15,6 +15,58 @@ Una aplicación web interactiva para generar y animar texturas de escamas en tie
 -   **Modo Pantalla Completa:** Optimizado para performance en vivo, con una interfaz mínima que aparece al mover el ratón.
 -   **Gestión de Sesiones:** Exporta e importa toda tu configuración (patrones y mapeos MIDI) a un archivo `.json` para guardar tu trabajo y no perderlo al recargar la página.
 
+## Instalación y Desarrollo
+
+### Prerrequisitos
+
+- Node.js (v18 o superior)
+- npm o yarn
+
+### Configuración Inicial
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/criistianlevrero/visual-patterns-rt-tool.git
+   cd visual-patterns-rt-tool
+   ```
+
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+
+3. Configura las variables de entorno:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edita el archivo `.env` para personalizar tu configuración. Ver [Guía de Variables de Entorno](docs/ENVIRONMENT_VARIABLES.md) para más detalles.
+
+4. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+5. Abre tu navegador en `http://localhost:3000`
+
+### Variables de Entorno
+
+El proyecto utiliza variables de entorno para configuración. Las más importantes son:
+
+- `VITE_DEBUG_MODE`: Activa el overlay de debug (default: `false`)
+- `VITE_MIDI_AUTO_CONNECT`: Conecta automáticamente dispositivos MIDI (default: `true`)
+- `VITE_MAX_FPS`: Máximo FPS para renderizado (default: `60`)
+
+Para más detalles, consulta la [documentación completa de variables de entorno](docs/ENVIRONMENT_VARIABLES.md).
+
+### Scripts Disponibles
+
+```bash
+npm run dev      # Inicia servidor de desarrollo
+npm run build    # Compila para producción
+npm run preview  # Previsualiza build de producción
+```
+
 ## ¿Cómo se Usa?
 
 ### 1. Controles de Textura
