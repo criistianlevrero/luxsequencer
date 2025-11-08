@@ -27,6 +27,7 @@ interface State {
     learningPatternMidiNote: string | null;
     sequencerCurrentStep: number;
     sequencerTimeoutId: number | null;
+    sequencerStartTime: number | null;  // Track start time for precise timing
     animationFrameRef: number | null;
     lastAppliedSettingsRef: ControlSettings | null;
     previousGradient: GradientColor[] | null;
@@ -125,6 +126,7 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
     learningPatternMidiNote: null,
     sequencerCurrentStep: 0,
     sequencerTimeoutId: null,
+    sequencerStartTime: null,
     animationFrameRef: null,
     lastAppliedSettingsRef: null,
     previousGradient: null,
@@ -294,6 +296,18 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         const pattern = activeSequence.patterns.find(p => p.id === id);
         if (!pattern) return;
 
+        // DEBUG: Log pattern load start
+        if ((window as any).__DEBUG_SEQUENCER) {
+            console.log('[PATTERN LOAD START]', {
+                timestamp: Date.now(),
+                patternId: id,
+                patternName: pattern.name,
+                hadActiveAnimation: animationFrameRef !== null,
+                interpolationSpeed: activeSequence.interpolationSpeed,
+                animateOnlyChanges: activeSequence.animateOnlyChanges,
+            });
+        }
+
         if (animationFrameRef) cancelAnimationFrame(animationFrameRef);
 
         const endSettings = { ...currentSettings, ...pattern.settings };
@@ -421,7 +435,10 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         if (sequencerTimeoutId) clearTimeout(sequencerTimeoutId);
         
         if (isPlaying) {
-            set({ sequencerCurrentStep: -1 }); // Reset to start on play
+            set({ 
+                sequencerCurrentStep: -1,
+                sequencerStartTime: Date.now(),  // Track start time for precise timing
+            }); 
             get()._tickSequencer();
         } else {
             set({ sequencerTimeoutId: null });
@@ -444,6 +461,17 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         set({ sequencerCurrentStep: nextStep });
         
         const patternIdToLoad = sequencer.steps[nextStep];
+        
+        // DEBUG: Log sequencer tick
+        if ((window as any).__DEBUG_SEQUENCER) {
+            console.log('[SEQUENCER TICK]', {
+                timestamp: Date.now(),
+                step: nextStep,
+                patternIdToLoad,
+                currentPatternId: selectedPatternId,
+                willLoadPattern: patternIdToLoad && patternIdToLoad !== selectedPatternId,
+            });
+        }
         
         // --- 1. Load base pattern if it changes ---
         if (patternIdToLoad && patternIdToLoad !== selectedPatternId) {
@@ -504,15 +532,76 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
             });
         }
         
-        // Apply the final computed settings for this step
-        set({ 
-            currentSettings: automatedSettings,
-            lastAppliedSettingsRef: automatedSettings, // Update ref for smooth transitions
-        });
+        // DEBUG: Log property automation results
+        if ((window as any).__DEBUG_SEQUENCER && propertyTracks && propertyTracks.length > 0) {
+            const automatedProps = propertyTracks.map(track => ({
+                property: track.property,
+                value: (automatedSettings as any)[track.property],
+            }));
+            console.log('[PROPERTY AUTOMATION]', {
+                timestamp: Date.now(),
+                step: nextStep,
+                tracksCount: propertyTracks.length,
+                automatedProps,
+            });
+        }
         
-        const interval = (60 / sequencer.bpm) * 1000 / 4;
-        const timeoutId = window.setTimeout(get()._tickSequencer, interval);
-        set({ sequencerTimeoutId: timeoutId });
+        // CRITICAL FIX: Don't overwrite settings if a pattern animation is in progress
+        // This prevents race conditions between RAF interpolation and sequencer updates
+        const { animationFrameRef } = get();
+        if (animationFrameRef !== null) {
+            // Pattern animation is running, skip settings update but still schedule next tick
+            if ((window as any).__DEBUG_SEQUENCER) {
+                console.log('[SETTINGS UPDATE SKIPPED]', {
+                    timestamp: Date.now(),
+                    step: nextStep,
+                    reason: 'Pattern animation in progress',
+                });
+            }
+        } else {
+            // No animation running, safe to update settings
+            set({ 
+                currentSettings: automatedSettings,
+                lastAppliedSettingsRef: automatedSettings, // Update ref for smooth transitions
+            });
+            
+            // DEBUG: Log settings update
+            if ((window as any).__DEBUG_SEQUENCER) {
+                console.log('[SETTINGS UPDATED]', {
+                    timestamp: Date.now(),
+                    step: nextStep,
+                    settingsHash: JSON.stringify(automatedSettings).substring(0, 50) + '...',
+                });
+            }
+        }
+        
+        // Calculate next tick using precise timing to avoid drift
+        const { sequencerStartTime } = get();
+        const stepDuration = (60 / sequencer.bpm) * 1000 / 4;  // Duration of one 16th note in ms
+        const nextStepNumber = nextStep + 1;  // Next step to execute
+        
+        if (sequencerStartTime) {
+            // Calculate when the next step SHOULD occur (ideal time)
+            const idealNextTime = sequencerStartTime + (nextStepNumber * stepDuration);
+            const now = Date.now();
+            const delay = Math.max(0, idealNextTime - now);  // Adjust for any drift
+            
+            if ((window as any).__DEBUG_SEQUENCER) {
+                console.log('[SEQUENCER TIMING]', {
+                    now,
+                    idealNextTime,
+                    delay,
+                    drift: now - (sequencerStartTime + (nextStep * stepDuration)),
+                });
+            }
+            
+            const timeoutId = window.setTimeout(get()._tickSequencer, delay);
+            set({ sequencerTimeoutId: timeoutId });
+        } else {
+            // Fallback to simple interval (shouldn't happen but safety check)
+            const timeoutId = window.setTimeout(get()._tickSequencer, stepDuration);
+            set({ sequencerTimeoutId: timeoutId });
+        }
     },
 
     setSequencerBpm: (bpm) => {
