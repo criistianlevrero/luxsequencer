@@ -3,7 +3,7 @@ import { produce } from 'immer';
 import { shallow } from 'zustand/shallow';
 import { renderers } from './components/renderers';
 // FIX: `ControlSection` and `SliderControlConfig` are moved to `types.ts` so this import will now work.
-import type { Project, ControlSettings, Pattern, GradientColor, MidiLogEntry, PropertyTrack, Keyframe, ControlSection, SliderControlConfig } from './types';
+import type { Project, ControlSettings, Pattern, GradientColor, MidiLogEntry, PropertyTrack, Keyframe, ControlSection, SliderControlConfig, Sequence } from './types';
 
 const LOCAL_STORAGE_KEY = 'textureAppProject';
 
@@ -46,6 +46,9 @@ interface Actions {
     setProject: (project: Project) => void;
     setActiveSequenceIndex: (index: number) => void;
     updateActiveSequence: (updates: Partial<Project['sequences'][0]>) => void;
+    saveNewSequence: (name: string) => void;
+    deleteSequence: (sequenceId: string) => void;
+    duplicateSequence: (sequenceId: string, newName: string) => void;
     exportProject: () => void;
     importProject: (file: File) => void;
 
@@ -192,6 +195,71 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
             Object.assign(draft.sequences[get().activeSequenceIndex], updates);
         });
         get().setProject(newProject);
+    },
+
+    saveNewSequence: (name) => {
+        const project = get().project;
+        if (!project) return;
+
+        const activeSequence = project.sequences[get().activeSequenceIndex];
+        const newSequence: Sequence = {
+            id: `seq_${Date.now()}`,
+            name,
+            interpolationSpeed: 500,
+            animateOnlyChanges: false,
+            sequencer: {
+                steps: Array(16).fill(null),
+                bpm: 120,
+                numSteps: 16,
+                propertyTracks: []
+            },
+            patterns: activeSequence?.patterns || []
+        };
+
+        const newProject = produce(project, draft => {
+            draft.sequences.push(newSequence);
+        });
+
+        get().setProject(newProject);
+        get().setActiveSequenceIndex(newProject.sequences.length - 1);
+    },
+
+    deleteSequence: (sequenceId) => {
+        const project = get().project;
+        if (!project || project.sequences.length <= 1) return; // Don't delete last sequence
+
+        const sequenceIndex = project.sequences.findIndex(s => s.id === sequenceId);
+        if (sequenceIndex === -1) return;
+
+        const newProject = produce(project, draft => {
+            draft.sequences.splice(sequenceIndex, 1);
+        });
+
+        const newActiveIndex = Math.min(get().activeSequenceIndex, newProject.sequences.length - 1);
+        get().setProject(newProject);
+        get().setActiveSequenceIndex(newActiveIndex);
+    },
+
+    duplicateSequence: (sequenceId, newName) => {
+        const project = get().project;
+        if (!project) return;
+
+        const sequenceIndex = project.sequences.findIndex(s => s.id === sequenceId);
+        if (sequenceIndex === -1) return;
+
+        const sourcSequence = project.sequences[sequenceIndex];
+        const duplicatedSequence: Sequence = {
+            ...JSON.parse(JSON.stringify(sourcSequence)), // Deep clone
+            id: `seq_${Date.now()}`,
+            name: newName
+        };
+
+        const newProject = produce(project, draft => {
+            draft.sequences.push(duplicatedSequence);
+        });
+
+        get().setProject(newProject);
+        get().setActiveSequenceIndex(newProject.sequences.length - 1);
     },
 
     exportProject: () => {
@@ -578,25 +646,41 @@ export const useTextureStore = createWithEqualityFn<State & Actions>((set, get):
         // Calculate next tick using precise timing to avoid drift
         const { sequencerStartTime } = get();
         const stepDuration = (60 / sequencer.bpm) * 1000 / 4;  // Duration of one 16th note in ms
-        const nextStepNumber = nextStep + 1;  // Next step to execute
         
         if (sequencerStartTime) {
-            // Calculate when the next step SHOULD occur (ideal time)
-            const idealNextTime = sequencerStartTime + (nextStepNumber * stepDuration);
-            const now = Date.now();
-            const delay = Math.max(0, idealNextTime - now);  // Adjust for any drift
-            
-            if ((window as any).__DEBUG_SEQUENCER) {
-                console.log('[SEQUENCER TIMING]', {
-                    now,
-                    idealNextTime,
-                    delay,
-                    drift: now - (sequencerStartTime + (nextStep * stepDuration)),
-                });
+            // Reset start time when looping back to step 0 to prevent drift accumulation
+            if (nextStep === 0) {
+                const newStartTime = Date.now();
+                set({ sequencerStartTime: newStartTime });
+                const timeoutId = window.setTimeout(get()._tickSequencer, stepDuration);
+                set({ sequencerTimeoutId: timeoutId });
+                
+                if ((window as any).__DEBUG_SEQUENCER) {
+                    console.log('[SEQUENCER LOOP RESET]', {
+                        timestamp: Date.now(),
+                        step: nextStep,
+                        newStartTime,
+                        delay: stepDuration,
+                    });
+                }
+            } else {
+                // Calculate when the next step SHOULD occur (ideal time)
+                const idealNextTime = sequencerStartTime + (nextStep * stepDuration);
+                const now = Date.now();
+                const delay = Math.max(0, idealNextTime - now);  // Adjust for any drift
+                
+                if ((window as any).__DEBUG_SEQUENCER) {
+                    console.log('[SEQUENCER TIMING]', {
+                        now,
+                        idealNextTime,
+                        delay,
+                        drift: now - (sequencerStartTime + ((nextStep - 1) * stepDuration)),
+                    });
+                }
+                
+                const timeoutId = window.setTimeout(get()._tickSequencer, delay);
+                set({ sequencerTimeoutId: timeoutId });
             }
-            
-            const timeoutId = window.setTimeout(get()._tickSequencer, delay);
-            set({ sequencerTimeoutId: timeoutId });
         } else {
             // Fallback to simple interval (shouldn't happen but safety check)
             const timeoutId = window.setTimeout(get()._tickSequencer, stepDuration);
