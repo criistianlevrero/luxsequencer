@@ -2,28 +2,27 @@ import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SettingsActions } from '../types';
 import type { ControlSettings, Pattern } from '../../types';
-import { lerp } from '../utils/helpers';
+import { ControlSource } from '../../types';
 import { env } from '../../config';
 
 export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActions> = (set, get) => ({
     setCurrentSetting: <K extends keyof ControlSettings>(key: K, value: ControlSettings[K]) => {
-        const { animationFrameRef } = get();
-        // If a pattern loading animation is running, cancel it to give user control.
-        if (animationFrameRef) {
-            cancelAnimationFrame(animationFrameRef);
-            // Reset transition state to prevent shaders from getting stuck.
-            set({
-                animationFrameRef: null,
-                transitionProgress: 1,
-                previousGradient: null,
-                previousBackgroundGradient: null
-            });
-        }
+        const { requestPropertyChange, currentSettings } = get();
+        
+        // Request immediate change with UI priority
+        requestPropertyChange(
+            key,
+            currentSettings[key],
+            value,
+            0, // Immediate (0 steps)
+            ControlSource.UI,
+            'linear'
+        );
 
-        set(state => ({
-            currentSettings: { ...state.currentSettings, [key]: value },
-            isPatternDirty: !!state.selectedPatternId,
-        }));
+        // Mark pattern as dirty if one is selected
+        set({
+            isPatternDirty: !!get().selectedPatternId,
+        });
     },
 
     saveCurrentPattern: (midiNote) => {
@@ -59,143 +58,65 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
     },
 
     loadPattern: (id) => {
-        const { project, activeSequenceIndex, currentSettings, animationFrameRef, lastAppliedSettingsRef } = get();
+        const { project, activeSequenceIndex, currentSettings, requestPropertyChange } = get();
         if (!project) return;
 
         const activeSequence = project.sequences[activeSequenceIndex];
         const pattern = activeSequence.patterns.find(p => p.id === id);
         if (!pattern) return;
 
+        // Get interpolation settings
+        const interpolationSteps = activeSequence.interpolationSpeed;
+
         // DEBUG: Log pattern load start
         if (env.debug.animation) {
-            console.log('[ANIMATION] Pattern load start', {
+            console.log('[ANIMATION] Pattern load start (UI)', {
                 timestamp: Date.now(),
                 patternId: id,
                 patternName: pattern.name,
-                hadActiveAnimation: animationFrameRef !== null,
-                interpolationSpeed: activeSequence.interpolationSpeed,
-                animateOnlyChanges: activeSequence.animateOnlyChanges,
+                interpolationSteps,
             });
         }
 
-        if (animationFrameRef) cancelAnimationFrame(animationFrameRef);
-
-        const startSettings = { ...currentSettings };
-        const baseSettings = currentSettings;
-
-        // Determine which properties need animation
-        const settingsToAnimate: Partial<ControlSettings> = activeSequence.animateOnlyChanges
-            ? Object.fromEntries(Object.entries(pattern.settings).filter(([key, value]) =>
-                JSON.stringify(value) !== JSON.stringify(baseSettings[key as keyof ControlSettings])
-            ))
-            : pattern.settings;
-
-        const endSettings = activeSequence.animateOnlyChanges
-            ? { ...currentSettings, ...settingsToAnimate }
-            : { ...currentSettings, ...pattern.settings };
-
-        // DEBUG: Log animation settings
-        if (env.debug.animation) {
-            const comparisonDetails = Object.entries(pattern.settings).map(([key, patternValue]) => {
-                const currentValue = baseSettings[key as keyof ControlSettings];
-                const isDifferent = JSON.stringify(patternValue) !== JSON.stringify(currentValue);
-                return {
-                    property: key,
-                    isDifferent,
-                    patternValue: typeof patternValue === 'object' ? '[object]' : patternValue,
-                    currentValue: typeof currentValue === 'object' ? '[object]' : currentValue,
-                };
-            });
-
-            console.log('[ANIMATION] Settings analysis', {
-                animateOnlyChanges: activeSequence.animateOnlyChanges,
-                patternSettingsCount: Object.keys(pattern.settings).length,
-                settingsToAnimateCount: Object.keys(settingsToAnimate).length,
-                settingsToAnimate: Object.keys(settingsToAnimate),
-                allPatternSettings: Object.keys(pattern.settings),
-                comparisonDetails: comparisonDetails.filter(d => d.isDifferent),
-                allComparisons: comparisonDetails,
-            });
-        }
-
-        const duration = activeSequence.interpolationSpeed * 1000;
-
-        // If duration is 0 OR there's nothing to animate, apply immediately
-        if (duration === 0 || Object.keys(settingsToAnimate).length === 0) {
-            if (env.debug.animation) {
-                console.log('[ANIMATION] Immediate apply', {
-                    reason: duration === 0 ? 'duration is 0' : 'no properties to animate',
-                    patternId: id,
-                });
+        // Calculate properties that differ and request animations for each
+        const changedKeys = (Object.keys(pattern.settings) as Array<keyof ControlSettings>).filter(key => {
+            const patternValue = pattern.settings[key];
+            const currentValue = currentSettings[key];
+            // Deep comparison for arrays (gradients)
+            if (Array.isArray(patternValue) && Array.isArray(currentValue)) {
+                return JSON.stringify(patternValue) !== JSON.stringify(currentValue);
             }
-            set({
-                currentSettings: endSettings,
-                lastAppliedSettingsRef: endSettings,
-                previousGradient: null,
-                previousBackgroundGradient: null,
-                transitionProgress: 1,
-                selectedPatternId: id,
-                isPatternDirty: false
+            return patternValue !== currentValue;
+        });
+
+        if (env.debug.animation) {
+            console.log('[ANIMATION] Changed keys (UI)', {
+                patternId: id,
+                changedKeysCount: changedKeys.length,
+                changedKeys,
             });
-            return;
         }
 
-        const gradientChanged = 'gradientColors' in settingsToAnimate;
-        const backgroundGradientChanged = 'backgroundGradientColors' in settingsToAnimate;
-        const concentricGradientChanged = 'concentric_gradientColors' in settingsToAnimate;
+        // Request property changes for each changed property
+        // Use UI priority since this is called from user interaction
+        changedKeys.forEach(key => {
+            const from = currentSettings[key];
+            const to = pattern.settings[key];
+            requestPropertyChange(
+                key,
+                from,
+                to,
+                interpolationSteps,
+                ControlSource.UI, // Higher priority than sequencer
+                'linear'
+            );
+        });
 
+        // Update selection state
         set({
-            previousGradient: gradientChanged ? startSettings.gradientColors : null,
-            previousBackgroundGradient: backgroundGradientChanged ? startSettings.backgroundGradientColors : null,
-            transitionProgress: (gradientChanged || backgroundGradientChanged || concentricGradientChanged) ? 0 : 1,
             selectedPatternId: id,
             isPatternDirty: false
         });
-
-        let startTime: number | null = null;
-        const animate = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const progress = Math.min((timestamp - startTime) / duration, 1);
-
-            if (gradientChanged || backgroundGradientChanged || concentricGradientChanged) {
-                set({ transitionProgress: progress });
-            }
-
-            const newSettings = { ...endSettings };
-
-            Object.entries(settingsToAnimate).forEach(([key, value]) => {
-                const settingKey = key as keyof ControlSettings;
-
-                if (settingKey === 'gradientColors' || settingKey === 'backgroundGradientColors' || settingKey === 'concentric_gradientColors') {
-                    if (progress >= 1 && Array.isArray(value)) {
-                        (newSettings[settingKey]) = value;
-                    }
-                    return;
-                }
-
-                if (typeof startSettings[settingKey] === 'number' && typeof value === 'number') {
-                    (newSettings[settingKey] as number) = lerp(startSettings[settingKey] as number, value, progress);
-                } else if (progress >= 1) {
-                    (newSettings[settingKey] as any) = value;
-                }
-            });
-
-            set({ currentSettings: newSettings });
-
-            if (progress < 1) {
-                set({ animationFrameRef: requestAnimationFrame(animate) });
-            } else {
-                set({
-                    animationFrameRef: null,
-                    lastAppliedSettingsRef: endSettings,
-                    currentSettings: endSettings,
-                    previousGradient: null,
-                    previousBackgroundGradient: null,
-                    transitionProgress: 1
-                });
-            }
-        };
-        set({ animationFrameRef: requestAnimationFrame(animate) });
     },
 
     deletePattern: (id) => {
