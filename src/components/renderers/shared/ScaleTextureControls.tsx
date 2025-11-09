@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useTextureStore } from '../../../store';
-import GradientEditor from '../../GradientEditor';
-import MidiLearnButton from './MidiLearnButton';
+import GradientEditor from '../../controls/GradientEditor';
+import MidiLearnButton from '../../midi/MidiLearnButton';
 import SliderInput from './SliderInput';
 import CollapsibleSection from './CollapsibleSection';
 

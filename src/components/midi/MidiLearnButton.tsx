@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { MidiIcon } from '../shared/icons';
+import { Button } from '../shared/Button';
 
 interface MidiLearnButtonProps {
     isLearning: boolean;
@@ -19,25 +20,28 @@ const MidiLearnButton: React.FC<MidiLearnButtonProps> = ({
     learnTitle = "Aprender mapeo MIDI",
     clearTitle = "Limpiar mapeo MIDI"
 }) => {
-    const baseClasses = "w-10 h-10 flex-shrink-0 rounded-lg flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500";
     const stateClasses = isLearning
-        ? "bg-orange-500 text-white animate-midi-learn-pulse"
+        ? "bg-orange-500 hover:bg-orange-600 text-white animate-midi-learn-pulse"
         : isMapped
-        ? "bg-cyan-600 text-white"
-        : "bg-gray-600 hover:bg-gray-500 text-gray-300";
+        ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+        : "";
 
     const defaultTitle = isMapped ? clearTitle : learnTitle;
 
     return (
-        <button
+        <Button
             type="button"
             onClick={onClick}
-            className={`${baseClasses} ${stateClasses}`}
+            variant={isLearning || isMapped ? 'primary' : 'secondary'}
+            size="icon"
+            className={`w-10 h-10 flex-shrink-0 ${stateClasses}`}
             title={title || defaultTitle}
             aria-label={title || defaultTitle}
+            icon={<MidiIcon className="w-5 h-5" />}
+            iconOnly
         >
-            <MidiIcon className="w-5 h-5" />
-        </button>
+            {/* Icon only button */}
+        </Button>
     );
 };
 
