@@ -1,4 +1,4 @@
-import type { Project, ControlSettings, Pattern, Sequence, MidiLogEntry } from '../../types';
+import type { Project, ControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
 
 export interface MidiState {
     devices: MIDIInput[];
@@ -19,14 +19,18 @@ export interface State {
     sequencerCurrentStep: number;
     sequencerTimeoutId: number | null;
     sequencerStartTime: number | null;
-    animationFrameRef: number | null;
     lastAppliedSettingsRef: ControlSettings | null;
-    previousGradient: any[] | null;
-    previousBackgroundGradient: any[] | null;
-    transitionProgress: number;
     midi: MidiState;
     midiLog: MidiLogEntry[];
     viewportMode: 'horizontal' | 'vertical';
+    
+    // Animation system
+    activeAnimations: Map<keyof ControlSettings, ActiveAnimation>;
+    
+    // Legacy fields kept for gradients (used by WebGL shaders)
+    transitionProgress: number;
+    previousGradient: any[] | null;
+    previousBackgroundGradient: any[] | null;
 }
 
 export interface ProjectActions {
@@ -79,6 +83,20 @@ export interface UIActions {
     setRenderer: (renderer: string) => void;
 }
 
-export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions;
+export interface AnimationActions {
+    requestPropertyChange: (
+        property: keyof ControlSettings,
+        from: any,
+        to: any,
+        steps: number,
+        source: ControlSource,
+        interpolationType?: InterpolationType
+    ) => void;
+    _animationLoop: () => void;
+    cancelAllAnimations: () => void;
+    cancelAnimationForProperty: (property: keyof ControlSettings) => void;
+}
+
+export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions;
 
 export type StoreState = State & Actions;
