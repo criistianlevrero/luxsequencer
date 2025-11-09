@@ -227,37 +227,23 @@ const Sequencer: React.FC = () => {
                 {/* Sequence Settings - Always visible */}
                 <div className="pt-2 border-t border-gray-700">
                     <h3 className="text-xs font-medium text-gray-400 mb-2">Configuración de Secuencia</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-gray-400 block">
-                                Velocidad de Interpolación
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="2"
-                                    step="0.1"
-                                    value={activeSequence.interpolationSpeed}
-                                    onChange={(e) => handleSequenceChange('interpolationSpeed', Number(e.target.value))}
-                                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                                />
-                                <span className="text-xs font-mono bg-gray-900/50 text-cyan-300 px-2 py-0.5 rounded min-w-[2.5rem] text-center">
-                                    {activeSequence.interpolationSpeed.toFixed(1)}s
-                                </span>
-                            </div>
-                        </div>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-400 block">
+                            Velocidad de Interpolación
+                        </label>
                         <div className="flex items-center gap-2">
                             <input
-                                type="checkbox"
-                                id="animateOnlyChanges"
-                                checked={activeSequence.animateOnlyChanges}
-                                onChange={(e) => handleSequenceChange('animateOnlyChanges', e.target.checked)}
-                                className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500 focus:ring-2"
+                                type="range"
+                                min="0"
+                                max="8"
+                                step="0.25"
+                                value={activeSequence.interpolationSpeed}
+                                onChange={(e) => handleSequenceChange('interpolationSpeed', Number(e.target.value))}
+                                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                             />
-                            <label htmlFor="animateOnlyChanges" className="text-xs text-gray-300">
-                                Animar solo cambios
-                            </label>
+                            <span className="text-xs font-mono bg-gray-900/50 text-cyan-300 px-2 py-0.5 rounded min-w-[3rem] text-center">
+                                {activeSequence.interpolationSpeed === 0 ? 'Instant' : `${activeSequence.interpolationSpeed.toFixed(2)}`}
+                            </span>
                         </div>
                     </div>
                 </div>
