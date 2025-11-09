@@ -6,6 +6,32 @@ import { LOCAL_STORAGE_KEY } from '../utils/helpers';
 
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions> = (set, get) => ({
     initializeProject: (project) => {
+        // Validate project version
+        const currentVersion = '2.0.0';
+        const projectVersion = project.version || '1.0.0';
+        
+        if (projectVersion !== currentVersion) {
+            console.warn(`[PROJECT] Version mismatch: project is v${projectVersion}, app expects v${currentVersion}`);
+            
+            // Migration logic for older versions
+            if (!project.version || projectVersion === '1.0.0') {
+                console.log('[PROJECT] Migrating from v1.0.0 to v2.0.0');
+                
+                // Migrate interpolationSpeed from ms to steps (rough conversion)
+                project.sequences.forEach(seq => {
+                    if (seq.interpolationSpeed > 10) {
+                        // Old format was in ms (e.g., 500ms -> 2 steps)
+                        seq.interpolationSpeed = Math.min(8, Math.max(0, seq.interpolationSpeed / 250));
+                    }
+                    // Remove animateOnlyChanges if it exists
+                    delete (seq as any).animateOnlyChanges;
+                });
+                
+                project.version = currentVersion;
+                console.log('[PROJECT] Migration complete');
+            }
+        }
+        
         const initialSettings = project.sequences[0].patterns[0]?.settings || get().currentSettings;
         set({
             project,
@@ -63,8 +89,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         const newSequence: Sequence = {
             id: `seq_${Date.now()}`,
             name,
-            interpolationSpeed: 500,
-            animateOnlyChanges: true,
+            interpolationSpeed: 2, // In steps (0-8, supports fractions)
             sequencer: {
                 steps: Array(16).fill(null),
                 bpm: 120,
