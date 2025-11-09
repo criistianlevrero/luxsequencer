@@ -6,6 +6,7 @@ import { createSettingsSlice } from './slices/settings.slice';
 import { createSequencerSlice } from './slices/sequencer.slice';
 import { createMidiSlice } from './slices/midi.slice';
 import { createUISlice } from './slices/ui.slice';
+import { createAnimationSlice } from './slices/animation.slice';
 
 // --- Initial State ---
 const initialState: State = {
@@ -40,11 +41,7 @@ const initialState: State = {
     sequencerCurrentStep: 0,
     sequencerTimeoutId: null,
     sequencerStartTime: null,
-    animationFrameRef: null,
     lastAppliedSettingsRef: null,
-    previousGradient: null,
-    previousBackgroundGradient: null,
-    transitionProgress: 1,
     midi: {
         devices: [],
         selectedDeviceId: null,
@@ -54,6 +51,14 @@ const initialState: State = {
     },
     midiLog: [],
     viewportMode: 'horizontal',
+    
+    // Animation system
+    activeAnimations: new Map(),
+    
+    // Legacy fields for gradient transitions (used by WebGL shaders)
+    transitionProgress: 1,
+    previousGradient: null,
+    previousBackgroundGradient: null,
 };
 
 // --- Store Creation ---
@@ -65,6 +70,7 @@ export const useTextureStore = createWithEqualityFn<StoreState>(
         ...createSequencerSlice(set, get, api),
         ...createMidiSlice(set, get, api),
         ...createUISlice(set, get, api),
+        ...createAnimationSlice(set, get, api),
     }),
     shallow
 );
