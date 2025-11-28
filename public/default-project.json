@@ -8,7 +8,51 @@
     "interpolationSpeed": 2,
     "midiMappings": {}
   },
-  "sequences": [],
+  "sequences": [
+    {
+      "id": "sequence-1",
+      "name": "Secuencia Principal",
+      "interpolationSpeed": 2,
+      "sequencer": {
+        "steps": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+        "bpm": 120,
+        "numSteps": 16
+      },
+      "patterns": [
+        {
+          "id": "pattern-1",
+          "name": "Patrón Inicial",
+          "settings": {
+            "scaleSize": 150,
+            "scaleSpacing": 0,
+            "verticalOverlap": 0,
+            "horizontalOffset": 0.5,
+            "shapeMorph": 0,
+            "animationSpeed": 1,
+            "animationDirection": 90,
+            "textureRotation": 0,
+            "textureRotationSpeed": 0,
+            "scaleBorderColor": "#000000",
+            "scaleBorderWidth": 0,
+            "gradientColors": [
+              { "id": "g-color-1", "color": "#00ffff", "hardStop": false },
+              { "id": "g-color-2", "color": "#ff00ff", "hardStop": false }
+            ],
+            "backgroundGradientColors": [
+              { "id": "bg-color-1", "color": "#1f2937", "hardStop": false }
+            ],
+            "concentric_repetitionSpeed": 0.5,
+            "concentric_growthSpeed": 0.5,
+            "concentric_initialSize": 10,
+            "concentric_gradientColors": [
+              { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
+              { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
+            ]
+          }
+        }
+      ]
+    }
+  ],
   "patterns": [],
   "recordings": []
 }
