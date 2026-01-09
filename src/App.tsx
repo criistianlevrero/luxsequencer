@@ -113,7 +113,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                   <div className="flex items-center space-x-2">
                     <FishIcon className="h-6 w-6 text-cyan-400" />
                     <h1 className="text-base md:text-lg font-bold text-gray-50">
-                      Generador de Textura de Escamas
+                      LuxSequencer - generative visuals in real time
                     </h1>
                   </div>
                 </div>

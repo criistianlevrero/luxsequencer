@@ -1,6 +1,6 @@
 # Environment Variables Guide
 
-This document describes the environment variables used in the Visual Patterns RT Tool application.
+This document describes the environment variables used in the LuxSequencer application.
 
 ## Setup
 

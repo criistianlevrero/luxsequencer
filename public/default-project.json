@@ -1,6 +1,6 @@
 {
-  "projectName": "Visual Patterns RT Tool Default",
-  "description": "Proyecto de ejemplo para Visual Patterns RT Tool.",
+  "projectName": "LuxSequencer Default",
+  "description": "Default project template for LuxSequencer.",
   "globalSettings": {
     "renderer": "webgl",
     "bpm": 120,

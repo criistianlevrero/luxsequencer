@@ -1,4 +1,4 @@
-# Visual Patterns RT Tool - AI Agent Instructions
+# LuxSequencer - AI Agent Instructions
 
 ## Important Rules
 - **NEVER commit changes automatically**: Always wait for explicit user request to commit

@@ -1,4 +1,4 @@
-# Visual Patterns RT Tool
+# LuxSequencer - generative visuals in real time
 
 Una aplicación web de alto rendimiento para generar patrones visuales animados en tiempo real. Diseñada para artistas visuales, VJs y creativos, esta herramienta ofrece control completo sobre renderizado WebGL/Canvas2D, integración MIDI profesional, y secuenciación avanzada de patrones.
 
@@ -58,8 +58,8 @@ Una aplicación web de alto rendimiento para generar patrones visuales animados 
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/criistianlevrero/visual-patterns-rt-tool.git
-   cd visual-patterns-rt-tool
+   git clone https://github.com/criistianlevrero/luxsequencer.git
+   cd luxsequencer
    ```
 
 2. Instala las dependencias:
