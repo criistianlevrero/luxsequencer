@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
+import { t } from '../../../i18n';
 // FIX: Import `ControlSection` from the root `types.ts` file.
 import type { ControlSection } from '../../../types';
 
@@ -12,7 +13,7 @@ const ScaleGradientEditor: React.FC = () => {
     const colors = useTextureStore(state => state.currentSettings.gradientColors);
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement(GradientEditor, {
-        title: "Gradiente de Escamas",
+        title: t('controls.scaleGradient'),
         colors: colors,
         onColorsChange: (newColors) => setCurrentSetting('gradientColors', newColors),
         minColors: 2,
@@ -26,7 +27,7 @@ const BackgroundGradientEditor: React.FC = () => {
     const colors = useTextureStore(state => state.currentSettings.backgroundGradientColors || []);
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement(GradientEditor, {
-        title: "Gradiente de Fondo",
+        title: t('controls.backgroundGradient'),
         colors: colors,
         onColorsChange: (newColors) => setCurrentSetting('backgroundGradientColors', newColors),
         minColors: 1,
@@ -42,7 +43,7 @@ const BorderColorPicker: React.FC = () => {
     return React.createElement('div', { className: "space-y-3" },
         React.createElement('div', { className: "flex justify-between items-center" },
             React.createElement('label', { htmlFor: "borderColor", className: "font-medium text-gray-300" },
-                "Color de Borde"
+                t('controls.borderColor')
             ),
             React.createElement('span', { className: "text-sm font-mono bg-gray-700 text-cyan-300 px-2 py-1 rounded uppercase" },
                 borderColor
@@ -58,43 +59,43 @@ const BorderColorPicker: React.FC = () => {
     );
 };
 
-export const scaleTextureSchema: ControlSection[] = [
+export const getScaleTextureSchema = (): ControlSection[] => [
     {
-        title: "Controles de Textura",
+        title: t('section.scale'),
         defaultOpen: true,
         controls: [
-            { type: 'slider', id: 'scaleSize', label: 'Tamaño', min: 45, max: 400, step: 1, formatter: (v) => `${v}px` },
-            { type: 'slider', id: 'scaleSpacing', label: 'Espaciado Horizontal', min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'verticalOverlap', label: 'Espaciado Vertical', min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'horizontalOffset', label: 'Desplazamiento Horizontal', min: 0, max: 1, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'shapeMorph', label: 'Forma de Escama', min: 0, max: 1, step: 0.01, formatter: (v) => {
-                if (v < 0.05) return 'Círculo';
-                if (v > 0.45 && v < 0.55) return 'Rombo';
-                if (v > 0.95) return 'Estrella';
-                if (v < 0.5) return 'Círculo → Rombo';
-                return 'Rombo → Estrella';
+            { type: 'slider', id: 'scaleSize', label: t('controls.scaleSize'), min: 45, max: 400, step: 1, formatter: (v) => `${v}px` },
+            { type: 'slider', id: 'scaleSpacing', label: t('controls.horizontalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'verticalOverlap', label: t('controls.verticalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'horizontalOffset', label: t('controls.horizontalOffset'), min: 0, max: 1, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'shapeMorph', label: t('controls.shapeForm'), min: 0, max: 1, step: 0.01, formatter: (v) => {
+                if (v < 0.05) return t('shape.circle');
+                if (v > 0.45 && v < 0.55) return t('shape.diamond');
+                if (v > 0.95) return t('shape.star');
+                if (v < 0.5) return t('shape.circleToDiamond');
+                return t('shape.diamondToStar');
             }},
         ]
     },
     {
-        title: "Controles de Borde",
+        title: t('section.border'),
         controls: [
             { type: 'custom', id: 'borderColor', component: BorderColorPicker },
-            { type: 'slider', id: 'scaleBorderWidth', label: 'Grosor de Borde', min: 0, max: 10, step: 0.1, formatter: (v) => `${v.toFixed(1)}px` },
+            { type: 'slider', id: 'scaleBorderWidth', label: t('controls.borderSize'), min: 0, max: 10, step: 0.1, formatter: (v) => `${v.toFixed(1)}px` },
         ]
     },
     {
-        title: "Transformación de Textura",
+        title: t('controls.rotationSpeed'),
         controls: [
             { 
                 type: 'slider',
                 id: 'textureRotationSpeed', 
-                label: 'Rotación de Textura', 
+                label: t('controls.rotationSpeed'), 
                 min: -5, 
                 max: 5, 
                 step: 0.1, 
                 formatter: (v) => {
-                    if (Math.abs(v) < 0.05) return 'Detenido';
+                    if (Math.abs(v) < 0.05) return t('shape.stopped');
                     const speed = Math.abs(v).toFixed(1);
                     return v > 0 ? `→ ${speed}` : `← ${speed}`;
                 }
@@ -102,15 +103,15 @@ export const scaleTextureSchema: ControlSection[] = [
         ]
     },
     {
-        title: "Gradiente y Animación",
+        title: t('section.animation'),
         controls: [
             { type: 'custom', id: 'scaleGradient', component: ScaleGradientEditor },
-            { type: 'slider', id: 'animationSpeed', label: 'Velocidad de Animación', min: 0.10, max: 2.50, step: 0.05, formatter: (v) => `${v.toFixed(2)}x` },
-            { type: 'slider', id: 'animationDirection', label: 'Dirección de Animación', min: 0, max: 360, step: 1, formatter: (v) => `${Math.round(v)}°` },
+            { type: 'slider', id: 'animationSpeed', label: t('controls.animationSpeed'), min: 0.10, max: 2.50, step: 0.05, formatter: (v) => `${v.toFixed(2)}x` },
+            { type: 'slider', id: 'animationDirection', label: t('controls.animationDirection'), min: 0, max: 360, step: 1, formatter: (v) => `${Math.round(v)}°` },
         ]
     },
     {
-        title: "Fondo",
+        title: t('section.background'),
         controls: [
             { type: 'custom', id: 'backgroundGradient', component: BackgroundGradientEditor },
         ]

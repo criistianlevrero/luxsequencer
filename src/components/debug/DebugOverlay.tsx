@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
 
 interface DebugMetrics {
@@ -17,6 +18,7 @@ interface DebugMetrics {
 }
 
 const DebugOverlay: React.FC = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [metrics, setMetrics] = useState<DebugMetrics>({
     sequencerTicks: 0,
@@ -201,7 +203,7 @@ const DebugOverlay: React.FC = () => {
     <div className="fixed bottom-4 right-4 w-96 max-h-[80vh] bg-gray-900/95 backdrop-blur-sm border-2 border-purple-500 rounded-lg shadow-2xl z-50 flex flex-col">
       {/* Header */}
       <div className="bg-purple-600 px-4 py-2 flex justify-between items-center rounded-t-lg">
-        <h3 className="font-bold text-white">🐛 Debug Console</h3>
+        <h3 className="font-bold text-white">🐛 {t('debug.console')}</h3>
         <button
           onClick={() => setIsOpen(false)}
           className="text-white hover:text-gray-200"
@@ -212,36 +214,36 @@ const DebugOverlay: React.FC = () => {
 
       {/* Metrics */}
       <div className="p-4 border-b border-gray-700 bg-gray-800/50">
-        <h4 className="font-semibold text-cyan-400 mb-2">Métricas en Tiempo Real</h4>
+        <h4 className="font-semibold text-cyan-400 mb-2">{t('debug.metrics')}</h4>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="bg-gray-700/50 p-2 rounded">
             <div className="text-gray-400">FPS</div>
             <div className="text-white font-mono font-bold">{metrics.fps}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">RAF Calls</div>
+            <div className="text-gray-400">{t('debug.rafCalls')}</div>
             <div className="text-white font-mono font-bold">{metrics.rafCalls}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Sequencer Ticks</div>
+            <div className="text-gray-400">{t('debug.sequencerTicks')}</div>
             <div className="text-white font-mono font-bold">{metrics.sequencerTicks}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Settings Updates</div>
+            <div className="text-gray-400">{t('debug.settingsUpdates')}</div>
             <div className="text-white font-mono font-bold">{metrics.settingsUpdates}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Current Step</div>
+            <div className="text-gray-400">{t('debug.currentStep')}</div>
             <div className="text-white font-mono font-bold">{metrics.sequencerStep}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Animation Active</div>
+            <div className="text-gray-400">{t('debug.animationActive')}</div>
             <div className={`font-mono font-bold ${metrics.animationFrameActive ? 'text-green-400' : 'text-red-400'}`}>
               {metrics.animationFrameActive ? 'YES' : 'NO'}
             </div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded col-span-2">
-            <div className="text-gray-400">Transition Progress</div>
+            <div className="text-gray-400">{t('debug.transitionProgress')}</div>
             <div className="text-white font-mono font-bold">{(metrics.transitionProgress * 100).toFixed(1)}%</div>
             <div className="w-full bg-gray-600 rounded-full h-1.5 mt-1">
               <div 
@@ -251,17 +253,17 @@ const DebugOverlay: React.FC = () => {
             </div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Active Animations</div>
+            <div className="text-gray-400">{t('debug.activeAnimations')}</div>
             <div className="text-cyan-300 font-mono font-bold">
               {storeState.activeAnimations.size}
             </div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">Interpolation Speed</div>
-            <div className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} steps</div>
+            <div className="text-gray-400">{t('debug.interpolationSpeed')}</div>
+            <div className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} {t('debug.steps')}</div>
           </div>
           <div className="bg-gray-700/50 p-2 rounded col-span-2">
-            <div className="text-gray-400">Settings Hash</div>
+            <div className="text-gray-400">{t('debug.settingsHash')}</div>
             <div className="text-cyan-300 font-mono text-xs truncate">{metrics.settingsHash}</div>
           </div>
         </div>
@@ -273,24 +275,24 @@ const DebugOverlay: React.FC = () => {
           onClick={clearLogs}
           className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold py-1 px-2 rounded"
         >
-          Clear Logs
+          {t('debug.clearLogs')}
         </button>
         <button
           onClick={exportDebugData}
           className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-2 rounded"
         >
-          Export Data
+          {t('debug.exportData')}
         </button>
       </div>
 
       {/* Event Logs */}
       <div className="flex-1 overflow-y-auto p-4">
         <h4 className="font-semibold text-cyan-400 mb-2 sticky top-0 bg-gray-900/95">
-          Event Log ({logs.length}/{maxLogs})
+          {t('debug.eventLog')} ({logs.length}/{maxLogs})
         </h4>
         <div className="space-y-1">
           {logs.length === 0 ? (
-            <div className="text-gray-500 text-xs italic">No events yet...</div>
+            <div className="text-gray-500 text-xs italic">{t('debug.noEvents')}</div>
           ) : (
             logs.map((log, i) => (
               <div key={i} className="bg-gray-800/50 p-2 rounded text-xs">

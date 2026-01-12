@@ -1,11 +1,11 @@
 
 import { RendererDefinition } from '../types';
 import Canvas2DRenderer from './Canvas2DRenderer';
-import { scaleTextureSchema } from '../shared/scale-texture-schema';
+import { getScaleTextureSchema } from '../shared/scale-texture-schema';
 
-export const canvas2DRenderer: RendererDefinition = {
+export const canvas2dRenderer: RendererDefinition = {
   id: 'canvas2d',
-  name: 'Escamas Canvas2D',
+  name: 'Escamas Canvas 2D',
   component: Canvas2DRenderer,
-  controlSchema: scaleTextureSchema,
+  controlSchema: getScaleTextureSchema,
 };

@@ -8,7 +8,7 @@ import CollapsibleSection from '../../shared/CollapsibleSection';
 import type { ControlSection, SliderControlConfig, ControlSettings } from '../../../types';
 
 interface RendererControlsProps {
-    schema: ControlSection[];
+    schema: ControlSection[] | (() => ControlSection[]);
 }
 
 const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
@@ -27,9 +27,12 @@ const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
         startMidiLearning,
     } = useTextureStore.getState();
     
+    // Resolve schema function if it's a function
+    const resolvedSchema = typeof schema === 'function' ? schema() : schema;
+    
     return (
         <>
-            {schema.map(section => (
+            {resolvedSchema.map(section => (
                 <CollapsibleSection key={section.title} title={section.title} defaultOpen={section.defaultOpen}>
                     <div className="space-y-6">
                         {section.controls.map(control => {

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
+import { t } from '../../../i18n';
 // FIX: Import `ControlSection` from the root `types.ts` file.
 import type { ControlSection } from '../../../types';
 
@@ -13,7 +14,7 @@ const ConcentricGradientEditor: React.FC = () => {
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement('div', { className: "pt-4 border-t border-gray-700/50" },
         React.createElement(GradientEditor, {
-            title: "Gradiente de Hexágono",
+            title: t('controls.concentricLayers'),
             colors: colors,
             onColorsChange: (newColors) => setCurrentSetting('concentric_gradientColors', newColors),
             minColors: 2
@@ -21,15 +22,15 @@ const ConcentricGradientEditor: React.FC = () => {
     );
 };
 
-export const concentricSchema: ControlSection[] = [
+export const getConcentricSchema = (): ControlSection[] => [
     {
-        title: "Controles Concénctricos",
+        title: t('section.concentric'),
         defaultOpen: true,
         controls: [
             {
                 type: 'slider',
                 id: 'concentric_repetitionSpeed',
-                label: "Velocidad de Repetición",
+                label: t('controls.animationSpeed'),
                 min: 0.1,
                 max: 5,
                 step: 0.1,
@@ -38,7 +39,7 @@ export const concentricSchema: ControlSection[] = [
             {
                 type: 'slider',
                 id: 'concentric_growthSpeed',
-                label: "Velocidad de Crecimiento",
+                label: t('controls.animationSpeed'),
                 min: 0.1,
                 max: 5,
                 step: 0.1,
@@ -47,7 +48,7 @@ export const concentricSchema: ControlSection[] = [
             {
                 type: 'slider',
                 id: 'concentric_initialSize',
-                label: "Tamaño Inicial",
+                label: t('controls.scaleSize'),
                 min: 1,
                 max: 100,
                 step: 1,

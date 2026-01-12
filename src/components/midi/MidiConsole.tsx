@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { CloseIcon } from '../shared/icons';
 import type { MidiLogEntry } from '../../types';
 
@@ -11,6 +12,8 @@ interface MidiConsoleProps {
 }
 
 const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear }) => {
+  const { t } = useTranslation();
+  
   return (
     <div
       className={`fixed bottom-0 left-0 right-0 z-40 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out ${
@@ -21,19 +24,19 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
     >
       <div className="flex flex-col h-full">
         <header className="flex items-center justify-between p-3 border-b border-gray-600 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-100">Consola MIDI</h2>
+          <h2 className="text-lg font-semibold text-gray-100">{t('midi.console')}</h2>
           <div className="flex items-center space-x-2">
             <button
                 onClick={onClear}
                 className="px-3 py-1 text-sm bg-gray-600 hover:bg-gray-500 text-gray-200 rounded-md transition-colors"
-                aria-label="Limpiar consola"
+                aria-label={t('ui.clearConsole')}
             >
-                Limpiar
+                {t('ui.clear')}
             </button>
             <button
               onClick={onClose}
               className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
-              aria-label="Cerrar consola"
+              aria-label={t('ui.closeConsole')}
             >
               <CloseIcon className="w-5 h-5" />
             </button>
@@ -41,7 +44,7 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
         </header>
         <div className="flex-grow p-4 overflow-y-auto font-mono text-sm">
           {log.length === 0 ? (
-            <p className="text-gray-500">Esperando datos MIDI...</p>
+            <p className="text-gray-500">{t('midi.waiting')}</p>
           ) : (
             log.map((entry, index) => (
               <div key={index} className="flex items-baseline space-x-4 mb-1">

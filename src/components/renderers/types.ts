@@ -7,5 +7,5 @@ export interface RendererDefinition {
   id: string;
   name: string;
   component: React.FC<{ className?: string }>;
-  controlSchema: ControlSection[];
+  controlSchema: ControlSection[] | (() => ControlSection[]);
 }

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
 import { SaveIcon, TrashIcon, CopyIcon, PlusIcon } from './icons';
 import { Button } from './Button';
 
 const SequenceManager: React.FC = () => {
+  const { t } = useTranslation();
   const project = useTextureStore(state => state.project);
   const activeSequenceIndex = useTextureStore(state => state.activeSequenceIndex);
   const setActiveSequenceIndex = useTextureStore(state => state.setActiveSequenceIndex);
@@ -40,7 +42,7 @@ const SequenceManager: React.FC = () => {
   const handleDeleteSequence = () => {
     if (activeSequence && canDelete) {
       const confirmDelete = window.confirm(
-        `¿Eliminar la secuencia "${activeSequence.name}"? Esta acción no se puede deshacer.`
+        t('sequence.confirmDelete', { name: activeSequence.name })
       );
       if (confirmDelete) {
         deleteSequence(activeSequence.id);
@@ -53,7 +55,7 @@ const SequenceManager: React.FC = () => {
       {/* Sequence Selector */}
       <div className="flex items-center gap-2">
         <label htmlFor="sequence-select" className="text-sm font-medium text-gray-300">
-          Secuencia:
+          {t('sequence.label')}:
         </label>
         <select
           id="sequence-select"
@@ -75,7 +77,7 @@ const SequenceManager: React.FC = () => {
           variant="primary"
           size="sm"
           onClick={() => setShowNewSequenceInput(!showNewSequenceInput)}
-          title="Nueva secuencia"
+          title={t('sequence.new')}
           iconOnly
         >
           <PlusIcon className="w-4 h-4" />
@@ -85,7 +87,7 @@ const SequenceManager: React.FC = () => {
           variant="secondary"
           size="sm"
           onClick={() => setShowDuplicateInput(!showDuplicateInput)}
-          title="Duplicar secuencia actual"
+          title={t('sequence.duplicate')}
           iconOnly
         >
           <CopyIcon className="w-4 h-4" />
@@ -96,7 +98,7 @@ const SequenceManager: React.FC = () => {
           size="sm"
           onClick={handleDeleteSequence}
           disabled={!canDelete}
-          title={canDelete ? "Eliminar secuencia" : "No puedes eliminar la última secuencia"}
+          title={canDelete ? t('sequence.delete') : t('sequence.cantDeleteLast')}
           iconOnly
         >
           <TrashIcon className="w-4 h-4" />
@@ -111,7 +113,7 @@ const SequenceManager: React.FC = () => {
             value={newSequenceName}
             onChange={(e) => setNewSequenceName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSaveNewSequence()}
-            placeholder="Nombre de la nueva secuencia"
+            placeholder={t('sequence.newName')}
             className="flex-1 bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             autoFocus
           />
@@ -121,7 +123,7 @@ const SequenceManager: React.FC = () => {
             onClick={handleSaveNewSequence}
           >
             <SaveIcon className="w-4 h-4 mr-1" />
-            Guardar
+            {t('ui.save')}
           </Button>
           <Button
             variant="ghost"
@@ -131,7 +133,7 @@ const SequenceManager: React.FC = () => {
               setNewSequenceName('');
             }}
           >
-            Cancelar
+            {t('ui.cancel')}
           </Button>
         </div>
       )}
@@ -154,7 +156,7 @@ const SequenceManager: React.FC = () => {
             onClick={handleDuplicateSequence}
           >
             <CopyIcon className="w-4 h-4 mr-1" />
-            Duplicar
+            {t('ui.duplicate')}
           </Button>
           <Button
             variant="ghost"
@@ -164,7 +166,7 @@ const SequenceManager: React.FC = () => {
               setDuplicateName('');
             }}
           >
-            Cancelar
+            {t('ui.cancel')}
           </Button>
         </div>
       )}

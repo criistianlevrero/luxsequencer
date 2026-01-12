@@ -6,9 +6,11 @@ import CollapsibleSection from '../shared/CollapsibleSection';
 import PropertySequencer from './PropertySequencer';
 import { Button } from '../shared/Button';
 import { SequencerCell } from '../shared/SequencerCell';
+import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 
 const Sequencer: React.FC = () => {
+    const { t } = useTranslation();
     const [showNewSequenceInput, setShowNewSequenceInput] = useState(false);
     const [newSequenceName, setNewSequenceName] = useState('');
     const [showRenameInput, setShowRenameInput] = useState(false);
@@ -73,7 +75,7 @@ const Sequencer: React.FC = () => {
     const handleDeleteSequence = () => {
         if (activeSequence && canDelete) {
             const confirmDelete = window.confirm(
-                `¿Eliminar la secuencia "${activeSequence.name}"? Esta acción no se puede deshacer.`
+                t('sequencer.deletePattern')
             );
             if (confirmDelete) {
                 deleteSequence(activeSequence.id);
@@ -115,7 +117,7 @@ const Sequencer: React.FC = () => {
                 {/* Row 1: Sequence selector - full width on mobile */}
                 <div className="space-y-1.5">
                     <label htmlFor="sequence-selector" className="font-medium text-gray-300 text-xs block">
-                        Secuencia Activa
+                        {t('sequencer.patterns')}
                     </label>
                     <div className="flex gap-2">
                         <select
@@ -133,7 +135,7 @@ const Sequencer: React.FC = () => {
                             size="icon"
                             icon={<PlusIcon className="w-5 h-5"/>}
                             iconOnly
-                            title="Añadir nueva secuencia" 
+                            title={t('sequencer.addPattern')} 
                             onClick={() => setShowNewSequenceInput(!showNewSequenceInput)}
                         />
                         <Button 
@@ -141,7 +143,7 @@ const Sequencer: React.FC = () => {
                             size="icon"
                             icon={<SettingsIcon className="w-5 h-5"/>}
                             iconOnly
-                            title="Renombrar secuencia actual" 
+                            title={t('common.save')} 
                             onClick={handleStartRename}
                         />
                         <Button 
@@ -149,7 +151,7 @@ const Sequencer: React.FC = () => {
                             size="icon"
                             icon={<TrashIcon className="w-5 h-5"/>}
                             iconOnly
-                            title={canDelete ? "Eliminar secuencia" : "No puedes eliminar la última secuencia"}
+                            title={canDelete ? t('common.delete') : t('sequencer.deletePattern')}
                             onClick={handleDeleteSequence}
                             disabled={!canDelete}
                         />
@@ -160,7 +162,7 @@ const Sequencer: React.FC = () => {
                 {showNewSequenceInput && (
                     <div className="space-y-2">
                         <label htmlFor="new-sequence-name" className="font-medium text-gray-300 text-xs block">
-                            Nombre de la nueva secuencia
+                            {t('project.name')}
                         </label>
                         <div className="flex gap-2">
                             <input
@@ -169,7 +171,7 @@ const Sequencer: React.FC = () => {
                                 value={newSequenceName}
                                 onChange={(e) => setNewSequenceName(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSaveNewSequence()}
-                                placeholder="Ej: Secuencia 2"
+                                placeholder={t('project.defaultName')}
                                 className="flex-1 bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                                 autoFocus
                             />
@@ -179,7 +181,7 @@ const Sequencer: React.FC = () => {
                                 onClick={handleSaveNewSequence}
                                 disabled={!newSequenceName.trim()}
                             >
-                                Guardar
+                                {t('common.save')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -189,7 +191,7 @@ const Sequencer: React.FC = () => {
                                     setNewSequenceName('');
                                 }}
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </div>
@@ -199,7 +201,7 @@ const Sequencer: React.FC = () => {
                 {showRenameInput && (
                     <div className="space-y-2">
                         <label htmlFor="rename-sequence" className="font-medium text-gray-300 text-xs block">
-                            Renombrar secuencia
+                            {t('project.name')}
                         </label>
                         <div className="flex gap-2">
                             <input
@@ -217,7 +219,7 @@ const Sequencer: React.FC = () => {
                                 onClick={handleRenameSequence}
                                 disabled={!renameValue.trim()}
                             >
-                                Guardar
+                                {t('common.save')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -227,7 +229,7 @@ const Sequencer: React.FC = () => {
                                     setRenameValue('');
                                 }}
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </div>
@@ -243,7 +245,7 @@ const Sequencer: React.FC = () => {
                         iconOnly
                         onClick={() => setIsSequencerPlaying(!isSequencerPlaying)}
                         className="w-12 h-12 mx-auto sm:mx-0"
-                        aria-label={isSequencerPlaying ? 'Detener secuenciador' : 'Iniciar secuenciador'}
+                        aria-label={isSequencerPlaying ? t('sequencer.stop') : t('sequencer.play')}
                     />
 
                     {/* BPM Control */}
@@ -271,7 +273,7 @@ const Sequencer: React.FC = () => {
                     {/* Step Count Selector */}
                     <div className="space-y-1.5">
                         <label className="font-medium text-gray-300 text-xs block">
-                            Pasos
+                            {t('sequencer.steps')}
                         </label>
                         <div className="flex flex-wrap gap-2">
                             <div className="bg-gray-900/50 p-1 rounded-lg flex gap-1">
@@ -290,10 +292,10 @@ const Sequencer: React.FC = () => {
 
                 {/* Sequence Settings - Always visible */}
                 <div className="pt-2 border-t border-gray-700">
-                    <h3 className="text-xs font-medium text-gray-400 mb-2">Configuración de Secuencia</h3>
+                    <h3 className="text-xs font-medium text-gray-400 mb-2">{t('section.animation')}</h3>
                     <div className="space-y-1.5">
                         <label className="text-xs font-medium text-gray-400 block">
-                            Velocidad de Interpolación
+                            {t('sequencer.interpolationSpeed')}
                         </label>
                         <div className="flex items-center gap-2">
                             <input
@@ -306,7 +308,7 @@ const Sequencer: React.FC = () => {
                                 className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                             />
                             <span className="text-xs font-mono bg-gray-900/50 text-cyan-300 px-2 py-0.5 rounded min-w-[3rem] text-center">
-                                {activeSequence.interpolationSpeed === 0 ? 'Instant' : `${activeSequence.interpolationSpeed.toFixed(2)}`}
+                                {activeSequence.interpolationSpeed === 0 ? t('common.instant') : `${activeSequence.interpolationSpeed.toFixed(2)}`}
                             </span>
                         </div>
                     </div>
@@ -314,7 +316,7 @@ const Sequencer: React.FC = () => {
             </div>
 
             {/* --- PATTERN SEQUENCER --- */}
-            <CollapsibleSection title="Secuenciador de Patrones" defaultOpen={true}>
+            <CollapsibleSection title={t('sequencer.patterns')} defaultOpen={true}>
                 <div className="relative">
                     {/* Responsive container with horizontal scroll */}
                     <div className="overflow-x-auto -mx-2 px-2 pb-2">
@@ -363,14 +365,14 @@ const Sequencer: React.FC = () => {
                     {patterns.length === 0 && (
                         <div className="text-center py-8 text-gray-500 text-sm">
                             <div className="mb-2">🎵</div>
-                            <div>Guarda algunos patrones para empezar a secuenciar.</div>
+                            <div>{t('sequencer.saveCurrentPattern')}</div>
                         </div>
                     )}
                 </div>
             </CollapsibleSection>
             
             {/* --- PROPERTY SEQUENCER --- */}
-            <CollapsibleSection title="Secuenciador de Propiedades">
+            <CollapsibleSection title={t('sequencer.propertySequencer')}>
                 <PropertySequencer />
             </CollapsibleSection>
         </div>

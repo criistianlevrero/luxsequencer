@@ -5,7 +5,7 @@ import { createProjectSlice } from './slices/project.slice';
 import { createSettingsSlice } from './slices/settings.slice';
 import { createSequencerSlice } from './slices/sequencer.slice';
 import { createMidiSlice } from './slices/midi.slice';
-import { createUISlice } from './slices/ui.slice';
+import { createUISlice, initialLocale } from './slices/ui.slice';
 import { createAnimationSlice } from './slices/animation.slice';
 
 // --- Initial State ---
@@ -53,6 +53,7 @@ const initialState: State = {
     },
     midiLog: [],
     viewportMode: 'horizontal',
+    currentLocale: initialLocale,
     
     // Animation system
     activeAnimations: new Map(),
@@ -76,3 +77,4 @@ export const useTextureStore = createWithEqualityFn<StoreState>(
     }),
     shallow
 );
+

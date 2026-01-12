@@ -1,4 +1,5 @@
 import type { Project, ControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
+import type { LocaleCode } from '../../i18n/types';
 
 export interface MidiState {
     devices: MIDIInput[];
@@ -25,6 +26,7 @@ export interface State {
     midi: MidiState;
     midiLog: MidiLogEntry[];
     viewportMode: 'horizontal' | 'vertical';
+    currentLocale: LocaleCode;
     
     // Animation system
     activeAnimations: Map<keyof ControlSettings, ActiveAnimation>;
@@ -86,6 +88,7 @@ export interface UIActions {
     clearMidiLog: () => void;
     setViewportMode: (mode: 'horizontal' | 'vertical') => void;
     setRenderer: (renderer: string) => void;
+    setLocale: (locale: LocaleCode) => void;
 }
 
 export interface AnimationActions {

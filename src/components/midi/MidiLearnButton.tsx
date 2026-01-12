@@ -2,6 +2,7 @@
 import React from 'react';
 import { MidiIcon } from '../shared/icons';
 import { Button } from '../shared/Button';
+import { useTranslation } from '../../i18n/hooks/useTranslation';
 
 interface MidiLearnButtonProps {
     isLearning: boolean;
@@ -17,16 +18,20 @@ const MidiLearnButton: React.FC<MidiLearnButtonProps> = ({
     isMapped, 
     onClick,
     title,
-    learnTitle = "Aprender mapeo MIDI",
-    clearTitle = "Limpiar mapeo MIDI"
+    learnTitle,
+    clearTitle
 }) => {
+    const { t } = useTranslation();
+    
     const stateClasses = isLearning
         ? "bg-orange-500 hover:bg-orange-600 text-white animate-midi-learn-pulse"
         : isMapped
         ? "bg-cyan-600 hover:bg-cyan-700 text-white"
         : "";
 
-    const defaultTitle = isMapped ? clearTitle : learnTitle;
+    const defaultTitle = isMapped 
+        ? (clearTitle || t('midi.clearMappings')) 
+        : (learnTitle || t('midi.learn'));
 
     return (
         <Button

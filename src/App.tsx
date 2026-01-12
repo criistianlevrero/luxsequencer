@@ -8,6 +8,9 @@ import MidiConsole from './components/midi/MidiConsole';
 import ViewportControls from './components/controls/ViewportControls';
 import Sequencer from './components/sequencer/Sequencer';
 import DebugOverlay from './components/debug/DebugOverlay';
+import { useTranslation } from './i18n/hooks/useTranslation';
+
+import { LanguageSelector } from './components/i18n/LanguageSelector';
 import { env } from './config';
 import type { Project } from './types';
 
@@ -16,6 +19,8 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ initialProject }) => {
+  const { t } = useTranslation();
+  
   // Initialize the store with the project data loaded from localStorage or default file.
   useEffect(() => {
     useTextureStore.getState().initializeProject(initialProject);
@@ -54,12 +59,12 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
 
   const handleResetToDefault = useCallback(() => {
     const confirmReset = window.confirm(
-      '¿Estás seguro de que quieres resetear a la configuración por defecto? Se perderán todos los cambios actuales.'
+      t('error.resetConfirmation')
     );
     if (confirmReset) {
       resetToDefault();
     }
-  }, [resetToDefault]);
+  }, [resetToDefault, t]);
 
   useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -118,17 +123,18 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <LanguageSelector className="bg-gray-700/80 text-white rounded px-2 py-1 text-sm border border-gray-600 hover:bg-gray-600 transition-colors" />
                   <button
                     onClick={handleResetToDefault}
                     className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
-                    title="Resetear a configuración por defecto"
+                    title={t('ui.resetToDefault')}
                   >
                     <ResetIcon className="w-5 h-5" />
                   </button>
                   <button
                     onClick={toggleFullscreen}
                     className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
-                    aria-label="Entrar en pantalla completa"
+                    aria-label={t('ui.enterFullscreen')}
                   >
                     <EnterFullscreenIcon className="w-6 h-6" />
                   </button>
@@ -181,14 +187,14 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                   <button
                     onClick={() => setIsDrawerOpen(!isDrawerOpen)}
                     className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
-                    aria-label={isDrawerOpen ? "Cerrar controles" : "Abrir controles"}
+                    aria-label={isDrawerOpen ? t('ui.closeControls') : t('ui.openControls')}
                   >
                     {isDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SettingsIcon className="w-6 h-6" />}
                   </button>
                    <button
                     onClick={() => setIsSequencerDrawerOpen(!isSequencerDrawerOpen)}
                     className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
-                    aria-label={isSequencerDrawerOpen ? "Cerrar secuenciador" : "Abrir secuenciador"}
+                    aria-label={isSequencerDrawerOpen ? t('ui.closeSequencer') : t('ui.openSequencer')}
                   >
                     {isSequencerDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SequencerIcon className="w-6 h-6" />}
                   </button>
@@ -197,14 +203,14 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                 <button
                   onClick={handleResetToDefault}
                   className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
-                  title="Resetear a configuración por defecto"
+                  title={t('ui.resetToDefault')}
                 >
                   <ResetIcon className="w-6 h-6" />
                 </button>
                 <button
                   onClick={toggleFullscreen}
                   className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
-                  aria-label="Salir de pantalla completa"
+                  aria-label={t('ui.exitFullscreen')}
                 >
                   <ExitFullscreenIcon className="w-6 h-6" />
                 </button>
@@ -240,7 +246,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
         <button
           onClick={() => setIsConsoleOpen(true)}
           className="fixed bottom-4 right-4 z-50 w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-cyan-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500"
-          aria-label="Abrir consola MIDI"
+          aria-label={t('ui.openMidiConsole')}
         >
           <ConsoleIcon className="w-6 h-6" />
         </button>
@@ -248,6 +254,9 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
       
       {/* Debug Overlay - Only visible when VITE_DEBUG_MODE=true */}
       {env.debugMode && <DebugOverlay />}
+      
+      {/* I18n Test Component - Temporary for debugging */}
+
     </div>
   );
 };
