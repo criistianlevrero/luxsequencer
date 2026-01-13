@@ -11,6 +11,8 @@ import DebugOverlay from './components/debug/DebugOverlay';
 import { useTranslation } from './i18n/hooks/useTranslation';
 
 import { LanguageSelector } from './components/i18n/LanguageSelector';
+import DualScreenManager from './components/dualscreen/DualScreenManager';
+import SecondaryDisplay from './components/dualscreen/SecondaryDisplay';
 import { env } from './config';
 import type { Project } from './types';
 
@@ -25,6 +27,19 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
   useEffect(() => {
     useTextureStore.getState().initializeProject(initialProject);
   }, [initialProject]);
+  
+  // Detectar si esta es una ventana secundaria
+  const urlParams = new URLSearchParams(window.location.search);
+  const isSecondaryWindow = urlParams.get('display') === 'secondary';
+  
+  // Si es ventana secundaria, mostrar solo el display
+  if (isSecondaryWindow) {
+    return (
+      <DualScreenManager>
+        <SecondaryDisplay />
+      </DualScreenManager>
+    );
+  }
 
   // UI-specific state that doesn't need to live in the global store.
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -42,6 +57,7 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
   const midiLog = useTextureStore(state => state.midiLog);
   const clearMidiLog = useTextureStore(state => state.clearMidiLog);
   const rendererId = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
+  const dualScreenEnabled = useTextureStore(state => state.dualScreen.enabled);
   const resetToDefault = useTextureStore(state => state.resetToDefault);
 
 
@@ -108,7 +124,8 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
   const CanvasComponent = renderers[rendererId]?.component;
 
   return (
-    <div ref={appRef} className="bg-gray-900">
+    <DualScreenManager>
+      <div ref={appRef} className="bg-gray-900">
       {!isFullscreen ? (
         <div className="min-h-screen text-gray-200 font-sans flex flex-col antialiased">
           <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700">
@@ -157,8 +174,21 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
                         ? "w-full aspect-video overflow-hidden rounded-xl bg-gray-800"
                         : "w-full max-w-sm mx-auto aspect-[9/16] overflow-hidden rounded-xl bg-gray-800"
                     }>
-                      {CanvasComponent ? (
+                      {CanvasComponent && !dualScreenEnabled ? (
                         <CanvasComponent className="w-full h-full" />
+                      ) : dualScreenEnabled ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900/50">
+                          <div className="text-center space-y-3">
+                            <div className="text-2xl text-cyan-400">📺</div>
+                            <div className="text-lg font-medium">Dual Screen Activo</div>
+                            <div className="text-sm opacity-75">
+                              El render se está mostrando en la pantalla secundaria
+                            </div>
+                            <div className="text-xs opacity-50">
+                              Preview deshabilitado para optimizar performance
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500">
                             Error: Renderer no encontrado.
@@ -257,7 +287,8 @@ const App: React.FC<AppProps> = ({ initialProject }) => {
       
       {/* I18n Test Component - Temporary for debugging */}
 
-    </div>
+      </div>
+    </DualScreenManager>
   );
 };
 

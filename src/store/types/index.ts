@@ -1,5 +1,6 @@
 import type { Project, ControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
 import type { LocaleCode } from '../../i18n/types';
+import type { DualScreenSlice, DualScreenState } from '../slices/dualScreen.slice';
 
 export interface MidiState {
     devices: MIDIInput[];
@@ -27,6 +28,15 @@ export interface State {
     midiLog: MidiLogEntry[];
     viewportMode: 'horizontal' | 'vertical';
     currentLocale: LocaleCode;
+    
+    // Dual screen system  
+    dualScreen: {
+        enabled: boolean;
+        isSecondaryWindow: boolean;
+        secondaryWindow: Window | null;
+        broadcastChannel: BroadcastChannel | null;
+        channelName: string;
+    };
     
     // Animation system
     activeAnimations: Map<keyof ControlSettings, ActiveAnimation>;
@@ -105,6 +115,6 @@ export interface AnimationActions {
     cancelAnimationForProperty: (property: keyof ControlSettings) => void;
 }
 
-export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions;
+export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions & DualScreenSlice;
 
 export type StoreState = State & Actions;

@@ -7,6 +7,7 @@ import { createSequencerSlice } from './slices/sequencer.slice';
 import { createMidiSlice } from './slices/midi.slice';
 import { createUISlice, initialLocale } from './slices/ui.slice';
 import { createAnimationSlice } from './slices/animation.slice';
+import { createDualScreenSlice } from './slices/dualScreen.slice';
 
 // --- Initial State ---
 const initialState: State = {
@@ -55,6 +56,15 @@ const initialState: State = {
     viewportMode: 'horizontal',
     currentLocale: initialLocale,
     
+    // Dual screen system
+    dualScreen: {
+        enabled: false,
+        isSecondaryWindow: false,
+        secondaryWindow: null,
+        broadcastChannel: null,
+        channelName: 'luxsequencer-dualscreen'
+    },
+    
     // Animation system
     activeAnimations: new Map(),
     
@@ -74,6 +84,7 @@ export const useTextureStore = createWithEqualityFn<StoreState>(
         ...createMidiSlice(set, get, api),
         ...createUISlice(set, get, api),
         ...createAnimationSlice(set, get, api),
+        ...createDualScreenSlice(set, get, api),
     }),
     shallow
 );
