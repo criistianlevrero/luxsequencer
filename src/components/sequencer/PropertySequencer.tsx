@@ -21,12 +21,21 @@ const PropertySequencer: React.FC = () => {
     const usedProperties = useMemo(() => new Set(propertyTracks.map(t => t.property)), [propertyTracks]);
 
     const allAnimatableProps = useMemo(() => {
-        // FIX: Use `keyof ControlSettings` for `id` to maintain type safety.
+        // Get only properties from the selected renderer
         const props: { id: keyof ControlSettings; label: string; category: string }[] = [];
         const addedProps = new Set<keyof ControlSettings>();
 
-        Object.values(renderers).forEach(renderer => {
-            renderer.controlSchema.forEach(section => {
+        // Get the currently selected renderer
+        const selectedRendererId = project?.globalSettings.renderer || 'webgl';
+        const selectedRenderer = renderers[selectedRendererId];
+        
+        if (selectedRenderer) {
+            // Handle both array and function controlSchema
+            const controlSchema = typeof selectedRenderer.controlSchema === 'function' 
+                ? selectedRenderer.controlSchema() 
+                : selectedRenderer.controlSchema;
+                
+            controlSchema.forEach(section => {
                 section.controls.forEach(control => {
                     if (control.type === 'slider' && !addedProps.has(control.id)) {
                         props.push({ 
@@ -38,14 +47,14 @@ const PropertySequencer: React.FC = () => {
                     }
                 });
             });
-        });
+        }
         
         return props.sort((a, b) => {
             const categoryCompare = a.category.localeCompare(b.category);
             if (categoryCompare !== 0) return categoryCompare;
             return a.label.localeCompare(b.label);
         });
-    }, []);
+    }, [project?.globalSettings.renderer]);
 
     const handleAddTrack = () => {
         if (selectedProperty) {
