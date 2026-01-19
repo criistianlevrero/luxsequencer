@@ -1,287 +1,508 @@
-# LuxSequencer - generative visuals in real time
+# LuxSequencer
 
-Una aplicación web de alto rendimiento para generar patrones visuales animados en tiempo real. Diseñada para artistas visuales, VJs y creativos, esta herramienta ofrece control completo sobre renderizado WebGL/Canvas2D, integración MIDI profesional, y secuenciación avanzada de patrones.
+Sistema generativo de visualización en tiempo real desarrollado como aplicación web, diseñado específicamente para la creación de patrones visuales dinámicos destinados a performances audiovisuales, instalaciones artísticas y proyección en vivo.
 
-## ✨ Características Principales
+## Descripción Técnica
 
-### 🎨 Sistema de Renderizado Modular
--   **Múltiples Motores de Renderizado:** WebGL (shader-based), Canvas2D, y patrones concéntricos
--   **Plugin System:** Arquitectura extensible para agregar nuevos renderers
--   **Alto Rendimiento:** Optimizado para 60 FPS con WebGL shaders
--   **Control en Tiempo Real:** Modifica parámetros y observa cambios instantáneos
+LuxSequencer implementa un sistema de renderizado modular basado en React 19 que permite la generación procedural de texturas animadas mediante diferentes motores de renderizado. La aplicación utiliza WebGL para computación en paralelo, ofreciendo un pipeline de renderizado eficiente optimizado para visualización continua en tiempo real.
 
-### 🎭 Sistema de Patrones Avanzado
--   **Memorias de Configuración:** Guarda estados completos de controles como patrones reutilizables
--   **Transiciones Animadas:** Sistema de interpolación basado en steps con soporte de valores fraccionales (0-8)
--   **Animate Only Changes:** Solo anima propiedades que difieren entre patrones para transiciones eficientes
--   **Priority System:** Control basado en prioridades (MIDI > UI > Property Sequencer > Pattern Sequencer)
+### Arquitectura de Renderizado
 
-### 🎹 Integración MIDI Profesional
--   **Web MIDI API:** Soporte nativo de MIDI en el navegador (sin plugins)
--   **MIDI Learn:** Mapeo rápido de controles con feedback visual
--   **Pattern Triggering:** Carga patrones con notas MIDI (tap) o crea nuevos (hold 0.5s)
--   **Highest Priority:** MIDI puede cancelar cualquier otra animación en curso
--   **Per-Project Mappings:** Mapeos MIDI guardados con cada proyecto
+El sistema cuenta con dos motores de renderizado independientes:
 
-### 🎬 Secuenciadores Duales
--   **Pattern Sequencer:** Grid de 8/12/16/24/32 pasos para disparar patrones en secuencia
--   **Property Sequencer:** Automatización de propiedades individuales con keyframes
--   **BPM Sync:** Timing preciso basado en BPM (30-240) con compensación de drift
--   **Combined Playback:** Ambos secuenciadores corren simultáneamente
+#### WebGL Renderer (Primario)
+- **Tecnología**: Fragment shaders personalizados ejecutados en GPU
+- **Patrones**: Texturas de escamas procedurales con formas morfables (círculo → diamante → estrella)
+- **Gradientes**: Sistema de gradientes multicolor (hasta 10 colores) con soporte para hard stops
+- **Animación**: Rotación de textura continua y desplazamiento temporal de colores
+- **Transiciones**: Crossfade entre gradientes mediante uniforms de shader durante cambios de patrón
+- **Rendimiento**: Optimizado para 60 FPS mediante cálculos paralelos en GPU
 
-### 🎨 Control de Gradientes
--   **Multi-Color Gradients:** Hasta 10 colores por gradiente
--   **Hard Stops:** Transiciones abruptas entre colores para efectos gráficos
--   **Shader Interpolation:** WebGL interpola gradientes suavemente durante transiciones
--   **Background + Foreground:** Control independiente de gradientes para fondo y elementos
+#### Concentric Renderer
+- **Patrón**: Hexágonos concéntricos animados
+- **Algoritmo**: Generación procedural de patrones radiales con crecimiento temporal
+- **Configuración**: Parámetros independientes para velocidad de repetición y crecimiento
 
-### 🖥️ Modos de Vista
--   **Fullscreen Mode:** Interfaz auto-hide para performances en vivo (3s mouse idle)
--   **Viewport Preview:** Previsualiza diseños en diferentes aspect ratios (desktop/mobile)
--   **Responsive Layout:** Adaptable a diferentes tamaños de pantalla
+### Sistema de Control de Patrones
 
-### 💾 Gestión de Proyectos
--   **Auto-save:** Persistencia automática a localStorage
--   **Import/Export:** Guarda proyectos completos como JSON
--   **Version Migration:** Sistema automático de migración entre versiones
--   **Multiple Sequences:** Organiza patrones en secuencias independientes
+#### Persistencia de Estado
+Cada patrón almacena un snapshot completo del estado de configuración (`ControlSettings`), incluyendo:
+- Parámetros de escala y espaciado
+- Configuración de gradientes (foreground/background)
+- Velocidades de animación y direcciones
+- Configuración de bordes y morfing de formas
 
-## 🚀 Instalación y Desarrollo
+#### Sistema de Animación Centralizado
+Implementa un pipeline de animación basado en prioridades:
 
-### Prerrequisitos
+```
+ControlSource Priority:
+- MIDI (3): Control hardware externo, prioridad máxima
+- UI (2): Interacciones de usuario directo
+- PropertySequencer (1): Automatización por keyframes
+- PatternSequencer (0): Secuenciación de patrones base
+```
 
-- Node.js (v18 o superior)
-- npm o yarn
-- Navegador moderno con soporte de WebGL 2.0 y Web MIDI API
+Las animaciones utilizan interpolación temporal precisa basada en BPM, con cancelación automática de animaciones de menor prioridad.
 
-### Configuración Inicial
+### Integración MIDI
 
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/criistianlevrero/luxsequencer.git
-   cd luxsequencer
-   ```
+#### Implementación Técnica
+- **API**: Web MIDI API nativa (sin dependencias externas)
+- **Protocolo**: MIDI estándar sobre USB/Bluetooth
+- **Latencia**: Sub-16ms para respuesta táctil inmediata
+- **Mapeo**: Sistema de aprendizaje automático por captura de CC/Note messages
 
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
+#### Funcionalidades Avanzadas
+- **Pattern Creation**: Mantener nota >500ms crea patrón automáticamente
+- **Pattern Loading**: Tap de nota asignada dispara transición animada
+- **MIDI Learn**: Feedback visual durante asignación de controles
+- **Per-Project Storage**: Mapeos MIDI persistentes por proyecto
 
-3. Configura las variables de entorno (opcional):
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edita el archivo `.env` para personalizar tu configuración. Ver [Guía de Variables de Entorno](docs/ENVIRONMENT_VARIABLES.md) para más detalles.
+### Secuenciadores Duales
 
-4. Inicia el servidor de desarrollo:
-   ```bash
-   npm run dev
-   ```
+#### Pattern Sequencer
+Sistema matricial para secuenciación de patrones completos:
+- **Grid Interface**: Matriz 2D (patrones × steps)
+- **Step Counts**: Configurable entre 8, 12, 16, 24, 32 steps
+- **BPM Sync**: Timing preciso con compensación de drift temporal
+- **Visual Feedback**: Indicadores en tiempo real del step activo
 
-5. Abre tu navegador en `http://localhost:3000`
+#### Property Sequencer  
+Automatización granular de propiedades individuales:
+- **Keyframe System**: Puntos de control por propiedad y step
+- **Linear Interpolation**: Interpolación suave entre valores
+- **Track Visualization**: Representación gráfica de automatizaciones
+- **Wrap-around Logic**: Continuidad cíclica en secuencias
+
+### Sistema Dual Screen
+
+#### Arquitectura de Comunicación
+- **Protocolo**: BroadcastChannel API para IPC (Inter-Process Communication)
+- **Sincronización**: Tiempo real sin polling mediante eventos nativos
+- **Ventanas**: Principal (controles) + Secundaria (visualización pura)
+- **Estado Compartido**: Sincronización automática de configuraciones y transiciones
+
+#### Flujo de Datos
+```
+Primary Window → State Change → BroadcastChannel → Secondary Window
+Secondary Window → Automatic Renderer Update → Visual Output
+```
+
+La ventana secundaria opera en modo fullscreen con cursor auto-hide para proyección profesional.
+
+### Gestión de Estado y Persistencia
+
+#### Store Management
+- **Tecnología**: Zustand + Immer para gestión de estado inmutable
+- **Arquitectura**: Slice-based con separación de dominios (project, sequencer, midi, ui, animation, dualScreen)
+- **Persistencia**: Auto-save a localStorage con detección de cambios
+- **Migración**: Sistema de versionado para compatibilidad entre actualizaciones
+
+#### Internacionalización
+- **Sistema**: Rosetta para traducciones eficientes
+- **Idiomas**: Español (nativo) e Inglés
+- **Cobertura**: 100% de strings UI, mensajes de error, tooltips
+- **Performance**: Lookup O(1) sin impacto en rendering
+
+### Stack Tecnológico
+
+#### Frontend Framework
+- **React 19.2.0**: UI framework con concurrent features
+- **TypeScript**: Strict mode para type safety completo
+- **Zustand 5.0.8**: State management con shallow equality
+- **Immer 10.2.0**: Immutable state updates
+
+#### Build & Development
+- **Vite 6.2.0**: Build tool optimizado con HMR
+- **PostCSS**: CSS processing pipeline
+- **Tailwind CSS**: Utility-first styling
+- **SVGR**: SVG-to-React component conversion
+
+#### UI Components
+- **Headless UI 2.2.9**: Accessible component primitives
+- **Custom Components**: Sistema de componentes modular reutilizable
+- **Icons**: SVG icon system con componentes tipados
+
+#### Web APIs Utilizadas
+- **WebGL 2.0**: GPU-accelerated graphics rendering
+- **Web MIDI API**: Native MIDI device communication  
+- **BroadcastChannel**: Inter-window communication
+- **RequestAnimationFrame**: Smooth 60fps animation loops
+- **ResizeObserver**: Responsive canvas resizing
+
+## Instalación y Configuración
+
+### Requisitos del Sistema
+- **Node.js**: v18.0+ (recomendado v20+)
+- **Navegador**: Chrome 88+, Firefox 85+, Safari 14+ (soporte WebGL 2.0 requerido)
+- **MIDI** (opcional): Dispositivo MIDI compatible con Web MIDI API
+
+### Instalación Básica
+
+```bash
+# Clonar repositorio
+git clone https://github.com/criistianlevrero/luxsequencer.git
+cd luxsequencer
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+
+# Aplicación disponible en http://localhost:3000
+```
 
 ### Variables de Entorno
 
-El proyecto utiliza variables de entorno opcionales para configuración:
-
-- `VITE_DEBUG_MODE`: Activa el overlay de debug (default: `false`)
-- `VITE_DEBUG_SEQUENCER`: Logs de secuenciador en consola (default: `false`)
-- `VITE_DEBUG_ANIMATION`: Logs de animaciones en consola (default: `false`)
-- `VITE_DEBUG_PROPERTY_SEQUENCER`: Logs de automatización de propiedades (default: `false`)
-
-Para más detalles, consulta la [documentación completa de variables de entorno](docs/ENVIRONMENT_VARIABLES.md).
-
-### Scripts Disponibles
+El sistema utiliza variables de entorno opcionales con prefijo `VITE_`:
 
 ```bash
-npm run dev      # Inicia servidor de desarrollo (Vite)
-npm run build    # Compila para producción
-npm run preview  # Previsualiza build de producción
+# Archivo .env.example (copiar a .env)
+VITE_DEBUG_MODE=false                    # Overlay de debug
+VITE_DEBUG_MIDI=false                    # Logs MIDI
+VITE_DEBUG_SEQUENCER=false               # Logs sequencer
+VITE_DEBUG_ANIMATION=false               # Logs animación
+VITE_DEBUG_PROPERTY_SEQUENCER=false      # Logs property automation
+VITE_MIDI_AUTO_CONNECT=true              # Auto-conectar MIDI
+VITE_MAX_FPS=60                          # Límite de FPS
 ```
 
-## 📖 Guía de Uso
+Para configuración avanzada, consultar: [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
 
-### 1. Selección de Renderer
--   Usa el dropdown en el header para cambiar entre diferentes motores de renderizado
--   **WebGL Renderer**: Mejor rendimiento, efectos shader avanzados
--   **Concentric Renderer**: Patrones hexagonales concéntricos animados
--   **Canvas2D Renderer**: Fallback compatible con navegadores antiguos
+### Scripts de Build
 
-### 2. Controles de Renderizado
--   Ajusta parámetros específicos del renderer activo desde el panel de control
--   Cada renderer tiene sus propios controles (tamaño, espaciado, forma, velocidad, etc.)
--   Los cambios se aplican en tiempo real con prioridad UI
+```bash
+npm run dev      # Desarrollo (Vite dev server)
+npm run build    # Build producción (dist/)
+npm run preview  # Preview build local
+```
 
-### 3. Edición de Gradientes
--   **Agregar colores:** Click en el botón "+" para añadir color stops
--   **Reordenar:** Arrastra los color handles para cambiar posiciones
--   **Hard Stops:** Activa checkbox para crear transiciones abruptas
--   **Eliminar:** Click en "×" (mínimo 2 colores por gradiente)
+## Uso del Sistema
 
-### 4. Sistema de Patrones (Memorias)
--   **Guardar Patrón Manual:** Click en **"Guardar Patrón Actual"** en el panel de control
--   **Guardar con MIDI:** Mantén pulsada una nota MIDI durante 0.5+ segundos
--   **Cargar Patrón:** Click en nombre del patrón (transición animada según interpolationSpeed)
--   **Asignar MIDI:** Click en icono MIDI del patrón → pulsa nota deseada
--   **Pattern Priority:** Cargas desde UI tienen mayor prioridad que secuenciador
+### Interfaz Principal
 
-### 5. Secuenciadores
+#### Selección de Renderer
+El dropdown del header permite cambiar entre motores de renderizado:
+- **WebGL Scale**: Texturas procedurales de escamas (recomendado)
+- **Concentric Hexagons**: Patrones hexagonales radiales
+
+#### Panel de Control
+Interface dinámica generada desde el `controlSchema` del renderer activo:
+- **Secciones colapsibles**: Organización por categorías (Scale, Animation, Appearance, Background, Border)
+- **Controles MIDI Learn**: Icono 🎹 para mapeo rápido de hardware
+- **Gradientes**: Editor multi-color con hard stops y reorganización drag-and-drop
+- **Viewport Preview**: Simulación desktop/mobile para testing
+
+### Sistema de Patrones
+
+#### Creación de Patrones
+- **Manual**: Botón "Guardar Patrón Actual" → snapshot del estado completo
+- **MIDI**: Hold nota >0.5s → auto-creación + asignación MIDI automática
+
+#### Carga de Patrones
+- **Interface**: Click en nombre del patrón → transición animada
+- **MIDI**: Tap en nota asignada → trigger inmediato
+- **Prioridad**: Las cargas manuales/MIDI pueden cancelar animaciones de sequencer
+
+#### Gestión de Transiciones
+- **Interpolation Speed**: Control global de duración (0-8 steps)
+- **Animate Only Changes**: Solo propiedades modificadas se animan
+- **WebGL Crossfade**: Transiciones shader-based para gradientes suaves
+
+### Secuenciadores
 
 #### Pattern Sequencer
-1. **Configurar Steps:** Selecciona cantidad de pasos (8/12/16/24/32)
-2. **Asignar Patrones:** Click en celdas del grid para toggle pattern-to-step
-3. **BPM Control:** Ajusta tempo (30-240 BPM)
-4. **Interpolation Speed:** Controla duración de transiciones (0-8 steps, 0=instantáneo)
-5. **Play/Stop:** Botón de transport para iniciar/detener secuenciador
+1. **Configuración Steps**: Selector 8/12/16/24/32 pasos
+2. **Asignación**: Click en celdas grid para toggle pattern-to-step
+3. **Timing**: BPM control (30-240) con timestamp-based precision
+4. **Transport**: Play/Stop controls con sincronización visual
 
-#### Property Sequencer
-1. **Add Track:** Click "+ Agregar Pista" y selecciona propiedad
-2. **Add Keyframes:** Click en steps para crear keyframes
-3. **Edit Values:** Ajusta valores arrastrando o editando
-4. **Remove Keyframes:** Click en keyframe existente para eliminar
-5. **Automation:** Se interpola linealmente entre keyframes con wrap-around
+#### Property Sequencer  
+1. **Agregar Track**: Selector de propiedades por renderer activo
+2. **Keyframes**: Click en steps para crear/editar puntos de control
+3. **Valores**: Ajuste numérico directo o drag para modificación
+4. **Automación**: Interpolación linear con wrap-around cíclico
 
-### 6. Control MIDI
+### Integración MIDI
 
-#### Conexión
-1. Navega a **"Configuración MIDI"** en el panel
-2. Click **"Conectar MIDI"**
-3. Selecciona tu dispositivo del dropdown
-4. Status indicator mostrará conexión activa
+#### Configuración Inicial
+1. **Conectar Dispositivo**: Panel configuración → "Conectar MIDI" → seleccionar device
+2. **Status Indicator**: Visual feedback del estado de conexión
+3. **Auto-connect** (opcional): Variable `VITE_MIDI_AUTO_CONNECT=true`
 
-#### MIDI Learn (Control Mapping)
-1. Click en icono MIDI (🎹) junto al control deseado
-2. El icono se volverá naranja (learning mode)
-3. Mueve un control en tu dispositivo MIDI
-4. Mapeo automático - icono se vuelve cyan
-5. Click en icono cyan para eliminar mapeo
+#### MIDI Learn Workflow
+1. Click icono 🎹 en control deseado → modo learning (icono naranja)
+2. Mover control físico en dispositivo MIDI
+3. Mapeo automático → icono cambia a cyan (confirmación)
+4. Click icono cyan para eliminar mapeo existente
 
-#### Pattern Triggering
--   **Tap (< 0.5s):** Carga patrón asignado a esa nota
--   **Hold (> 0.5s):** Crea nuevo patrón y asigna a esa nota
--   MIDI tiene máxima prioridad - cancela animaciones en curso
+#### Pattern Triggering Avanzado
+- **Note Tap** (<0.5s): Carga patrón pre-asignado
+- **Note Hold** (>0.5s): Crea nuevo patrón + auto-asigna nota
+- **Velocity Sensitivity**: Mapeos CC responden a velocity MIDI
+- **Per-Project Storage**: Mapeos guardados con proyectos individuales
 
-### 7. Debug Tools
--   **Debug Overlay:** Click en botón 🐛 (esquina inferior derecha)
--   **Console Logging:** `window.enableDebug()` / `window.disableDebug()`
--   **Metrics:** FPS, sequencer ticks, active animations, settings changes
--   **Event Log:** Registro cronológico de eventos del sistema
--   **Export Data:** Descarga telemetría para análisis
+### Sistema Dual Screen
 
-### 8. Gestión de Proyectos
--   **Auto-save:** Cambios se guardan automáticamente en localStorage
--   **Export Project:** Descarga configuración completa como JSON
--   **Import Project:** Carga proyecto guardado (con migración de versiones)
--   **Multiple Sequences:** Crea y gestiona múltiples secuencias independientes
+#### Configuración
+1. **Activar**: Botón dual screen en header → abre ventana secundaria
+2. **Posicionamiento**: Drag ventana a monitor secundario
+3. **Fullscreen**: F11 en ventana secundaria para proyección
+4. **Controls**: Solo ventana principal mantiene controles
 
-## 🏗️ Arquitectura
+#### Sincronización Automática
+- **Estado Compartido**: BroadcastChannel sincroniza configuraciones en tiempo real
+- **Animaciones**: Transiciones sincronizadas entre ventanas
+- **Performance**: Zero-latency communication via native browser APIs
+- **Cleanup**: Cierre automático de canales al cerrar ventanas
 
-### Stack Tecnológico
--   **React 18** + **TypeScript** para UI
--   **Vite** como build tool
--   **Zustand** para state management con Immer
--   **WebGL 2.0** para rendering de alto rendimiento
--   **Web MIDI API** para integración MIDI nativa
+### Herramientas de Debug
 
-### Estructura del Proyecto
-```
-src/
-├── components/
-│   ├── renderers/          # Sistema de plugins de renderizado
-│   │   ├── webgl/          # WebGL shader renderer
-│   │   ├── concentric/     # Concentric patterns renderer
-│   │   └── canvas2d/       # Canvas2D fallback renderer
-│   ├── controls/           # UI controls (sliders, gradients, etc.)
-│   ├── sequencer/          # Pattern & property sequencers
-│   ├── midi/               # MIDI console & learn components
-│   └── debug/              # Debug overlay
-├── store/
-│   ├── slices/             # Zustand state slices
-│   │   ├── animation.slice.ts    # Centralized animation system
-│   │   ├── project.slice.ts      # Project management
-│   │   ├── settings.slice.ts     # Pattern & settings
-│   │   ├── sequencer.slice.ts    # Sequencer logic
-│   │   ├── midi.slice.ts         # MIDI integration
-│   │   └── ui.slice.ts           # UI state
-│   └── types/              # Type definitions
-└── types.ts                # Global type definitions
+#### Debug Overlay
+- **Activación**: Botón 🐛 (esquina inferior derecha) o `VITE_DEBUG_MODE=true`
+- **Métricas Tiempo Real**: FPS, RAF calls, active animations, sequencer ticks
+- **Event Log**: Registro cronológico de eventos del sistema
+- **Export Data**: Descarga telemetría en JSON para análisis
+
+#### Console Debugging
+```javascript
+// Browser console commands
+window.enableDebug()    // Activar logging global
+window.disableDebug()   // Desactivar logging
+window.midiLog          // Array de mensajes MIDI recientes
 ```
 
-### Sistema de Animación
-El proyecto implementa un sistema de animación centralizado con control basado en prioridades:
+## Extensibilidad del Sistema
 
+### Agregar Nuevo Renderer
+
+#### 1. Estructura de Archivos
 ```
-Priority Levels (ControlSource enum):
-  MIDI (3)                → Highest priority, immediate changes
-  UI (2)                  → User interactions
-  PropertySequencer (1)   → Keyframe automation
-  PatternSequencer (0)    → Lowest priority
-
-Flow: requestPropertyChange(property, from, to, steps, source, interpolationType)
-  → Priority check & cancellation
-  → BPM-based frame calculation
-  → RAF loop interpolation
-  → Gradient shader transitions
+src/components/renderers/yourrenderer/
+├── YourRenderer.tsx          # Componente React principal
+├── your-schema.ts            # Definición controlSchema
+└── index.ts                  # Export RendererDefinition
 ```
 
-## 🤝 Contribución
+#### 2. Implementar Renderer Component
+```typescript
+// YourRenderer.tsx
+import React, { useEffect, useRef } from 'react';
+import { useTextureStore } from '../../../store';
 
-¿Quieres contribuir? ¡Genial! Por favor:
+const YourRenderer: React.FC<{ className?: string }> = ({ className }) => {
+  const currentSettings = useTextureStore(state => state.currentSettings);
+  
+  // Tu lógica de renderizado aquí
+  // Subscribirse a currentSettings para actualizaciones automáticas
+  
+  return <canvas ref={canvasRef} className={className} />;
+};
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios usando [Conventional Commits](https://www.conventionalcommits.org/)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+export default YourRenderer;
+```
 
-### Convenciones de Commit
--   `feat:` Nuevas características
--   `fix:` Corrección de bugs
--   `refactor:` Refactorización de código
--   `docs:` Cambios en documentación
--   `perf:` Mejoras de performance
--   `test:` Agregar o actualizar tests
--   `chore:` Tareas de mantenimiento
+#### 3. Definir Control Schema
+```typescript
+// your-schema.ts
+import type { ControlSection } from '../types';
 
-## 📝 Licencia
+export const getYourSchema = (): ControlSection[] => [
+  {
+    title: 'Your Settings',
+    defaultOpen: true,
+    controls: [
+      { type: 'slider', id: 'yourProperty', label: 'Your Control', min: 0, max: 100 },
+      { type: 'custom', id: 'yourCustom', component: YourCustomComponent }
+    ]
+  }
+];
+```
 
-Este proyecto está licenciado bajo la **GNU General Public License v3.0** (GPL-3.0).
+#### 4. Registrar Renderer
+```typescript
+// components/renderers/index.ts
+import { yourRenderer } from './yourrenderer';
 
-Eres libre de:
--   ✅ Usar este software comercialmente
--   ✅ Modificar el código fuente
--   ✅ Distribuir copias
--   ✅ Uso privado
+export const renderers = {
+  // ... existing renderers
+  [yourRenderer.id]: yourRenderer,
+};
+```
 
-Bajo las siguientes condiciones:
--   📄 Debes incluir la licencia y copyright notice
--   🔓 Código fuente debe estar disponible cuando distribuyes
--   🔄 Las modificaciones deben usar la misma licencia (GPL-3.0)
--   📝 Debes documentar los cambios realizados
+### Agregar Nuevos Controles
 
-Ver el archivo [LICENSE](LICENSE) para el texto completo de la licencia.
+#### Custom Control Component
+```typescript
+interface CustomControlProps {
+  value: any;
+  onChange: (value: any) => void;
+  id: string;
+}
 
-## 👨‍💻 Autor
+const YourCustomControl: React.FC<CustomControlProps> = ({ value, onChange, id }) => {
+  // Tu UI personalizada aquí
+  return <div>/* Your custom control */</div>;
+};
+```
 
-**Cristian Levrero**
-- GitHub: [@criistianlevrero](https://github.com/criistianlevrero)
+#### Integrar en Schema
+```typescript
+{ type: 'custom', id: 'propertyId', component: YourCustomControl }
+```
 
-## 🙏 Agradecimientos
+## Documentación Técnica Avanzada
 
--   Comunidad de VJs y artistas visuales por feedback y testing
--   Contribuidores open-source de las bibliotecas utilizadas
--   Web MIDI API specification team
+### Arquitectura de Shaders WebGL
+
+El renderer WebGL utiliza un sistema de fragment shaders personalizado:
+
+```glsl
+// Uniforms principales
+uniform float u_time;                    // Tiempo global para animaciones
+uniform vec2 u_resolution;               // Resolución canvas
+uniform float u_rotation;               // Rotación texture global
+uniform vec3 u_gradientColors[10];       // Array gradientes (RGB 0-1)
+uniform bool u_hardStops[10];           // Hard stops por color
+uniform float u_transitionProgress;     // Crossfade entre gradientes
+```
+
+#### Pipeline de Renderizado
+1. **Vertex Shader**: Fullscreen quad (-1 to 1 coordinates)
+2. **Fragment Shader**: Per-pixel procedural generation
+3. **Grid Calculation**: Hex/square grid con staggered offset
+4. **Shape Distance**: SDF (Signed Distance Functions) para formas
+5. **Color Sampling**: Gradient evaluation con interpolación temporal
+6. **Final Composition**: Mixing de background/foreground con borders
+
+### Performance Optimizations
+
+#### WebGL Specific
+- **Uniform Arrays**: Max 10 colores por gradiente (hardware limit)
+- **SDF Shapes**: Analytical distance functions (no texture sampling)  
+- **Single Draw Call**: Fullscreen quad con todo el procesamiento en fragment shader
+- **GPU Memory**: Minimal VRAM usage con uniform-only approach
+
+#### General Optimizations
+- **Zustand Shallow**: Prevent unnecessary re-renders con shallow equality
+- **RAF Coordination**: Single animation loop para múltiples subsystems
+- **Debounced Updates**: LocalStorage writes throttled para performance
+- **Lazy Loading**: Dynamic imports para reducir bundle inicial
+
+### Troubleshooting Común
+
+#### WebGL Issues
+- **Context Loss**: Automatic recovery con shader recompilation
+- **Uniform Limits**: Gradient colors capped at 10 (expand via texture approach)
+- **Precision**: `highp` precision declarada para cálculos exactos
+
+#### MIDI Issues  
+- **Device Detection**: Web MIDI API requiere user gesture inicial
+- **Latency**: Sub-16ms achievable con RequestAnimationFrame coordination
+- **Browser Support**: Chrome/Edge optimal, Firefox/Safari limited
+
+#### Performance Issues
+- **FPS Drops**: Check `VITE_MAX_FPS` setting y GPU capabilities
+- **Memory Leaks**: Cleanup de event listeners y animation frames
+- **Large Projects**: Use import/export para proyectos complejos
+
+## Contribución y Desarrollo
+
+### Convenciones de Código
+
+#### TypeScript
+- **Strict Mode**: Habilitado con type checking completo
+- **Interfaces**: Explicit typing para todas las data structures
+- **Enums**: Para constants con semantic meaning (ControlSource, ViewportMode)
+
+#### React Patterns
+- **Functional Components**: Hook-based approach exclusivamente  
+- **Custom Hooks**: Para lógica reutilizable cross-component
+- **Ref Management**: useRef para DOM manipulation y mutable values
+
+#### Estado y Side Effects
+- **Zustand Actions**: Todas las mutations via store actions
+- **useEffect Cleanup**: Mandatory cleanup para subscriptions/timers
+- **Immutable Updates**: Immer para complex state modifications
+
+### Git Workflow
+
+#### Branch Strategy
+- **main**: Production-ready code
+- **develop**: Integration branch para features
+- **feature/***: Feature branches desde develop
+- **hotfix/***: Critical fixes desde main
+
+#### Commit Messages
+```
+feat: implementar nuevo renderer X
+fix: corregir memory leak en animation loop  
+docs: actualizar README con nuevas features
+refactor: optimizar shader uniform management
+perf: mejorar performance de gradient transitions
+test: agregar tests para MIDI integration
+chore: actualizar dependencias
+```
+
+### Testing Strategy
+
+#### Unit Testing
+- **Components**: React Testing Library para UI components
+- **Stores**: Zustand store actions y state mutations  
+- **Utilities**: Pure functions y helper methods
+- **Shaders**: Mock WebGL context para shader compilation tests
+
+#### Integration Testing
+- **MIDI Flow**: End-to-end MIDI learn y pattern triggering
+- **Renderer Switch**: Consistency cross-renderers
+- **State Persistence**: LocalStorage save/load cycles
+- **Dual Screen**: BroadcastChannel communication
+
+#### Performance Testing  
+- **FPS Benchmarks**: Automated performance regression detection
+- **Memory Profiling**: Heap usage tracking durante uso prolongado
+- **Bundle Analysis**: Size impact de nuevas features
+
+## Licencia y Créditos
+
+### Licencia
+**GNU General Public License v3.0 (GPL-3.0)**
+
+Este proyecto es software libre bajo términos de GPL-3.0:
+- ✅ Uso comercial permitido
+- ✅ Modificación y distribución permitidas  
+- ✅ Uso privado sin restricciones
+- 📄 Redistribución debe incluir código fuente
+- 🔗 Modificaciones deben usar GPL-3.0
+- 📝 Cambios deben estar documentados
+
+Ver archivo [LICENSE](LICENSE) para términos completos.
+
+### Tecnologías y Agradecimientos
+
+#### Core Libraries
+- [React](https://react.dev) - UI framework
+- [Zustand](https://github.com/pmndrs/zustand) - State management  
+- [Vite](https://vitejs.dev) - Build tool
+- [TypeScript](https://www.typescriptlang.org) - Type system
+- [Tailwind CSS](https://tailwindcss.com) - Styling framework
+
+#### Specialized Libraries
+- [Immer](https://immerjs.github.io/immer/) - Immutable state updates
+- [Rosetta](https://github.com/lukeed/rosetta) - Internationalization
+- [Headless UI](https://headlessui.com) - Accessible components
+
+#### Web Standards
+- **Web MIDI API** - Hardware integration
+- **WebGL 2.0** - GPU-accelerated graphics  
+- **BroadcastChannel API** - Inter-window communication
+- **RequestAnimationFrame** - Smooth animations
 
 ---
 
-**Versión:** 2.0.0  
-**Estado:** Activo en desarrollo  
-**Última actualización:** Noviembre 2025
-
-## Tecnología Utilizada
-
--   React
--   Tailwind CSS
--   Web MIDI API
--   SVG para el renderizado
+**Desarrollado por**: Cristian Levrero  
+**GitHub**: [@criistianlevrero](https://github.com/criistianlevrero)  
+**Estado**: Desarrollo activo  
+**Documentación Técnica**: Ver directorio `docs/` para guías específicas

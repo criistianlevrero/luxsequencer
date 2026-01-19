@@ -125,7 +125,6 @@ export interface TranslationKeys {
   
   // Renderers
   'renderer.webgl': string
-  'renderer.canvas2d': string
   'renderer.concentric': string
   
   // Sections

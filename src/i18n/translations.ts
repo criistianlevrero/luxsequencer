@@ -128,7 +128,6 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     
     // Renderers
     'renderer.webgl': 'WebGL Scale',
-    'renderer.canvas2d': 'Canvas 2D Scale',
     'renderer.concentric': 'Concentric Hexagons',
     
     // Sections
@@ -306,7 +305,6 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     
     // Renderers
     'renderer.webgl': 'Escala WebGL',
-    'renderer.canvas2d': 'Escala Canvas 2D',
     'renderer.concentric': 'Hexágonos Concéntricos',
     
     // Sections

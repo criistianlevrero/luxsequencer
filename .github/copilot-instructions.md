@@ -6,51 +6,62 @@
 - You can prepare changes and show status, but do not execute commits without permission
 
 ## Project Overview
-Real-time visual pattern generator for VJs and visual artists. React + Vite application with WebGL/Canvas2D renderers, MIDI integration for live performance, pattern sequencing, and state persistence.
+Real-time visual pattern generator for VJs and visual artists. React 19 + Vite application with modular renderer system (WebGL), professional MIDI integration, dual sequencers, internationalization, dual-screen support, and state persistence.
+
+**Current Version**: Development (package.json shows v0.0.0)
+**Tech Stack**: React 19.2.0, Zustand 5.0.8, Immer 10.2.0, TypeScript, Vite 6.2.0, Tailwind CSS, Headless UI 2.2.9
+
+## Documentation Reference
+The project has comprehensive documentation that should be referenced rather than duplicated:
+
+- **[README.md](README.md)**: Project overview, installation, and setup
+- **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)**: Complete environment configuration system
+- **[UI System Guide](docs/ui-system.md)**: Component architecture, icons, design patterns
+- **[Internationalization Guide](docs/i18n.md)**: i18n system with Rosetta (English/Spanish)
+- **[Dual Screen System](docs/doble-pantalla.md)**: Multi-window display architecture
+- **[Recording System Planning](docs/next-steps/sistema-de-grabacion.md)**: Future recording/video export system
 
 ## Architecture
 
 ### State Management (Zustand + Immer)
-- **Single source of truth**: `store/` directory manages all app state via Zustand with Immer for immutable updates
-- **Slice architecture**: State divided into specialized slices (project, settings, sequencer, midi, ui, animation)
-- **Key state domains**: Project data, MIDI mappings, sequencer playback, pattern transitions, centralized animation system
-- **Persistence**: Auto-saves to `localStorage` on every project mutation via `setProject()` action
+- **Single source of truth**: `store/` directory with slice-based architecture
+- **Slices**: project, settings, sequencer, midi, ui, animation, dualScreen
+- **Key features**: Auto-save to localStorage, centralized animation system, priority-based control
 - **State structure**: `Project → Sequences → Patterns → ControlSettings`
-- **Animation system**: Centralized `activeAnimations` Map tracks all property interpolations with priority-based control
+- **Animation system**: Priority-based control (MIDI > UI > PropertySequencer > PatternSequencer)
 
 ### Renderer Plugin System
 Renderers are **completely independent modules** registered in `components/renderers/index.ts`:
 
 ```typescript
-// Each renderer exports a RendererDefinition
 export interface RendererDefinition {
   id: string;
   name: string;
   component: React.FC<{ className?: string }>;
-  controlSchema: ControlSection[];  // Defines its own UI controls
+  controlSchema: ControlSection[];
 }
 ```
 
-**Key renderers**:
-- `webgl/`: WebGL shader-based scale texture (primary renderer, 427 lines)
-- `concentric/`: Canvas2D hexagonal concentric patterns
-- `canvas2d/`: Legacy Canvas2D scale renderer
+**Available renderers** (src/components/renderers/):
+- `webgl/`: WebGL shader-based scale texture (primary renderer)
+- `concentric/`: Hexagonal concentric patterns
 
-**Control Schema Pattern**: Each renderer defines its controls via `ControlSection[]` arrays (see `shared/scale-texture-schema.ts`). Controls can be:
-- `type: 'slider'`: Declarative slider with min/max/formatter
-- `type: 'custom'`: React component (e.g., `GradientEditor`, `BorderColorPicker`)
+**Control Schema Pattern**: Each renderer defines controls via `ControlSection[]` arrays. The system supports:
+- `type: 'slider'`: Declarative sliders with min/max/formatter
+- `type: 'custom'`: React components (e.g., `GradientEditor`)
 
-The `ControlPanel` dynamically renders controls using `<RendererControls />` which iterates over the active renderer's schema.
+See **[UI System Guide](docs/ui-system.md)** for complete component architecture details.
 
 ### MIDI Integration
-- **Web MIDI API**: Direct browser MIDI support (check `navigator.requestMIDIAccess`)
-- **MIDI Learn**: Two-click mapping flow - click control icon → move MIDI controller → auto-mapped
-- **Pattern triggers**: Hold MIDI note for 0.5s to create pattern, tap to load pattern
-- **Mappings stored per-project**: `project.globalSettings.midiMappings` maps `ControlSettings` keys to MIDI CC numbers
-- **MIDI handling**: All logic in `store/slices/midi.slice.ts` (`connectMidi`, `_handleMidiMessage`, `startMidiLearning`)
-- **Real-time CC mapping**: MIDI CC messages use `requestPropertyChange()` with highest priority (can cancel all other animations)
-- **Note tracking**: `noteOnTime` object tracks note-on timestamps for hold detection
-- **Priority**: MIDI has highest priority (ControlSource.MIDI = 3) - overrides UI, sequencer, and property automation
+- **Web MIDI API**: Browser-native MIDI support with auto-connect (configurable via `VITE_MIDI_AUTO_CONNECT`)
+- **MIDI Learn**: Visual feedback system - click control icon → move MIDI controller → auto-mapped
+- **Pattern triggers**: Hold note 0.5s to create pattern, tap to load pattern
+- **Per-project mappings**: Stored in `project.globalSettings.midiMappings`
+- **Priority system**: MIDI has highest priority (ControlSource.MIDI = 3) - can cancel any other animations
+- **Debug mode**: Enable `VITE_DEBUG_MIDI=true` for message logging
+- **Console integration**: Built-in MIDI console for debugging (MidiConsole component)
+
+See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for MIDI configuration options.
 
 ### Interaction Flows
 
@@ -58,37 +69,30 @@ The `ControlPanel` dynamically renders controls using `<RendererControls />` whi
 1. **Manual save**: Click "Guardar Patrón Actual" → stores current `ControlSettings` as new pattern
 2. **MIDI hold**: Hold note 0.5s → auto-creates pattern + assigns MIDI note
 3. **MIDI tap**: Tap assigned note → `loadPattern()` with animated transition
-4. **Sequencer trigger**: Step sequencer loads pattern on beat with full animation
+4. **Sequencer trigger**: Step sequencer loads pattern on beat with animation
 
-#### Control Updates Priority
+#### Control Priority System
 ```
-Priority Levels (ControlSource enum):
-  MIDI (3)                → Highest priority, immediate changes (steps=0)
+ControlSource Priority (enum):
+  MIDI (3)                → Highest priority, immediate changes
     ↓ (can cancel)
-  UI (2)                  → User interactions, immediate or animated
+  UI (2)                  → User interactions
+    ↓ (can cancel)  
+  PropertySequencer (1)   → Keyframe automation
     ↓ (can cancel)
-  PropertySequencer (1)   → Keyframe automation, overlays patterns
-    ↓ (can cancel)
-  PatternSequencer (0)    → Lowest priority, pattern transitions
+  PatternSequencer (0)    → Lowest priority
 
 Flow: requestPropertyChange(property, from, to, steps, source, interpolationType)
-  → Checks active animation priority
-  → Cancels if new source >= existing source priority
-  → Calculates frames from steps based on BPM
-  → Adds to activeAnimations Map
-  → RAF loop interpolates all active animations
 ```
 
 ### Pattern System
-- **Patterns are snapshots**: Each pattern stores complete `ControlSettings` state
-- **Animated transitions**: Pattern loading uses centralized `requestPropertyChange()` system
-  - Duration controlled by `sequence.interpolationSpeed` (in steps: 0-8, supports fractions)
-  - Steps converted to frames based on BPM: `totalFrames = steps * framesPerStep`
-  - Gradient transitions use shader-based crossfade (`transitionProgress` uniform)
-  - **Critical**: New animations cancel previous ones based on priority
-- **Animate only changes**: Both sequencer and UI compare old vs new settings, only animate differences
-- **Dirty state tracking**: User edits mark pattern as dirty, prompting save/overwrite
-- **Priority system**: UI pattern loads (ControlSource.UI) have higher priority than sequencer loads (ControlSource.PatternSequencer)
+- **Patterns as snapshots**: Complete `ControlSettings` state stored per pattern
+- **Animated transitions**: Uses centralized `requestPropertyChange()` system
+  - Duration controlled by `sequence.interpolationSpeed` (0-8 steps, supports fractions)
+  - WebGL gradients use shader-based crossfade (`transitionProgress` uniform)
+- **Animate only changes**: Compares old vs new settings, only animates differences
+- **Dirty state tracking**: User edits trigger save prompts
+- **MIDI integration**: Pattern creation via note holds, loading via note taps
 
 ### Real-Time Rendering Pipeline
 ```
@@ -99,7 +103,6 @@ User Input/MIDI → setCurrentSetting() → Zustand state update
                 Renderer component reads currentSettings
                      ↓
                 WebGL: Upload uniforms → Fragment shader execution
-                Canvas2D: Redraw loop with new parameters
                      ↓
                 RequestAnimationFrame continues animation loop
 ```
@@ -110,89 +113,67 @@ User Input/MIDI → setCurrentSetting() → Zustand state update
 - Gradient arrays converted to flat RGB arrays for shader uniform limits (max 10 colors)
 - Texture rotation runs in independent RAF loop from `initializeProject()`
 
-### Sequencer System
-The app has **two independent sequencers** that run simultaneously:
+### Dual Sequencer System
+The app has **two independent sequencers** running simultaneously:
 
 #### 1. Pattern Sequencer (`components/sequencer/Sequencer.tsx`)
-- **Grid UI**: 2D matrix where rows are patterns, columns are steps (8/12/16/24/32 configurable)
-- **Step assignment**: Click cells to toggle pattern triggering at that step
-- **Visual feedback**: Current step highlighted, active cells glow cyan
-- **Playback**: On each tick, loads pattern assigned to current step (with animated transition)
+- **Grid interface**: 2D matrix (rows = patterns, columns = steps)
+- **Configurable steps**: 8/12/16/24/32 steps
+- **Visual feedback**: Current step highlighted, active cells glow
+- **BPM sync**: 30-240 BPM with precise timestamp-based scheduling
 
-#### 2. Property Sequencer (`components/sequencer/PropertySequencer.tsx`)
-- **Per-property automation**: Add tracks for individual `ControlSettings` (e.g., `scaleSize`, `animationSpeed`)
-- **Keyframe-based**: Click steps to add keyframes, drag to adjust values
-- **Linear interpolation**: Values interpolated between keyframes automatically
-- **Combined with patterns**: Property automation overlays on top of pattern settings
-- **Track lanes**: Each property gets its own lane with visual keyframe indicators
+#### 2. Property Sequencer (`components/sequencer/PropertySequencer.tsx`) 
+- **Per-property automation**: Individual `ControlSettings` keyframes
+- **Track lanes**: Visual keyframe indicators per property
+- **Linear interpolation**: Automatic value interpolation between keyframes
+- **Combined playback**: Overlays on top of pattern changes
 
-#### Sequencer Timing & Execution (`store/slices/sequencer.slice.ts` → `_tickSequencer`)
-```typescript
-// 1. Advance step counter (wraps at numSteps)
-// 2. Compare previous pattern with new pattern (if pattern changes)
-// 3. Request animations ONLY for properties that differ (via requestPropertyChange with PatternSequencer priority)
-// 4. Calculate property automation by interpolating between keyframes
-// 5. Apply automation via requestPropertyChange with PropertySequencer priority
-// 6. Calculate next tick using precise timestamp-based scheduling (compensates drift)
-// 7. Schedule next tick: delay = idealNextTime - Date.now()
-```
+**Timing system**: Drift-compensated scheduling via `sequencerStartTime` tracking. See `store/slices/sequencer.slice.ts` for implementation details.
 
-**Key implementation details**:
-- BPM range: 30-240, controls tick interval
-- Step counter loops at `numSteps` boundary
-- Property automation uses **wrap-around interpolation** (keyframe at step 15 → keyframe at step 1)
-- Automation values clamped to slider min/max from control schema
-- **Pattern comparison**: Uses JSON.stringify for deep array comparison (gradients)
-- **Timing precision**: Tracks `sequencerStartTime` and calculates ideal tick times to prevent drift
-- **Priority system**: Pattern loads use ControlSource.PatternSequencer (lowest), automation uses PropertySequencer (higher)
-
-## UI Architecture & Layout
+## UI Architecture & Features
 
 ### Main Layout (`App.tsx`)
-- **Three-panel design**: Canvas (center), Control Panel (drawer), Sequencer (drawer)
-- **Dual modes**: 
-  - **Normal**: Desktop layout with fixed header, side panels
-  - **Fullscreen**: Performance mode with auto-hide overlay (3s mouse idle timeout)
-- **Header controls**: 
-  - Logo + renderer selector dropdown
-  - Viewport switcher (default/desktop/mobile preview)
-  - MIDI console toggle
-  - Fullscreen toggle
-  - Settings/sequencer drawer toggles
+- **Multi-window support**: Primary interface + optional secondary display window
+- **Fullscreen mode**: Performance mode with auto-hide overlay (3s mouse idle)
+- **Header controls**: Renderer selector, viewport controls, MIDI console, settings
+- **Drawer panels**: Control panel and sequencer drawer with toggle states
 
-### Control Panel Structure
-Dynamically rendered from renderer's `controlSchema`:
-- **Collapsible sections** (`CollapsibleSection` component)
-- **Slider controls**: Auto-generated with MIDI learn button, value display, formatted label
-- **Custom controls**: Embedded React components (e.g., `GradientEditor` for color management)
-- **MIDI indicators**: Icons show cyan when mapped, orange when learning, white when available
+### Control System
+Dynamically generated from renderer `controlSchema`:
+- **Collapsible sections**: `CollapsibleSection` component for organization
+- **MIDI Learn integration**: Visual indicators on all controls
+- **Gradient Editor**: Multi-color gradients with hard stops support
+- **Viewport Controls**: Desktop/mobile preview modes
 
-### Gradient Editor (`components/controls/GradientEditor.tsx`)
-- **Color stops management**: Add/remove/reorder colors with drag handles
-- **Hard stop toggle**: Creates sharp boundaries (checkbox per color)
-- **Color picker**: Browser-native color input
-- **Min colors enforcement**: Prevents deletion below minimum (2 for gradients, 1 for backgrounds)
+### Internationalization
+Built-in i18n system with Rosetta:
+- **Languages**: English and Spanish support
+- **Hook-based**: `useTranslation()` hook for components
+- **Automatic persistence**: Language selection saved to localStorage
 
-### Sequencer Panel
-- **Transport controls**: Play/stop, BPM slider (30-240), step count selector
-- **Pattern grid**: Scrollable horizontal grid, sticky pattern names column
-- **Property tracks**: Expandable lanes with step buttons for keyframe placement
-- **Visual playback**: Current step highlighted with gray background
+Refer to **[UI System Guide](docs/ui-system.md)** and **[i18n Guide](docs/i18n.md)** for detailed information.
 
 ## Development Workflows
 
 ### Running the app
 ```bash
-npm run dev      # Starts Vite dev server on port 3000
+npm run dev      # Starts Vite dev server on port 3000  
 npm run build    # Production build
 npm run preview  # Preview production build
 ```
 
-### Adding a New Renderer
+### Environment Configuration
+See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for complete configuration options:
+- `VITE_DEBUG_MODE`: Enable debug overlay
+- `VITE_DEBUG_MIDI`, `VITE_DEBUG_SEQUENCER`: Specific debug categories
+- `VITE_MIDI_AUTO_CONNECT`: Auto-connect MIDI devices
+- `VITE_MAX_FPS`: Performance limiting
+
+### Adding New Renderers
 1. Create folder in `components/renderers/yourname/`
-2. Implement renderer component with `useTextureStore` subscription
-3. Define `controlSchema: ControlSection[]` in `yourname/yourname-schema.ts`
-4. Export `RendererDefinition` in `yourname/index.ts`
+2. Implement component with `useTextureStore` subscription
+3. Define `controlSchema: ControlSection[]` 
+4. Export `RendererDefinition`
 5. Register in `components/renderers/index.ts`
 
 **Example schema**:
@@ -202,156 +183,93 @@ export const yourSchema: ControlSection[] = [
     title: "Section Title",
     defaultOpen: true,
     controls: [
-      { type: 'slider', id: 'scaleSize', label: 'Size', min: 0, max: 100, step: 1, formatter: (v) => `${v}px` },
-      { type: 'custom', id: 'customId', component: YourCustomComponent }
+      { type: 'slider', id: 'property', label: 'Label', min: 0, max: 100 },
+      { type: 'custom', id: 'customId', component: YourComponent }
     ]
   }
 ];
 ```
 
-### Adding New Control Settings
-1. Add property to `ControlSettings` interface in `types.ts`
-2. Add default value in `store/index.ts` initial `currentSettings`
-3. Use via `setCurrentSetting(key, value)` - calls `requestPropertyChange()` with UI priority
-4. For MIDI, users map via MIDI Learn (no code changes needed)
-
 ## Key Conventions
 
-### Project Version & Migration
-- **Current version**: v2.0.0 (tracked in `project.version`)
-- **Migration system**: Automatic migration in `initializeProject()` for older project files
-- **v1.0.0 → v2.0.0**: Converts `interpolationSpeed` from milliseconds to steps (divide by 250, clamp 0-8)
-- **Backward compatibility**: Always handle missing version field as v1.0.0
+### Project Architecture
+- **Zustand slices**: State divided into specialized domains (project, sequencer, midi, etc.)
+- **TypeScript strict mode**: Full type coverage with interfaces for all data structures
+- **Component isolation**: Renderer-specific logic stays within renderer directories
+- **Shared components**: Cross-renderer UI components in `components/shared/`
+
+### Adding New Features
+1. **Control Settings**: Add to `ControlSettings` interface in `types.ts` + store defaults
+2. **State management**: Use appropriate slice or create new one if needed
+3. **UI integration**: Leverage existing control schema pattern
+4. **MIDI support**: Automatic via MIDI Learn system (no code changes needed)
 
 ### Commit Messages (Conventional Commits)
-Use semantic prefixes for automated changelog generation:
-- **feat:** New features (e.g., `feat: add property sequencer`)
-- **fix:** Bug fixes (e.g., `fix: resolve timing drift in sequencer`)
-- **docs:** Documentation changes (e.g., `docs: update API examples`)
-- **refactor:** Code refactoring without behavior change
+- **feat:** New features
+- **fix:** Bug fixes
+- **docs:** Documentation changes
+- **refactor:** Code refactoring
 - **perf:** Performance improvements
-- **test:** Adding or updating tests
-- **chore:** Tooling, dependencies, or maintenance tasks
+- **test:** Testing updates
+- **chore:** Maintenance tasks
 
-**Format**: `<type>: <short description>`
+## Critical Implementation Details
 
-Multi-line example:
-```
-fix: resolve sequencer glitch caused by race condition
+### State Management
+1. **Never mutate store directly**: Always use actions or `produce()`
+2. **Use requestPropertyChange**: All property updates go through centralized animation system
+3. **Respect priority system**: ControlSource enum defines animation cancellation rules
+4. **Handle dual screen sync**: State changes broadcast to secondary window automatically
 
-- Add sequencerStartTime to track precise timing
-- Skip settings updates during pattern animations
-- Implement timestamp-based scheduling
-```
+### Performance & Rendering  
+5. **WebGL shader limits**: 10 colors max per gradient (uniform array size)
+6. **Animation frame coordination**: Multiple RAF loops need cleanup on unmount
+7. **localStorage limits**: Use JSON import/export for large projects
+8. **Renderer switching**: Handle missing settings gracefully when switching renderers
 
-### File Organization
-- **Shared components**: `components/shared/` for cross-renderer UI (icons, CollapsibleSection)
-- **Renderer-specific**: Keep renderer logic isolated in their folders
-- **No JSX in .ts files**: Use `React.createElement()` for components in `.ts` schemas (see `scale-texture-schema.ts`)
-- **Store slices**: Specialized state slices in `store/slices/` (project, settings, sequencer, midi, ui, animation)
-- **Empty implementations**: `recording.slice.ts` and `RecordingPanel.tsx` are placeholders for future recording system
-
-### TypeScript Patterns
-- **Discriminated unions**: `ControlConfig` uses `type` field to distinguish slider vs custom controls
-- **Generic actions**: `setCurrentSetting<K extends keyof ControlSettings>` for type-safe updates
-- **Immer**: All project mutations use `produce()` helper
-
-### Animation Frame Management
-- **Texture rotation**: Continuous `requestAnimationFrame` loop in `initializeProject()`
-- **Property animations**: Centralized RAF loop in `animation.slice.ts` (_animationLoop)
-- **Priority-based cancellation**: Higher priority sources can cancel lower priority animations
-- **WebGL renderers**: Use `useEffect` cleanup to cancel RAF on unmount
-- **Frame calculation**: Steps converted to frames based on BPM (framesPerStep = round(secondsPerStep * 60fps))
-
-### Gradient Handling
-- Gradients are `GradientColor[]` arrays with `{ id, color, hardStop }`
-- **Shader transitions**: WebGL passes `u_prevGradientColors` + `u_transitionProgress` for crossfades
-- **Hard stops**: `hardStop: true` creates sharp color boundaries (no interpolation)
-- **Uniform limits**: WebGL shaders limited to 10 colors per gradient (hardcoded array size)
-- **Color conversion**: Hex colors converted to RGB normalized floats (0.0-1.0) for shader uniforms
-- **Gradient animation**: During pattern transitions, shaders blend between previous and new gradient arrays
-  - `transitionProgress` uniform (0.0 → 1.0) controls crossfade
-  - Background and scale gradients transition independently
-  - Only transitions when gradient actually changed (checked in `loadPattern()`)
-
-## Critical Gotchas
-
-1. **Don't mutate store state directly**: Always use actions or `produce()`
-2. **Use requestPropertyChange**: All property updates should go through the centralized animation system
-3. **localStorage limits**: Project export/import to JSON files for safety
-4. **MIDI note timing**: Pattern creation requires `noteOnTime` tracking (0.5s threshold)
-5. **Renderer switching**: User can change `globalSettings.renderer` - components must handle missing settings gracefully
-6. **Fullscreen mode**: Has separate UI state (`isOverlayVisible`, auto-hide on mouse idle)
-7. **Sequencer timing**: Uses precise timestamp-based scheduling to avoid drift (tracks `sequencerStartTime`)
-8. **Animation priority**: Respect ControlSource enum - MIDI(3) > UI(2) > PropertySequencer(1) > PatternSequencer(0)
-9. **Steps to frames**: Frame calculation depends on BPM - fractional steps (0.25) supported for fine control
+### MIDI & Timing
+9. **MIDI note timing**: Pattern creation requires 0.5s hold detection
+10. **Sequencer precision**: Timestamp-based scheduling prevents drift
+11. **BPM calculations**: Steps to frames conversion based on current BPM
+12. **Auto-connect**: `VITE_MIDI_AUTO_CONNECT` controls device connection behavior
 
 ## External Dependencies
 - **zustand** (5.0.8): State management with shallow equality checks
-- **immer** (10.2.0): Immutable state updates via `produce()` helper
-- **react** (19.2.0): UI framework with latest concurrent features
-- **use-sync-external-store** (1.6.0): For Zustand React 19 compatibility
-- **Web MIDI API**: Browser-native MIDI support, no external library
-- **Vite** (6.2.0): Build tool with React plugin and SVGR support
-- **vite-plugin-svgr** (4.5.0): SVG as React components
+- **immer** (10.2.0): Immutable state updates via `produce()` helper  
+- **react** (19.2.0): UI framework with concurrent features
+- **use-sync-external-store** (1.6.0): Zustand React 19 compatibility
+- **@headlessui/react** (2.2.9): Accessible UI components
+- **rosetta** (1.1.0): Lightweight i18n system
+- **tailwindcss**: Utility-first CSS (configured via PostCSS)
+- **vite** (6.2.0): Build tool with React and SVGR plugins
+- **Web APIs**: MIDI API, WebGL 2.0, BroadcastChannel (dual screen)
 
-## Testing & Debugging
+## Debugging & Development
 
-### Debug Overlay (`components/debug/DebugOverlay.tsx`)
-Real-time telemetry and event logging for troubleshooting:
-- **FPS counter**: Monitors RAF loop performance
-- **Sequencer metrics**: Ticks count, current step, timing
-- **Settings tracking**: Hash-based change detection
-- **Animation state**: Shows active animations count (activeAnimations.size)
-- **Event log**: Chronological record of sequencer ticks, pattern loads, animations
-- **Export functionality**: Download debug data as JSON for analysis
+### Debug System  
+- **Environment variables**: Fine-grained debug categories (see [Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md))
+- **Debug overlay**: Real-time metrics (FPS, sequencer state, animation count)
+- **MIDI console**: Built-in MIDI message inspector
+- **Console logging**: Category-specific debug output
 
-### Console Debugging
-Enable detailed logging from browser console:
-```javascript
-window.enableDebug()   // Enable sequencer logging
-window.disableDebug()  // Disable logging
-```
+### Common Debug Scenarios
+- **MIDI issues**: Enable `VITE_DEBUG_MIDI=true`
+- **Sequencer timing**: Enable `VITE_DEBUG_SEQUENCER=true`  
+- **Animation glitches**: Enable `VITE_DEBUG_ANIMATION=true`
+- **Property automation**: Enable `VITE_DEBUG_PROPERTY_SEQUENCER=true`
 
-When enabled, logs include:
-- `[SEQUENCER TICK]`: Step changes, pattern loading decisions
-- `[PATTERN LOAD START]`: Pattern transition initialization
-- `[PROPERTY AUTOMATION]`: Keyframe interpolation results
-- `[SETTINGS UPDATED]`: Final computed settings after merge
+### Development Tools
+- **Hot reload**: Vite provides instant updates
+- **TypeScript strict**: Full type checking enabled
+- **Browser dev tools**: State inspection via Zustand dev tools
 
-### Debugging Workflow
-1. Open Debug Overlay (purple bug button bottom-right)
-2. Enable console logging: `window.enableDebug()`
-3. Watch metrics in real-time while sequencer plays
-4. Check event log for timing issues
-5. Export debug data to compare states
-6. Cross-reference console logs with overlay events
-
-### Common Issues to Check
-- **Glitches during playback**: Compare sequencer tick timing vs RAF calls (should be ~60 FPS)
-- **Stuck transitions**: Check if active animations count stays non-zero
-- **Settings not updating**: Compare `settingsHash` changes vs `settingsUpdates` counter
-- **Property automation**: Verify interpolated values in console logs match expected ranges
-- **Priority conflicts**: Check debug logs for animation cancellation events
-
-### MidiConsole
-- Use `MidiConsole` component to view MIDI messages in real-time
-- MIDI log stored in `state.midiLog` (view via console icon)
-- Check browser console for localStorage errors
-- Fullscreen testing: Mouse movement triggers overlay visibility logic
-
-## Project Files
+## Project Files & Architecture
 - `default-project.json`: Default configuration loaded on first run
 - `metadata.json`: Project metadata (version, description)
-- `docs/next-steps/sistema-de-grabacion.md`: Detailed architecture spec for planned recording system
-- No tests currently - manual testing workflows for MIDI + rendering
+- `src/config.ts`: Environment variable configuration system
+- `vite.config.ts`: Build configuration with React and SVGR plugins
+- Documentation in `docs/` directory (see reference links above)
 
-## Recording System (Planned)
-The recording system is currently in planning phase with detailed architecture documented in `docs/next-steps/sistema-de-grabacion.md`. Key planned features:
-- **Performance recording**: Capture all state changes (MIDI, UI, sequencer) with precise timestamps
-- **Playback system**: Temporal event replay with seek functionality
-- **Video rendering**: Canvas capture + MediaRecorder API for video export (720p-4K)
-- **Alternative encoding**: FFMPEG.wasm integration for advanced video processing
-- **File format**: JSON-based recording format with metadata and event arrays
-
-**Current status**: Empty placeholder files (`recording.slice.ts`, `RecordingPanel.tsx`) exist for future implementation.
+**Future systems** (placeholder implementations):
+- Recording system architecture planned in `docs/next-steps/sistema-de-grabacion.md`
+- Empty `RecordingPanel.tsx` and `recording.slice.ts` await implementation
