@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { PlusIcon, TrashIcon, SplitIcon } from '../shared/icons';
+import { Switch } from '../shared/Switch';
 import type { GradientColor } from '../../types';
 
 interface GradientEditorProps {
@@ -74,15 +75,18 @@ const GradientEditor: React.FC<GradientEditorProps> = ({ title, colors, onColors
                 aria-label={`Color ${index + 1}`}
             />
             <span className="flex-grow font-mono text-gray-400 select-all">{color.color.toUpperCase()}</span>
-            <button
-                onClick={() => handleHardStopToggle(color.id)}
-                className={`p-2 rounded-md transition-colors ${color.hardStop ? 'bg-cyan-600 text-white' : 'bg-gray-600 hover:bg-gray-500 text-gray-300'}`}
-                title={color.hardStop ? "Suavizar transición de color" : "Crear quiebre de color"}
-                aria-pressed={color.hardStop}
-                aria-label={color.hardStop ? `Suavizar transición para el color ${index + 1}` : `Crear quiebre para el color ${index + 1}`}
-            >
-                <SplitIcon className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={color.hardStop}
+                onChange={() => handleHardStopToggle(color.id)}
+                size="sm"
+                className="flex-shrink-0"
+                label=""
+              />
+              <span className="text-xs text-gray-400 whitespace-nowrap">
+                {color.hardStop ? "Hard" : "Soft"}
+              </span>
+            </div>
             <button
               onClick={() => removeColor(color.id)}
               className="p-2 text-gray-500 hover:text-red-400 disabled:text-gray-700 disabled:cursor-not-allowed transition-colors"

@@ -5,6 +5,7 @@ import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../shared
 import CollapsibleSection from '../shared/CollapsibleSection';
 import PropertySequencer from './PropertySequencer';
 import { Button } from '../shared/Button';
+import { Select } from '../shared/Select';
 import { SequencerCell } from '../shared/SequencerCell';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
@@ -120,16 +121,16 @@ const Sequencer: React.FC = () => {
                         {t('sequencer.patterns')}
                     </label>
                     <div className="flex gap-2">
-                        <select
+                        <Select
                             id="sequence-selector"
                             value={activeSequenceIndex}
-                            onChange={e => setActiveSequenceIndex(Number(e.target.value))}
-                            className="flex-1 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm"
+                            onChange={value => setActiveSequenceIndex(Number(value))}
+                            className="flex-1"
                         >
                             {project.sequences.map((seq, index) => (
                                 <option key={seq.id} value={index}>{seq.name}</option>
                             ))}
-                        </select>
+                        </Select>
                         <Button 
                             variant="secondary"
                             size="icon"

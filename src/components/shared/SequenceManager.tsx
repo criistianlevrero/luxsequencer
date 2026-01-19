@@ -3,6 +3,7 @@ import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
 import { SaveIcon, TrashIcon, CopyIcon, PlusIcon } from './icons';
 import { Button } from './Button';
+import { Select } from './Select';
 
 const SequenceManager: React.FC = () => {
   const { t } = useTranslation();
@@ -57,18 +58,18 @@ const SequenceManager: React.FC = () => {
         <label htmlFor="sequence-select" className="text-sm font-medium text-gray-300">
           {t('sequence.label')}:
         </label>
-        <select
+        <Select
           id="sequence-select"
           value={activeSequenceIndex}
-          onChange={(e) => setActiveSequenceIndex(Number(e.target.value))}
-          className="bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          onChange={(value) => setActiveSequenceIndex(Number(value))}
+          size="sm"
         >
           {project.sequences.map((seq, index) => (
             <option key={seq.id} value={index}>
               {seq.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Action Buttons */}

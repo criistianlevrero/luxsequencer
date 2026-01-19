@@ -4,6 +4,7 @@ import { useTextureStore } from '../../store';
 import { renderers } from '../renderers';
 import { PlusIcon } from '../shared/icons';
 import { Button } from '../shared/Button';
+import { Select } from '../shared/Select';
 import PropertyTrackLane from './PropertyTrackLane';
 import type { ControlSettings } from '../../types';
 
@@ -70,12 +71,12 @@ const PropertySequencer: React.FC = () => {
         <div className="space-y-4">
             {/* Add track control - responsive */}
             <div className="flex flex-col sm:flex-row gap-2 p-3 bg-gray-900/50 rounded-lg">
-                <select
+                <Select
                     value={selectedProperty}
-                    onChange={(e) => setSelectedProperty(e.target.value)}
-                    className="flex-1 bg-gray-700 border border-gray-600 text-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm"
+                    onChange={(value) => setSelectedProperty(value)}
+                    className="flex-1"
+                    placeholder="Seleccione una propiedad..."
                 >
-                    <option value="" disabled>Seleccione una propiedad...</option>
                     {allAnimatableProps.map(prop => (
                         <option 
                             key={prop.id} 
@@ -83,10 +84,10 @@ const PropertySequencer: React.FC = () => {
                             disabled={usedProperties.has(prop.id)}
                             className={usedProperties.has(prop.id) ? 'text-gray-500' : ''}
                         >
-                            {prop.category} › {prop.label}
+                            {prop.label} ({prop.category})
                         </option>
                     ))}
-                </select>
+                </Select>
                 <Button 
                     variant="primary"
                     onClick={handleAddTrack}

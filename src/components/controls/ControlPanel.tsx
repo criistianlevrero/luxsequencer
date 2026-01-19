@@ -6,6 +6,7 @@ import { renderers } from '../renderers';
 import MidiLearnButton from '../midi/MidiLearnButton';
 import CollapsibleSection from '../shared/CollapsibleSection';
 import RendererControls from '../renderers/shared/RendererControls';
+import { Select } from '../shared/Select';
 
 const ControlPanel: React.FC = () => {
   const { t } = useTranslation();
@@ -92,17 +93,17 @@ const ControlPanel: React.FC = () => {
             ) : midiDevices.length > 0 ? (
                 <div className="space-y-3">
                      <label htmlFor="midiDevice" className="font-medium text-gray-300">{t('midi.inputDevice')}</label>
-                        <select 
+                        <Select 
                             id="midiDevice"
                             value={selectedMidiDevice || ''}
-                            onChange={(e) => selectMidiDevice(e.target.value)}
-                            className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-lg p-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            onChange={(value) => selectMidiDevice(value)}
+                            fullWidth
                         >
                             <option value="">{t('midi.notConnected')}</option>
                             {midiDevices.map(device => (
                                 <option key={device.id} value={device.id}>{device.name}</option>
                             ))}
-                        </select>
+                        </Select>
                 </div>
             ) : (
                 <button
@@ -208,16 +209,17 @@ const ControlPanel: React.FC = () => {
                     <p className="text-sm text-gray-400 mt-1 mb-3">
                         {t('project.renderEngineDescription')}
                     </p>
-                    <select 
+                    <Select 
                         id="renderer"
                         value={renderer}
-                        onChange={(e) => setRenderer(e.target.value)}
-                        className="w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-lg p-2 focus:ring-cyan-500 focus:border-cyan-500"
-                    >
-                        {Object.values(renderers).map(r => (
-                            <option key={r.id} value={r.id}>{r.name}</option>
-                        ))}
-                    </select>
+                        onChange={(value) => setRenderer(value as string)}
+                        options={Object.values(renderers).map(r => ({
+                          value: r.id,
+                          label: r.name,
+                          description: `Renderer: ${r.id}`
+                        }))}
+                        fullWidth
+                    />
                 </div>
             </div>
       </CollapsibleSection>

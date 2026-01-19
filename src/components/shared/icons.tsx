@@ -22,6 +22,8 @@ import StopSvg from '../../assets/icons/stop.svg?react';
 import SequencerSvg from '../../assets/icons/sequencer.svg?react';
 import SaveSvg from '../../assets/icons/save.svg?react';
 import CopySvg from '../../assets/icons/copy.svg?react';
+import CheckSvg from '../../assets/icons/check.svg?react';
+import ChevronUpDownSvg from '../../assets/icons/chevron-up-down.svg?react';
 
 // Wrapper components to maintain backward compatibility
 export const FishIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -106,6 +108,14 @@ export const SaveIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const CopyIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <CopySvg {...props} />
+);
+
+export const CheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <CheckSvg {...props} />
+);
+
+export const ChevronUpDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <ChevronUpDownSvg {...props} />
 );
 
 // Reset/Refresh icon (inline SVG)
