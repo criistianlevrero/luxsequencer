@@ -31,7 +31,12 @@ const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
 
     const controlInfo = useMemo(() => {
         for (const renderer of Object.values(renderers)) {
-            for (const section of renderer.controlSchema) {
+            // Handle both array and function controlSchema
+            const schema = typeof renderer.controlSchema === 'function' 
+                ? renderer.controlSchema() 
+                : renderer.controlSchema;
+            
+            for (const section of schema) {
                 const control = section.controls.find(c => c.id === track.property);
                 if (control && control.type === 'slider') {
                     // FIX: Also return the category (section title) to be used in the UI.
