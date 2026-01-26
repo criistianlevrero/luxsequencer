@@ -253,3 +253,6 @@ export interface Project {
     globalSettings: GlobalSettings;
     sequences: Sequence[];
 }
+
+// Export declarative controls types  
+export * from './types/declarativeControls';
