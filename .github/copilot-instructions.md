@@ -24,11 +24,11 @@ The project has comprehensive documentation that should be referenced rather tha
 ## Architecture
 
 ### State Management (Zustand + Immer)
-- **Single source of truth**: `store/` directory with slice-based architecture
-- **Slices**: project, settings, sequencer, midi, ui, animation, dualScreen
-- **Key features**: Auto-save to localStorage, centralized animation system, priority-based control
-- **State structure**: `Project → Sequences → Patterns → ControlSettings`
-- **Animation system**: Priority-based control (MIDI > UI > PropertySequencer > PatternSequencer)
+See **[Store Architecture Guide](docs/store-architecture.md)** for complete documentation of:
+- Slice-based architecture and state structure
+- Animation system with priority-based control
+- Event flows and conflict resolution
+- All store slices (project, sequencer, midi, animation, etc.)
 
 ### Renderer Plugin System
 Renderers are **completely independent modules** registered in `components/renderers/index.ts`:
@@ -57,9 +57,10 @@ See **[UI System Guide](docs/ui-system.md)** for complete component architecture
 - **MIDI Learn**: Visual feedback system - click control icon → move MIDI controller → auto-mapped
 - **Pattern triggers**: Hold note 0.5s to create pattern, tap to load pattern
 - **Per-project mappings**: Stored in `project.globalSettings.midiMappings`
-- **Priority system**: MIDI has highest priority (ControlSource.MIDI = 3) - can cancel any other animations
 - **Debug mode**: Enable `VITE_DEBUG_MIDI=true` for message logging
 - **Console integration**: Built-in MIDI console for debugging (MidiConsole component)
+
+**Priority system details**: See [Store Architecture Guide](docs/store-architecture.md#sistema-de-prioridades-de-eventos)
 
 See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for MIDI configuration options.
 
@@ -72,27 +73,15 @@ See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for MIDI co
 4. **Sequencer trigger**: Step sequencer loads pattern on beat with animation
 
 #### Control Priority System
-```
-ControlSource Priority (enum):
-  MIDI (3)                → Highest priority, immediate changes
-    ↓ (can cancel)
-  UI (2)                  → User interactions
-    ↓ (can cancel)  
-  PropertySequencer (1)   → Keyframe automation
-    ↓ (can cancel)
-  PatternSequencer (0)    → Lowest priority
-
-Flow: requestPropertyChange(property, from, to, steps, source, interpolationType)
-```
+See **[Store Architecture Guide](docs/store-architecture.md#sistema-de-prioridades-de-eventos)** for complete documentation of priority system, conflict resolution, and animation flows.
 
 ### Pattern System
 - **Patterns as snapshots**: Complete `ControlSettings` state stored per pattern
 - **Animated transitions**: Uses centralized `requestPropertyChange()` system
-  - Duration controlled by `sequence.interpolationSpeed` (0-8 steps, supports fractions)
-  - WebGL gradients use shader-based crossfade (`transitionProgress` uniform)
-- **Animate only changes**: Compares old vs new settings, only animates differences
 - **Dirty state tracking**: User edits trigger save prompts
 - **MIDI integration**: Pattern creation via note holds, loading via note taps
+
+**Technical details**: See [Store Architecture Guide](docs/store-architecture.md#flujo-de-eventos-principal) for animation flows and interpolation system.
 
 ### Real-Time Rendering Pipeline
 ```
@@ -220,6 +209,8 @@ export const yourSchema: ControlSection[] = [
 2. **Use requestPropertyChange**: All property updates go through centralized animation system
 3. **Respect priority system**: ControlSource enum defines animation cancellation rules
 4. **Handle dual screen sync**: State changes broadcast to secondary window automatically
+
+**Complete store documentation**: See [Store Architecture Guide](docs/store-architecture.md) for detailed state management patterns, animation system, and event flows.
 
 ### Performance & Rendering  
 5. **WebGL shader limits**: 10 colors max per gradient (uniform array size)
