@@ -46,6 +46,12 @@ export const MainApp: React.FC = () => {
     toggleControlDrawer: drawerActions.toggleDrawer,
     toggleSequencerDrawer: drawerActions.toggleSequencerDrawer,
     toggleConsole: drawerActions.toggleConsole,
+    togglePlayStop: () => {
+      const { project, setIsSequencerPlaying } = useTextureStore.getState();
+      if (project) {
+        setIsSequencerPlaying(!project.globalSettings.isSequencerPlaying);
+      }
+    },
   });
 
   // Prepare components

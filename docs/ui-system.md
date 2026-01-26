@@ -12,6 +12,7 @@ Documentación completa del sistema de interfaz de usuario de LuxSequencer, incl
 - [Sistema de Estilos](#sistema-de-estilos)
 - [Internacionalización](#internacionalización)
 - [Responsive Design](#responsive-design)
+- [Eventos de Teclado](#eventos-de-teclado)
 - [Accesibilidad](#accesibilidad)
 - [Patrones de Diseño](#patrones-de-diseño)
 - [Mejoras Futuras](#mejoras-futuras)
@@ -331,6 +332,173 @@ const schema = { label: t('controls.scaleSize') }
 
 ---
 
+## Eventos de Teclado
+
+### Sistema de Keyboard Shortcuts
+
+#### Hook: useKeyboardShortcuts
+**Archivo**: [`src/hooks/useKeyboardShortcuts.ts`](../src/hooks/useKeyboardShortcuts.ts)
+
+Sistema centralizado para gestión de atajos de teclado globales de la aplicación.
+
+#### Atajos Implementados
+
+| Tecla | Acción | Contexto |
+|-------|--------|----------|
+| `F11` | Toggle fullscreen | Global |
+| `Escape` | Cerrar todos los drawers | Solo en fullscreen |
+| `Ctrl+1` | Toggle panel de control | Solo en fullscreen |
+| `Ctrl+2` | Toggle panel del secuenciador | Solo en fullscreen |
+| `Ctrl+`` | Toggle consola MIDI | Global |
+| `Space` | Toggle play/stop del secuenciador | Global |
+
+#### Implementación del Hook
+
+```typescript
+export interface ShortcutActions {
+  toggleFullscreen: () => void;
+  closeAllDrawers: () => void;
+  toggleControlDrawer: () => void;
+  toggleSequencerDrawer: () => void;
+  toggleConsole: () => void;
+  togglePlayStop: () => void;
+}
+
+export const useKeyboardShortcuts = (actions: ShortcutActions) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F11 - Toggle fullscreen
+      if (e.key === 'F11') {
+        e.preventDefault();
+        actions.toggleFullscreen();
+        return;
+      }
+
+      // Escape - Close all drawers (only in fullscreen)
+      if (e.key === 'Escape' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        actions.closeAllDrawers();
+        return;
+      }
+
+      // Ctrl+1 - Toggle control drawer (in fullscreen)
+      if (e.key === '1' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        actions.toggleControlDrawer();
+        return;
+      }
+
+      // Space - Toggle play/stop sequencer
+      if (e.key === ' ' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        actions.togglePlayStop();
+        return;
+      }
+      
+      // Más atajos...
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [actions]);
+};
+```
+
+#### Uso en Componentes
+
+```typescript
+// En MainApp.tsx
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+
+const { drawers, actions: drawerActions } = useDrawerStates();
+const handleToggleFullscreen = () => toggleFullscreen(appRef);
+
+// Configurar keyboard shortcuts
+useKeyboardShortcuts({
+  toggleFullscreen: handleToggleFullscreen,
+  closeAllDrawers: drawerActions.closeAllDrawers,
+  toggleControlDrawer: drawerActions.toggleDrawer,
+  toggleSequencerDrawer: drawerActions.toggleSequencerDrawer,
+  toggleConsole: drawerActions.toggleConsole,
+  togglePlayStop: handleTogglePlayStop,
+});
+```
+
+#### Características del Sistema
+
+✅ **Event Prevention**: `preventDefault()` para evitar comportamientos por defecto del browser  
+✅ **Modifier Keys Validation**: Verificación estricta de Ctrl/Shift/Alt para evitar conflictos  
+✅ **Context-Aware**: Algunos atajos solo funcionan en fullscreen  
+✅ **Hook Pattern**: Fácil integración en cualquier componente  
+✅ **Type Safety**: Interface TypeScript para todas las acciones  
+
+### Navegación por Teclado en Componentes
+
+#### Headless UI Components
+Los componentes de Headless UI implementan navegación por teclado completa automáticamente:
+
+- **Select/Listbox**: 
+  - `↑/↓` - Navegar opciones
+  - `Enter/Space` - Seleccionar
+  - `Escape` - Cerrar
+  - `Tab` - Salir del componente
+  - `Typing` - Búsqueda incremental
+
+- **Switch**: 
+  - `Space/Enter` - Toggle
+  - `Tab` - Focus/Blur
+
+- **Dialog/Modal** (futuro):
+  - `Escape` - Cerrar
+  - `Tab` - Trap focus dentro del modal
+
+#### Controles Nativos
+- **Range sliders**: Arrow keys para ajustar valores
+- **Buttons**: Enter/Space para activar
+- **Form inputs**: Tab navigation estándar
+
+### Cómo Agregar Nuevos Atajos
+
+1. **Agregar acción a la interface**:
+```typescript
+export interface ShortcutActions {
+  // Existentes...
+  saveProject: () => void;
+}
+```
+
+2. **Implementar handler en el hook**:
+```typescript
+// Nueva combinación - ejemplo: Ctrl+S para guardar
+if (e.key === 's' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+  e.preventDefault();
+  actions.saveProject();
+  return;
+}
+```
+
+3. **Conectar con la lógica del componente**:
+```typescript
+useKeyboardShortcuts({
+  // Existentes...
+  saveProject: handleSaveProject,
+});
+```
+
+### Mejoras Futuras
+
+#### Sistema de Atajos Avanzado
+- **Overlay de atajos**: Visual overlay con `?` o `F1` mostrando todos los atajos
+- **Personalización**: Settings panel para customizar combinaciones
+- **Contextos específicos**: Atajos que cambian según la sección activa
+- **Conflictos**: Detección automática y resolución de conflictos
+
+#### Navegación Avanzada
+- **Vim-style navigation**: h/j/k/l para power users
+- **Focus trapping**: En modals y drawers
+- **Skip links**: Para screen readers
+
+---
+
 ## Accesibilidad
 
 ### Implementado
@@ -339,6 +507,7 @@ const schema = { label: t('controls.scaleSize') }
 - ✅ **Focus management**: Visible focus rings, trap focus en modals
 - ✅ **Color contrast**: WCAG AA compliance en todos los elementos
 - ✅ **Semantic HTML**: Headers, labels, buttons correctos
+- ✅ **Keyboard shortcuts**: Sistema centralizado de atajos de teclado
 
 ### Headless UI Benefits
 - ✅ **WAI-ARIA patterns**: Implementados automáticamente
@@ -478,9 +647,11 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 
 #### 3. **Advanced Interactions**
 - Drag & drop para reordering
-- Keyboard shortcuts overlay
+- ✅ **Keyboard shortcuts system**: Sistema centralizado implementado
+- Keyboard shortcuts overlay con ayuda visual
 - Gesture support para mobile
 - Multi-touch interactions
+- Vim-style navigation para power users
 
 #### 4. **Theming System**
 - User preference persistence
@@ -538,6 +709,9 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 - **Button system** completo con 4 variants y 4 sizes
 - **Select component** dual API con Headless UI
 - **Switch component** para toggles modernos  
+- **Sistema de eventos de teclado** con hook centralizado
+- **6 atajos de teclado** implementados (F11, Escape, Ctrl+1/2/`, Space)
+- **Navegación por teclado** completa en componentes Headless UI
 - **Internacionalización** completa (ES/EN)
 - **Responsive design** básico
 - **Accesibilidad** level AA

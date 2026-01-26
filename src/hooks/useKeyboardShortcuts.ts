@@ -6,6 +6,7 @@ export interface ShortcutActions {
   toggleControlDrawer: () => void;
   toggleSequencerDrawer: () => void;
   toggleConsole: () => void;
+  togglePlayStop: () => void;
 }
 
 export const useKeyboardShortcuts = (actions: ShortcutActions) => {
@@ -42,6 +43,13 @@ export const useKeyboardShortcuts = (actions: ShortcutActions) => {
       if (e.key === '`' && e.ctrlKey && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         actions.toggleConsole();
+        return;
+      }
+
+      // Space - Toggle play/stop (prevent default to avoid page scroll)
+      if (e.key === ' ' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        actions.togglePlayStop();
         return;
       }
     };

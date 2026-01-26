@@ -70,49 +70,23 @@ const ControlPanel: React.FC = () => {
 
   return (
     <div className="divide-y divide-gray-700">
-        <CollapsibleSection title={t('midi.configuration')} defaultOpen>
-            {midiConnectionError ? (
-                <div className="mb-4 bg-red-900/60 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative text-sm" role="alert">
-                    <strong className="font-bold block mb-2">{t('midi.connectionError')}</strong>
-                    <p className="mt-1">{midiConnectionError}</p>
-                     <div className="mt-4 flex items-center space-x-3">
-                        <button
-                            onClick={connectMidi}
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
-                        >
-                            {t('midi.retry')}
-                        </button>
-                         <button
-                            onClick={clearMidiError}
-                            className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
-                        >
-                            {t('common.close')}
-                        </button>
-                    </div>
-                </div>
-            ) : midiDevices.length > 0 ? (
-                <div className="space-y-3">
-                     <label htmlFor="midiDevice" className="font-medium text-gray-300">{t('midi.inputDevice')}</label>
-                        <Select 
-                            id="midiDevice"
-                            value={selectedMidiDevice || ''}
-                            onChange={(value) => selectMidiDevice(value)}
-                            fullWidth
-                        >
-                            <option value="">{t('midi.notConnected')}</option>
-                            {midiDevices.map(device => (
-                                <option key={device.id} value={device.id}>{device.name}</option>
-                            ))}
-                        </Select>
-                </div>
-            ) : (
-                <button
-                    onClick={connectMidi}
-                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500"
-                >
-                    {t('midi.connect')}
-                </button>
-            )}
+        <CollapsibleSection title={t('project.renderEngine')} defaultOpen>
+            <div className="space-y-3">
+                <p className="text-sm text-gray-400">
+                    {t('project.renderEngineDescription')}
+                </p>
+                <Select 
+                    id="renderer"
+                    value={renderer}
+                    onChange={(value) => setRenderer(value as string)}
+                    options={Object.values(renderers).map(r => ({
+                      value: r.id,
+                      label: r.name,
+                      description: `Renderer: ${r.id}`
+                    }))}
+                    fullWidth
+                />
+            </div>
         </CollapsibleSection>
 
         <CollapsibleSection title={t('patterns.title')}>
@@ -176,6 +150,55 @@ const ControlPanel: React.FC = () => {
         <CollapsibleSection title={t('project.globalConfiguration')}>
             <div className="space-y-4">
                 <div>
+                    <h4 className="font-medium text-gray-300">{t('midi.configuration')}</h4>
+                    <p className="text-sm text-gray-400 mt-1 mb-3">
+                        {t('midi.configurationDescription')}
+                    </p>
+                    {midiConnectionError ? (
+                        <div className="mb-4 bg-red-900/60 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative text-sm" role="alert">
+                            <strong className="font-bold block mb-2">{t('midi.connectionError')}</strong>
+                            <p className="mt-1">{midiConnectionError}</p>
+                             <div className="mt-4 flex items-center space-x-3">
+                                <button
+                                    onClick={connectMidi}
+                                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
+                                >
+                                    {t('midi.retry')}
+                                </button>
+                                 <button
+                                    onClick={clearMidiError}
+                                    className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
+                                >
+                                    {t('common.close')}
+                                </button>
+                            </div>
+                        </div>
+                    ) : midiDevices.length > 0 ? (
+                        <div className="space-y-3">
+                             <label htmlFor="midiDevice" className="font-medium text-gray-300">{t('midi.inputDevice')}</label>
+                                <Select 
+                                    id="midiDevice"
+                                    value={selectedMidiDevice || ''}
+                                    onChange={(value) => selectMidiDevice(value)}
+                                    fullWidth
+                                >
+                                    <option value="">{t('midi.notConnected')}</option>
+                                    {midiDevices.map(device => (
+                                        <option key={device.id} value={device.id}>{device.name}</option>
+                                    ))}
+                                </Select>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={connectMidi}
+                            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500"
+                        >
+                            {t('midi.connect')}
+                        </button>
+                    )}
+                </div>
+                
+                <div className="pt-4 mt-4 border-t border-gray-700">
                     <h4 className="font-medium text-gray-300">{t('project.dataManagement')}</h4>
                     <p className="text-sm text-gray-400 mt-1">
                         {t('project.dataManagementDescription')}
@@ -203,23 +226,6 @@ const ControlPanel: React.FC = () => {
                             {t('project.import')}
                         </button>
                     </div>
-                </div>
-                 <div className="pt-4 mt-4 border-t border-gray-700">
-                    <h4 className="font-medium text-gray-300">{t('project.renderEngine')}</h4>
-                    <p className="text-sm text-gray-400 mt-1 mb-3">
-                        {t('project.renderEngineDescription')}
-                    </p>
-                    <Select 
-                        id="renderer"
-                        value={renderer}
-                        onChange={(value) => setRenderer(value as string)}
-                        options={Object.values(renderers).map(r => ({
-                          value: r.id,
-                          label: r.name,
-                          description: `Renderer: ${r.id}`
-                        }))}
-                        fullWidth
-                    />
                 </div>
             </div>
       </CollapsibleSection>
