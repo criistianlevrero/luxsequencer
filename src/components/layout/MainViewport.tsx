@@ -1,6 +1,7 @@
 import React from 'react';
 import ViewportControls from '../controls/ViewportControls';
-import type { ViewportMode } from '../../types';
+import { RendererErrorBoundary } from '../error/RendererErrorBoundary';
+import type { ViewportMode } from '../../store/types';
 
 interface MainViewportProps {
   viewportMode: ViewportMode;
@@ -24,7 +25,9 @@ export const MainViewport: React.FC<MainViewportProps> = ({
           : "w-full max-w-sm mx-auto aspect-[9/16] overflow-hidden rounded-xl bg-gray-800"
       }>
         {CanvasComponent && !dualScreenEnabled ? (
-          <CanvasComponent className="w-full h-full" />
+          <RendererErrorBoundary renderer={CanvasComponent.displayName || 'unknown'}>
+            <CanvasComponent className="w-full h-full" />
+          </RendererErrorBoundary>
         ) : dualScreenEnabled ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900/50">
             <div className="text-center space-y-3">

@@ -5,6 +5,9 @@ import type { Project, Sequence } from '../../types';
 import { isLegacyControlSettings } from '../../types';
 import { LOCAL_STORAGE_KEY } from '../utils/helpers';
 import { migrateLegacySettings, createInitialSettings } from '../../utils/settingsMigration';
+import { validateRendererSettings } from '../../utils/validation';
+import { renderers } from '../../components/renderers';
+import { config } from '../../config';
 
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions> = (set, get) => ({
     initializeProject: (project) => {
@@ -87,6 +90,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         
         // Get initial settings and migrate if necessary
         const patternSettings = project.sequences[0].activePatterns[0]?.settings;
+        const currentRenderer = project.globalSettings.renderer || 'webgl';
         let migratedSettings;
         
         if (patternSettings) {
@@ -100,11 +104,39 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             migratedSettings = get().currentSettings;
         }
         
-        set({
-            project,
-            textureRotation: patternSettings?.textureRotation || 0,
-            currentSettings: migratedSettings
-        });
+        // Validate settings for current renderer
+        const rendererDefinition = renderers[currentRenderer];
+        if (rendererDefinition) {
+            const validationResult = validateRendererSettings(rendererDefinition, migratedSettings);
+            if (!validationResult.valid) {
+                if (config.debug.validation) {
+                    console.warn('[PROJECT] Settings validation failed:', validationResult);
+                }
+                // Apply validation corrections if available
+                const correctedSettings = migratedSettings; // Use original settings if validation fails
+                set({
+                    project,
+                    textureRotation: 0,
+                    currentSettings: correctedSettings
+                });
+            } else {
+                if (config.debug.validation) {
+                    console.log('[PROJECT] Settings validation passed');
+                }
+                set({
+                    project,
+                    textureRotation: 0,
+                    currentSettings: migratedSettings
+                });
+            }
+        } else {
+            // Renderer not found, use settings without validation
+            set({
+                project,
+                textureRotation: 0,
+                currentSettings: migratedSettings
+            });
+        }
         
         // Start texture rotation animation loop
         const animateRotation = () => {

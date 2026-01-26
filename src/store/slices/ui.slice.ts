@@ -3,6 +3,10 @@ import type { StateCreator } from 'zustand';
 import type { StoreState, UIActions } from '../types';
 import type { LocaleCode } from '../../i18n/types';
 import { setLocale as setI18nLocale, initializeI18n } from '../../i18n';
+import { validateRendererSettings } from '../../utils/validation';
+import { createInitialSettings } from '../../utils/settingsMigration';
+import { renderers } from '../../components/renderers';
+import { config } from '../../config';
 
 // LocalStorage key for locale persistence
 const LOCALE_STORAGE_KEY = 'luxsequencer_locale';
@@ -42,13 +46,38 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
     setViewportMode: (mode) => set({ viewportMode: mode }),
     
     setRenderer: (renderer) => {
-        const { project } = get();
+        const { project, currentSettings } = get();
         if (!project) return;
 
         const newProject = produce(project, draft => {
             draft.globalSettings.renderer = renderer;
         });
         get().setProject(newProject);
+        
+        // Validate and migrate current settings for the new renderer
+        const migratedSettings = createInitialSettings(renderer, currentSettings);
+        const rendererDefinition = renderers[renderer];
+        
+        if (rendererDefinition) {
+            const validationResult = validateRendererSettings(rendererDefinition, migratedSettings);
+            
+            if (!validationResult.valid) {
+                if (config.debug.validation) {
+                    console.warn(`[UI] Settings validation failed when switching to ${renderer}:`, validationResult);
+                }
+                // Apply validation corrections if available
+                const correctedSettings = migratedSettings; // Use original settings if validation fails
+                set({ currentSettings: correctedSettings });
+            } else {
+                if (config.debug.validation) {
+                    console.log(`[UI] Settings validation passed for renderer ${renderer}`);
+                }
+                set({ currentSettings: migratedSettings });
+            }
+        } else {
+            // Renderer not found, use migrated settings without validation
+            set({ currentSettings: migratedSettings });
+        }
     },
     
     setLocale: (locale) => {

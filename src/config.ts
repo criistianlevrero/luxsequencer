@@ -28,6 +28,8 @@ interface EnvConfig {
     midi: boolean;
     /** Property sequencer and keyframes */
     propertySequencer: boolean;
+    /** Renderer validation and error handling */
+    validation: boolean;
   };
 }
 
@@ -63,6 +65,7 @@ export const env: EnvConfig = {
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),
     midi: parseBoolean(import.meta.env.VITE_DEBUG_MIDI, false),
     propertySequencer: parseBoolean(import.meta.env.VITE_DEBUG_PROPERTY_SEQUENCER, false),
+    validation: parseBoolean(import.meta.env.VITE_DEBUG_VALIDATION, false),
   },
 };
 
@@ -102,3 +105,6 @@ export const logEnvConfig = (): void => {
     });
   }
 };
+
+// Alias for backwards compatibility
+export const config = env;

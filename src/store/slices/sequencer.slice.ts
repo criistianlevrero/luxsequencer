@@ -427,7 +427,12 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             const sequence = draft.sequences[activeSequenceIndex];
             const activeRenderer = sequence.activeRenderer;
             if (!sequence.rendererSequencerStates[activeRenderer]) {
-                sequence.rendererSequencerStates[activeRenderer] = _createDefaultSequencerSettings();
+                sequence.rendererSequencerStates[activeRenderer] = {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
             }
             const sequencer = sequence.rendererSequencerStates[activeRenderer];
             if (!sequencer.propertyTracks) sequencer.propertyTracks = [];

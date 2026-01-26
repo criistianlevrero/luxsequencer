@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
 import type { ControlSettings, GradientColor } from '../../../types';
-import { useConcentricCompatibleSettings } from '../../../utils/settingsMigration';
+import { useConcentricCompatibleSettings, getNestedProperty } from '../../../utils/settingsMigration';
 
 type RGBColor = { r: number, g: number, b: number };
 
@@ -65,13 +65,12 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
         };
 
         const drawScene = (time: number, settings: ControlSettings) => {
-            const {
-                concentric_repetitionSpeed = 0.5,
-                concentric_growthSpeed = 0.5,
-                concentric_initialSize = 10,
-                concentric_gradientColors = [],
-                backgroundGradientColors = [],
-            } = settings;
+            // Extract values from hierarchical settings
+            const repetitionSpeed = getNestedProperty(settings, 'renderer.concentric.repetitionSpeed') ?? 0.5;
+            const growthSpeed = getNestedProperty(settings, 'renderer.concentric.growthSpeed') ?? 0.5;
+            const initialSize = getNestedProperty(settings, 'renderer.concentric.initialSize') ?? 10;
+            const gradientColors = getNestedProperty(settings, 'renderer.concentric.gradientColors') ?? [];
+            const backgroundGradientColors = getNestedProperty(settings, 'common.backgroundGradientColors') ?? [];
 
             const dpr = window.devicePixelRatio || 1;
             const displayWidth = canvas.offsetWidth;
@@ -100,8 +99,8 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
             ctx.fillRect(0, 0, displayWidth, displayHeight);
 
             // Add new hexagon if needed
-            if ((time - lastCreationTime.current) > (concentric_repetitionSpeed * 1000)) {
-                hexagons.current.push({ creationTime: time, initialSize: concentric_initialSize });
+            if ((time - lastCreationTime.current) > (repetitionSpeed * 1000)) {
+                hexagons.current.push({ creationTime: time, initialSize: initialSize });
                 lastCreationTime.current = time;
             }
 
@@ -110,11 +109,11 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
             ctx.translate(displayWidth / 2, displayHeight / 2);
             ctx.lineWidth = 2;
 
-            const rgbGradient = concentric_gradientColors.map(c => ({ rgb: hexToRgb(c.color), hardStop: c.hardStop })).filter((c): c is { rgb: RGBColor, hardStop: boolean } => c.rgb !== null);
+            const rgbGradient = gradientColors.map(c => ({ rgb: hexToRgb(c.color), hardStop: c.hardStop })).filter((c): c is { rgb: RGBColor, hardStop: boolean } => c.rgb !== null);
 
             hexagons.current.forEach(hex => {
                 const age = time - hex.creationTime;
-                const currentSize = hex.initialSize + age * concentric_growthSpeed * 0.1;
+                const currentSize = hex.initialSize + age * growthSpeed * 0.1;
                 
                 const colorValue = (currentSize / maxDimension) % 1.0;
                 const color = calculateColorFromGradient(rgbGradient, colorValue);
@@ -128,16 +127,15 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
             // Remove large hexagons
             hexagons.current = hexagons.current.filter(hex => {
                 const age = time - hex.creationTime;
-                const currentSize = hex.initialSize + age * concentric_growthSpeed * 0.1;
+                const currentSize = hex.initialSize + age * growthSpeed * 0.1;
                 return currentSize < diagonal / 2;
             });
         };
 
         const animate = (time: number) => {
             const state = useTextureStore.getState();
-            // Use compatibility adapter to get settings in expected format
-            const currentSettings = useConcentricCompatibleSettings(state.currentSettings);
-            drawScene(time, currentSettings);
+            // Use hierarchical settings directly
+            drawScene(time, state.currentSettings);
             animationFrameId.current = requestAnimationFrame(animate);
         };
 

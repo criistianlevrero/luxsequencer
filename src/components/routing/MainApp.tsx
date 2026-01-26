@@ -8,6 +8,7 @@ import Sequencer from '../sequencer/Sequencer';
 import DebugOverlay from '../debug/DebugOverlay';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import DualScreenManager from '../dualscreen/DualScreenManager';
+import { RendererErrorBoundary } from '../error/RendererErrorBoundary';
 import { env } from '../../config';
 // Layout components
 import { DesktopLayout } from '../layout/DesktopLayout';
@@ -19,6 +20,7 @@ import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { useDrawerStates } from '../../hooks/useDrawerStates';
 import { useAppEventHandlers } from '../../hooks/useAppEventHandlers';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useRendererHotReload } from '../../utils/hotReloadHooks';
 
 export const MainApp: React.FC = () => {
   const { t } = useTranslation();
@@ -36,6 +38,9 @@ export const MainApp: React.FC = () => {
   const clearMidiLog = useTextureStore(state => state.clearMidiLog);
   const rendererId = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
   const dualScreenEnabled = useTextureStore(state => state.dualScreen.enabled);
+  
+  // Hot reload for renderers in development
+  const hotReload = useRendererHotReload(rendererId);
 
   const handleToggleFullscreen = () => toggleFullscreen(appRef);
 
@@ -89,7 +94,11 @@ export const MainApp: React.FC = () => {
             controlPanel={controlPanel}
             sequencerPanel={sequencerPanel}
           >
-            {CanvasComponent && <CanvasComponent className="w-full h-full" />}
+            {CanvasComponent && (
+              <RendererErrorBoundary renderer={rendererId}>
+                <CanvasComponent className="w-full h-full" />
+              </RendererErrorBoundary>
+            )}
           </FullscreenLayout>
         )}
         
@@ -112,6 +121,13 @@ export const MainApp: React.FC = () => {
         
         {/* Debug Overlay - Only visible when VITE_DEBUG_MODE=true */}
         {env.debugMode && <DebugOverlay />}
+        
+        {/* Hot Reload Indicator */}
+        {hotReload.isReloading && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+            🔄 Reloading {rendererId} renderer...
+          </div>
+        )}
       </div>
     </DualScreenManager>
   );

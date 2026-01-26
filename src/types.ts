@@ -172,6 +172,55 @@ export interface SeparatorSection {
 
 export type AccordionItem = ControlSection | SeparatorSection;
 
+// --- Validation System Types ---
+
+export interface ValidationError {
+  property: string;
+  message: string;
+  severity: 'error' | 'warning';
+  code: string;
+  suggestion?: string;
+}
+
+export interface ValidationWarning {
+  property: string;
+  message: string;
+  code: string;
+  suggestion?: string;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+}
+
+export interface ValidationRule {
+  type: 'range' | 'required' | 'custom' | 'dependency';
+  message: string;
+  code: string;
+  validator: (value: any, settings: ControlSettings) => boolean;
+  suggestion?: string;
+}
+
+export interface ValidationConfig {
+  rules: Record<string, ValidationRule[]>;
+  strict: boolean; // If true, warnings are treated as errors
+  skipMissing: boolean; // If true, missing properties don't trigger required errors
+}
+
+export interface RendererValidationSpec {
+  settings: ValidationConfig;
+  runtime: RuntimeValidationRule[];
+}
+
+export interface RuntimeValidationRule {
+  type: 'performance' | 'compatibility' | 'memory';
+  check: () => boolean | Promise<boolean>;
+  message: string;
+  suggestion: string;
+}
+
 export interface SequencerSettings {
   steps: (string | null)[];
   bpm: number;

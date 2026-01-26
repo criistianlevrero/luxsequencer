@@ -2,6 +2,9 @@ import type { Project, ControlSettings, AnyControlSettings, Pattern, Sequence, M
 import type { LocaleCode } from '../../i18n/types';
 import type { DualScreenSlice, DualScreenState } from '../slices/dualScreen.slice';
 
+// Core app types
+export type ViewportMode = 'horizontal' | 'vertical';
+
 export interface MidiState {
     devices: MIDIInput[];
     selectedDeviceId: string | null;
@@ -26,7 +29,7 @@ export interface State {
     lastAppliedSettingsRef: ControlSettings | null;
     midi: MidiState;
     midiLog: MidiLogEntry[];
-    viewportMode: 'horizontal' | 'vertical';
+    viewportMode: ViewportMode;
     currentLocale: LocaleCode;
     
     // Dual screen system  
@@ -97,7 +100,7 @@ export interface MidiActions {
 
 export interface UIActions {
     clearMidiLog: () => void;
-    setViewportMode: (mode: 'horizontal' | 'vertical') => void;
+    setViewportMode: (mode: ViewportMode) => void;
     setRenderer: (renderer: string) => void;
     setLocale: (locale: LocaleCode) => void;
 }

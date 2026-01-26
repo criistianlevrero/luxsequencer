@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTextureStore } from '../../store';
 import { renderers } from '../renderers';
+import { RendererErrorBoundary } from '../error/RendererErrorBoundary';
 
 /**
  * Componente para la ventana secundaria (pantalla de visualización)
@@ -62,9 +63,9 @@ export const SecondaryDisplay: React.FC = () => {
   // Configurar clases CSS según el viewport mode
   const getContainerClasses = () => {
     switch (viewportMode) {
-      case 'desktop':
+      case 'horizontal':
         return 'w-full h-screen max-w-[1920px] max-h-[1080px] mx-auto my-auto flex items-center justify-center';
-      case 'mobile':
+      case 'vertical':
         return 'w-full h-screen max-w-[375px] max-h-[667px] mx-auto my-auto flex items-center justify-center';
       default:
         return 'w-full h-screen';
@@ -73,9 +74,9 @@ export const SecondaryDisplay: React.FC = () => {
 
   const getRendererClasses = () => {
     switch (viewportMode) {
-      case 'desktop':
+      case 'horizontal':
         return 'w-full h-full max-w-[1920px] max-h-[1080px] border border-gray-600';
-      case 'mobile':
+      case 'vertical':
         return 'w-full h-full max-w-[375px] max-h-[667px] border border-gray-600 rounded-lg';
       default:
         return 'w-full h-full';
@@ -99,7 +100,9 @@ export const SecondaryDisplay: React.FC = () => {
       
       {/* Renderer container */}
       <div className={getContainerClasses()}>
-        <RendererComponent className={getRendererClasses()} />
+        <RendererErrorBoundary renderer={rendererId}>
+          <RendererComponent className={getRendererClasses()} />
+        </RendererErrorBoundary>
       </div>
       
       {/* Instrucciones de teclado (aparecen al mover el mouse) */}
