@@ -91,6 +91,7 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'patterns.overwriteSelectedTooltip': 'Overwrite the selected pattern',
     'patterns.savedMemories': 'Saved Memories',
     'patterns.noPatterns': 'No saved patterns.',
+    'patterns.rendererCache': 'Patterns by Renderer',
     'patterns.assignMidi': 'Assign MIDI note to {{name}}',
     'patterns.clearMidi': 'Clear note from {{name}}',
     
@@ -269,6 +270,7 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'patterns.overwriteSelectedTooltip': 'Sobrescribir el patrón seleccionado',
     'patterns.savedMemories': 'Memorias Guardadas',
     'patterns.noPatterns': 'No hay patrones guardados.',
+    'patterns.rendererCache': 'Patrones por Renderer',
     'patterns.assignMidi': 'Asignar nota MIDI a {{name}}',
     'patterns.clearMidi': 'Limpiar nota de {{name}}',
     
@@ -310,8 +312,8 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'renderer.concentric': 'Hexágonos Concéntricos',
     
     // Sections
-    'section.scale': 'Configuración de Escala',
-    'section.animation': 'Animación',
+    'section.scale': 'Configuración de Escama',
+    'section.animation': 'Color de Escamas',
     'section.appearance': 'Apariencia',
     'section.background': 'Fondo',
     'section.border': 'Borde',

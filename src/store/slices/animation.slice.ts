@@ -59,7 +59,9 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
         }
         
         // Calculate total frames based on BPM
-        const bpm = project?.sequences[get().activeSequenceIndex]?.sequencer.bpm || 120;
+        const activeSequence = project?.sequences[get().activeSequenceIndex];
+        const sequencerState = activeSequence?.rendererSequencerStates[activeSequence.activeRenderer];
+        const bpm = sequencerState?.bpm || 120;
         const beatsPerSecond = bpm / 60;
         const stepsPerBeat = 4; // Assuming 16th note resolution
         const stepsPerSecond = beatsPerSecond * stepsPerBeat;

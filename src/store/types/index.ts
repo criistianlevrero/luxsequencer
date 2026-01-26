@@ -59,6 +59,7 @@ export interface ProjectActions {
     exportProject: () => void;
     importProject: (file: File) => void;
     resetToDefault: () => Promise<void>;
+    changeRenderer: (rendererId: string) => void;
 }
 
 export interface SettingsActions {

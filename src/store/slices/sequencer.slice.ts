@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SequencerActions } from '../types';
-import type { ControlSettings, PropertyTrack, Keyframe, SliderControlConfig } from '../../types';
+import type { ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
 import { ControlSource } from '../../types';
 import { lerp } from '../utils/helpers';
 import { renderers } from '../../components/renderers';
@@ -45,7 +45,9 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project || !project.globalSettings.isSequencerPlaying) return;
         
         const activeSequence = project.sequences[activeSequenceIndex];
-        const { sequencer } = activeSequence;
+        const sequencer = activeSequence.rendererSequencerStates[activeSequence.activeRenderer];
+        if (!sequencer) return; // No sequencer state for current renderer
+        
         const numSteps = sequencer.numSteps;
         
         const nextStep = (get().sequencerCurrentStep + 1) % numSteps;
@@ -76,8 +78,8 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         
         // --- 1. Load base pattern if it changes (animate only differences) ---
         if (patternIdToLoad && patternIdToLoad !== selectedPatternId) {
-            const newPattern = activeSequence.patterns.find(p => p.id === patternIdToLoad);
-            const previousPattern = activeSequence.patterns.find(p => p.id === selectedPatternId);
+            const newPattern = activeSequence.activePatterns.find(p => p.id === patternIdToLoad);
+            const previousPattern = activeSequence.activePatterns.find(p => p.id === selectedPatternId);
             
             if (newPattern) {
                 const interpolationSteps = activeSequence.interpolationSpeed;
@@ -136,8 +138,17 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (propertyTracks && propertyTracks.length > 0) {
             const rendererId = project.globalSettings.renderer;
             const renderer = renderers[rendererId];
+            if (!renderer || !renderer.controlSchema) {
+                return;
+            }
             
-            const sliderConfigs = renderer?.controlSchema
+            // Get the control schema - it might be a function or an array
+            const controlSchema = typeof renderer.controlSchema === 'function' 
+                ? renderer.controlSchema() 
+                : renderer.controlSchema;
+            
+            const sliderConfigs = controlSchema
+                .filter((item): item is ControlSection => !('type' in item))
                 .flatMap(section => section.controls)
                 .filter(c => c.type === 'slider')
                 .reduce((acc, c: any) => {
@@ -339,7 +350,19 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         const { project, activeSequenceIndex } = get();
         if (!project) return;
         const newProject = produce(project, draft => {
-            draft.sequences[activeSequenceIndex].sequencer.bpm = bpm;
+            const sequence = draft.sequences[activeSequenceIndex];
+            const rendererId = sequence.activeRenderer;
+            
+            if (!sequence.rendererSequencerStates[rendererId]) {
+                sequence.rendererSequencerStates[rendererId] = {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
+            }
+            
+            sequence.rendererSequencerStates[rendererId].bpm = bpm;
         });
         get().setProject(newProject);
     },
@@ -348,7 +371,19 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         const { project, activeSequenceIndex } = get();
         if (!project) return;
         const newProject = produce(project, draft => {
-            draft.sequences[activeSequenceIndex].sequencer.steps = steps;
+            const sequence = draft.sequences[activeSequenceIndex];
+            const rendererId = sequence.activeRenderer;
+            
+            if (!sequence.rendererSequencerStates[rendererId]) {
+                sequence.rendererSequencerStates[rendererId] = {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
+            }
+            
+            sequence.rendererSequencerStates[rendererId].steps = steps;
         });
         get().setProject(newProject);
     },
@@ -358,7 +393,19 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project) return;
 
         const newProject = produce(project, draft => {
-            const seq = draft.sequences[activeSequenceIndex].sequencer;
+            const sequence = draft.sequences[activeSequenceIndex];
+            const rendererId = sequence.activeRenderer;
+            
+            if (!sequence.rendererSequencerStates[rendererId]) {
+                sequence.rendererSequencerStates[rendererId] = {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
+            }
+            
+            const seq = sequence.rendererSequencerStates[rendererId];
             seq.numSteps = numSteps;
             const currentLength = seq.steps.length;
             if (numSteps > currentLength) {
@@ -381,7 +428,12 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         };
 
         const newProject = produce(project, draft => {
-            const sequencer = draft.sequences[activeSequenceIndex].sequencer;
+            const sequence = draft.sequences[activeSequenceIndex];
+            const activeRenderer = sequence.activeRenderer;
+            if (!sequence.rendererSequencerStates[activeRenderer]) {
+                sequence.rendererSequencerStates[activeRenderer] = _createDefaultSequencerSettings();
+            }
+            const sequencer = sequence.rendererSequencerStates[activeRenderer];
             if (!sequencer.propertyTracks) sequencer.propertyTracks = [];
             sequencer.propertyTracks.push(newTrack);
         });
@@ -393,8 +445,12 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project) return;
         
         const newProject = produce(project, draft => {
-            const sequencer = draft.sequences[activeSequenceIndex].sequencer;
-            sequencer.propertyTracks = sequencer.propertyTracks.filter(t => t.id !== trackId);
+            const sequence = draft.sequences[activeSequenceIndex];
+            const activeRenderer = sequence.activeRenderer;
+            const sequencer = sequence.rendererSequencerStates[activeRenderer];
+            if (sequencer?.propertyTracks) {
+                sequencer.propertyTracks = sequencer.propertyTracks.filter(t => t.id !== trackId);
+            }
         });
         get().setProject(newProject);
     },
@@ -404,12 +460,25 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project) return;
 
         const newProject = produce(project, draft => {
-            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            const sequence = draft.sequences[activeSequenceIndex];
+            const activeRenderer = sequence.activeRenderer;
+            const sequencer = sequence.rendererSequencerStates[activeRenderer];
+            const track = sequencer?.propertyTracks?.find(t => t.id === trackId);
             if (!track || track.keyframes.some(k => k.step === step)) return;
 
-            const rendererId = draft.globalSettings.renderer;
-            const renderer = renderers[rendererId];
-            const control = renderer?.controlSchema.flatMap(s => s.controls).find(c => c.type === 'slider' && c.id === track.property) as SliderControlConfig | undefined;
+            const renderer = renderers[activeRenderer];
+            if (!renderer || !renderer.controlSchema) {
+                return;
+            }
+            
+            // Get the control schema - it might be a function or an array
+            const controlSchema = typeof renderer.controlSchema === 'function' 
+                ? renderer.controlSchema() 
+                : renderer.controlSchema;
+            const control = controlSchema
+                .filter((item): item is ControlSection => !('type' in item))
+                .flatMap(s => s.controls)
+                .find(c => c.type === 'slider' && c.id === track.property) as SliderControlConfig | undefined;
             
             if (control) {
                 const defaultValue = control.min + (control.max - control.min) * 0.5;
@@ -425,7 +494,10 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project) return;
         
         const newProject = produce(project, draft => {
-            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            const sequence = draft.sequences[activeSequenceIndex];
+            const activeRenderer = sequence.activeRenderer;
+            const sequencer = sequence.rendererSequencerStates[activeRenderer];
+            const track = sequencer?.propertyTracks?.find(t => t.id === trackId);
             if (!track) return;
             const keyframe = track.keyframes.find(k => k.step === step);
             if (keyframe) {
@@ -440,7 +512,10 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (!project) return;
         
         const newProject = produce(project, draft => {
-            const track = draft.sequences[activeSequenceIndex].sequencer.propertyTracks.find(t => t.id === trackId);
+            const sequence = draft.sequences[activeSequenceIndex];
+            const activeRenderer = sequence.activeRenderer;
+            const sequencer = sequence.rendererSequencerStates[activeRenderer];
+            const track = sequencer?.propertyTracks?.find(t => t.id === trackId);
             if (track) {
                 track.keyframes = track.keyframes.filter(k => k.step !== step);
             }
@@ -456,7 +531,15 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         }
 
         const activeSequence = project.sequences[activeSequenceIndex];
-        const { sequencer } = activeSequence;
+        const sequencer = activeSequence.rendererSequencerStates[activeSequence.activeRenderer];
+        
+        if (!sequencer) {
+            // No sequencer state for current renderer, keep RAF running
+            const rafId = requestAnimationFrame(() => get()._updatePropertySequencer());
+            set({ propertySequencerRafId: rafId });
+            return;
+        }
+        
         const { propertyTracks, bpm, numSteps } = sequencer;
         
         if (!propertyTracks || propertyTracks.length === 0) {
@@ -475,9 +558,19 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         // Debug telemetry
         const debugTelemetry: any[] = [];
 
-        const rendererId = project.globalSettings.renderer;
+        const rendererId = activeSequence.activeRenderer;
         const renderer = renderers[rendererId];
-        const sliderConfigs = renderer?.controlSchema
+        if (!renderer || !renderer.controlSchema) {
+            return;
+        }
+        
+        // Get the control schema - it might be a function or an array
+        const controlSchema = typeof renderer.controlSchema === 'function' 
+            ? renderer.controlSchema() 
+            : renderer.controlSchema;
+        
+        const sliderConfigs = controlSchema
+            .filter((item): item is ControlSection => !('type' in item))
             .flatMap(section => section.controls)
             .filter(c => c.type === 'slider')
             .reduce((acc, c: any) => {

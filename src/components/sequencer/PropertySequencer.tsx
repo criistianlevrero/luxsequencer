@@ -6,7 +6,7 @@ import { PlusIcon } from '../shared/icons';
 import { Button } from '../shared/Button';
 import { Select } from '../shared/Select';
 import PropertyTrackLane from './PropertyTrackLane';
-import type { ControlSettings } from '../../types';
+import type { ControlSettings, ControlSection } from '../../types';
 
 const PropertySequencer: React.FC = () => {
     const { project, activeSequenceIndex } = useTextureStore(state => ({
@@ -18,7 +18,8 @@ const PropertySequencer: React.FC = () => {
     const [selectedProperty, setSelectedProperty] = useState<string>('');
 
     const activeSequence = project?.sequences[activeSequenceIndex];
-    const propertyTracks = activeSequence?.sequencer.propertyTracks || [];
+    const sequencerState = activeSequence?.rendererSequencerStates[activeSequence.activeRenderer];
+    const propertyTracks = sequencerState?.propertyTracks || [];
     const usedProperties = useMemo(() => new Set(propertyTracks.map(t => t.property)), [propertyTracks]);
 
     const allAnimatableProps = useMemo(() => {
@@ -27,7 +28,7 @@ const PropertySequencer: React.FC = () => {
         const addedProps = new Set<keyof ControlSettings>();
 
         // Get the currently selected renderer
-        const selectedRendererId = project?.globalSettings.renderer || 'webgl';
+        const selectedRendererId = activeSequence?.activeRenderer || 'webgl';
         const selectedRenderer = renderers[selectedRendererId];
         
         if (selectedRenderer) {
@@ -36,17 +37,19 @@ const PropertySequencer: React.FC = () => {
                 ? selectedRenderer.controlSchema() 
                 : selectedRenderer.controlSchema;
                 
-            controlSchema.forEach(section => {
-                section.controls.forEach(control => {
-                    if (control.type === 'slider' && !addedProps.has(control.id)) {
-                        props.push({ 
-                            id: control.id, 
-                            label: control.label,
-                            category: section.title 
-                        });
-                        addedProps.add(control.id);
-                    }
-                });
+            controlSchema
+                .filter((item): item is ControlSection => !('type' in item))
+                .forEach(section => {
+                    section.controls.forEach(control => {
+                        if (control.type === 'slider' && !addedProps.has(control.id)) {
+                            props.push({ 
+                                id: control.id, 
+                                label: control.label,
+                                category: section.title 
+                            });
+                            addedProps.add(control.id);
+                        }
+                    });
             });
         }
         

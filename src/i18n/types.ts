@@ -87,6 +87,7 @@ export interface TranslationKeys {
   'patterns.overwriteSelectedTooltip': string
   'patterns.savedMemories': string
   'patterns.noPatterns': string
+  'patterns.rendererCache': string
   'patterns.assignMidi': string
   'patterns.clearMidi': string
   

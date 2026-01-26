@@ -3,8 +3,8 @@ import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
 import { t } from '../../../i18n';
-// FIX: Import `ControlSection` from the root `types.ts` file.
-import type { ControlSection } from '../../../types';
+// FIX: Import `AccordionItem` from the root `types.ts` file.
+import type { AccordionItem } from '../../../types';
 
 // FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the concentric gradient editor
@@ -22,7 +22,7 @@ const ConcentricGradientEditor: React.FC = () => {
     );
 };
 
-export const getConcentricSchema = (): ControlSection[] => [
+export const getConcentricSchema = (): AccordionItem[] => [
     {
         title: t('section.concentric'),
         defaultOpen: true,

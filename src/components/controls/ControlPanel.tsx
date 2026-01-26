@@ -47,7 +47,7 @@ const ControlPanel: React.FC = () => {
     exportProject,
     importProject,
     clearMidiError,
-    setRenderer,
+    changeRenderer,
   } = useTextureStore.getState();
 
   if (!project) return null;
@@ -70,7 +70,7 @@ const ControlPanel: React.FC = () => {
 
   return (
     <div className="divide-y divide-gray-700">
-        <CollapsibleSection title={t('project.renderEngine')} defaultOpen>
+        <CollapsibleSection title={t('project.renderEngine')} defaultOpen={false}>
             <div className="space-y-3">
                 <p className="text-sm text-gray-400">
                     {t('project.renderEngineDescription')}
@@ -78,7 +78,7 @@ const ControlPanel: React.FC = () => {
                 <Select 
                     id="renderer"
                     value={renderer}
-                    onChange={(value) => setRenderer(value as string)}
+                    onChange={(value) => changeRenderer(value as string)}
                     options={Object.values(renderers).map(r => ({
                       value: r.id,
                       label: r.name,
@@ -86,6 +86,32 @@ const ControlPanel: React.FC = () => {
                     }))}
                     fullWidth
                 />
+                
+                {/* Indicador de patrones por renderer */}
+                {Object.keys(activeSequence.rendererPatterns).length > 1 && (
+                    <div className="text-xs text-gray-500 space-y-1">
+                        <div className="font-medium">{t('patterns.rendererCache')}:</div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {Object.entries(activeSequence.rendererPatterns).map(([rendererId, patterns]) => {
+                                const rendererName = renderers[rendererId]?.name || rendererId;
+                                const isActive = rendererId === activeSequence.activeRenderer;
+                                return (
+                                    <div 
+                                        key={rendererId} 
+                                        className={`flex justify-between p-1 rounded text-xs ${
+                                            isActive 
+                                                ? 'bg-blue-900/30 text-blue-300' 
+                                                : 'bg-gray-800/50 text-gray-400'
+                                        }`}
+                                    >
+                                        <span>{rendererName}</span>
+                                        <span>{patterns.length}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
         </CollapsibleSection>
 
@@ -109,10 +135,10 @@ const ControlPanel: React.FC = () => {
                 </div>
                 <div className="space-y-2 pt-2">
                     <h4 className="font-medium text-gray-400">{t('patterns.savedMemories')}</h4>
-                    {activeSequence.patterns.length === 0 ? (
+                    {activeSequence.activePatterns.length === 0 ? (
                         <p className="text-gray-500 text-sm">{t('patterns.noPatterns')}</p>
                     ) : (
-                        activeSequence.patterns.map(pattern => (
+                        activeSequence.activePatterns.map(pattern => (
                             <div key={pattern.id} className="flex items-center bg-gray-700/50 p-2 rounded-lg space-x-2">
                                 <span
                                     className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-200 ${

@@ -105,6 +105,13 @@ export interface ControlSection {
   controls: ControlConfig[];
 }
 
+export interface SeparatorSection {
+  type: 'separator';
+  id?: string;
+}
+
+export type AccordionItem = ControlSection | SeparatorSection;
+
 export interface SequencerSettings {
   steps: (string | null)[];
   bpm: number;
@@ -113,11 +120,17 @@ export interface SequencerSettings {
 }
 
 export interface Sequence {
-    id:string;
+    id: string;
     name: string;
     interpolationSpeed: number; // In steps (0-8), supports fractions. 0 = immediate. Will be converted to frames based on BPM
-    sequencer: SequencerSettings;
-    patterns: Pattern[];
+    // Current active patterns (for current renderer)
+    activePatterns: Pattern[];
+    // Cache of patterns per renderer
+    rendererPatterns: { [rendererId: string]: Pattern[] };
+    // Sequencer states per renderer
+    rendererSequencerStates: { [rendererId: string]: SequencerSettings };
+    // Current active renderer
+    activeRenderer: string;
 }
 
 export interface GlobalSettings {

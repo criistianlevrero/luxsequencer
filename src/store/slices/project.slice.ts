@@ -7,7 +7,7 @@ import { LOCAL_STORAGE_KEY } from '../utils/helpers';
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions> = (set, get) => ({
     initializeProject: (project) => {
         // Validate project version
-        const currentVersion = '2.0.0';
+        const currentVersion = '2.1.0';
         const projectVersion = project.version || '1.0.0';
         
         if (projectVersion !== currentVersion) {
@@ -15,7 +15,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             
             // Migration logic for older versions
             if (!project.version || projectVersion === '1.0.0') {
-                console.log('[PROJECT] Migrating from v1.0.0 to v2.0.0');
+                console.log('[PROJECT] Migrating from v1.0.0 to v2.1.0');
                 
                 // Migrate interpolationSpeed from ms to steps (rough conversion)
                 project.sequences.forEach(seq => {
@@ -28,11 +28,62 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                 });
                 
                 project.version = currentVersion;
-                console.log('[PROJECT] Migration complete');
+                console.log('[PROJECT] Migration v1.0.0 -> v2.1.0 complete');
+            }
+            
+            // Migration from v2.0.0 to v2.1.0 (hybrid renderer system)
+            if (projectVersion === '2.0.0') {
+                console.log('[PROJECT] Migrating from v2.0.0 to v2.1.0 (hybrid renderer system)');
+                
+                project.sequences.forEach(seq => {
+                    // Check if it's old structure
+                    if ((seq as any).patterns && (seq as any).sequencer) {
+                        const oldSeq = seq as any;
+                        const currentRenderer = project.globalSettings.renderer || 'webgl';
+                        
+                        // Migrate to new hybrid structure
+                        seq.activePatterns = oldSeq.patterns || [];
+                        seq.activeRenderer = currentRenderer;
+                        seq.rendererPatterns = {
+                            [currentRenderer]: oldSeq.patterns || []
+                        };
+                        seq.rendererSequencerStates = {
+                            [currentRenderer]: oldSeq.sequencer || {
+                                steps: Array(16).fill(null),
+                                bpm: 120,
+                                numSteps: 16,
+                                propertyTracks: []
+                            }
+                        };
+                        
+                        // Remove old properties
+                        delete oldSeq.patterns;
+                        delete oldSeq.sequencer;
+                    }
+                });
+                
+                project.version = currentVersion;
+                console.log('[PROJECT] Migration v2.0.0 -> v2.1.0 complete');
             }
         }
         
-        const initialSettings = project.sequences[0].patterns[0]?.settings || get().currentSettings;
+        // Ensure all sequences have the hybrid structure
+        project.sequences.forEach(seq => {
+            if (!seq.activeRenderer) {
+                seq.activeRenderer = project.globalSettings.renderer || 'webgl';
+            }
+            if (!seq.activePatterns) {
+                seq.activePatterns = [];
+            }
+            if (!seq.rendererPatterns) {
+                seq.rendererPatterns = {};
+            }
+            if (!seq.rendererSequencerStates) {
+                seq.rendererSequencerStates = {};
+            }
+        });
+        
+        const initialSettings = project.sequences[0].activePatterns[0]?.settings || get().currentSettings;
         set({
             project,
             textureRotation: initialSettings.textureRotation || 0,
@@ -86,17 +137,25 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         if (!project) return;
 
         const activeSequence = project.sequences[get().activeSequenceIndex];
+        const currentRenderer = project.globalSettings.renderer || 'webgl';
+        
         const newSequence: Sequence = {
             id: `seq_${Date.now()}`,
             name,
             interpolationSpeed: 2, // In steps (0-8, supports fractions)
-            sequencer: {
-                steps: Array(16).fill(null),
-                bpm: 120,
-                numSteps: 16,
-                propertyTracks: []
+            activeRenderer: currentRenderer,
+            activePatterns: activeSequence?.activePatterns || [],
+            rendererPatterns: {
+                [currentRenderer]: activeSequence?.activePatterns || []
             },
-            patterns: activeSequence?.patterns || []
+            rendererSequencerStates: {
+                [currentRenderer]: {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                }
+            }
         };
 
         const newProject = produce(project, draft => {
@@ -181,10 +240,13 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
               if (!data.globalSettings || !data.sequences) throw new Error("Invalid project file");
 
               data.globalSettings.isSequencerPlaying = false;
-              const settings = data.sequences[0]?.patterns[0]?.settings;
+              
+              // Use initializeProject to handle migration and setup
+              get().initializeProject(data);
+              
+              const settings = data.sequences[0]?.activePatterns[0]?.settings;
               
               set({
-                  project: data,
                   activeSequenceIndex: 0,
                   currentSettings: {
                       ...get().currentSettings,
@@ -214,10 +276,13 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             
             // Reset to default state
             defaultProject.globalSettings.isSequencerPlaying = false;
-            const defaultSettings = defaultProject.sequences[0]?.patterns[0]?.settings || get().currentSettings;
+            
+            // Use initializeProject to handle migration and setup  
+            get().initializeProject(defaultProject);
+            
+            const defaultSettings = defaultProject.sequences[0]?.activePatterns[0]?.settings || get().currentSettings;
             
             set({
-                project: defaultProject,
                 activeSequenceIndex: 0,
                 currentSettings: {
                     ...get().currentSettings,
@@ -233,5 +298,91 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             console.error('Failed to reset to default:', error);
             alert(`Error al resetear: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+    },
+
+    changeRenderer: (rendererId) => {
+        const { project, activeSequenceIndex } = get();
+        if (!project) return;
+
+        const activeSequence = project.sequences[activeSequenceIndex];
+        if (!activeSequence) return;
+
+        // Si ya estamos en el renderer solicitado, no hacer nada
+        if (activeSequence.activeRenderer === rendererId) return;
+
+        console.log(`[PROJECT] Changing renderer from ${activeSequence.activeRenderer} to ${rendererId}`);
+
+        const newProject = produce(project, draft => {
+            const sequence = draft.sequences[activeSequenceIndex];
+            
+            // Guardar patrones actuales en el cache del renderer anterior
+            if (sequence.activePatterns.length > 0) {
+                sequence.rendererPatterns[sequence.activeRenderer] = [...sequence.activePatterns];
+            }
+
+            // Guardar estado del sequencer del renderer anterior
+            const currentSequencerState = get().project?.sequences[activeSequenceIndex];
+            if (currentSequencerState) {
+                // Necesitamos obtener el estado actual del sequencer desde el store
+                const sequencerState = sequence.rendererSequencerStates[sequence.activeRenderer] || {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
+                sequence.rendererSequencerStates[sequence.activeRenderer] = sequencerState;
+            }
+
+            // Cambiar al nuevo renderer
+            sequence.activeRenderer = rendererId;
+
+            // Cargar patrones del nuevo renderer (o array vacío si no existen)
+            sequence.activePatterns = sequence.rendererPatterns[rendererId] || [];
+
+            // Asegurar que existe el estado del sequencer para el nuevo renderer
+            if (!sequence.rendererSequencerStates[rendererId]) {
+                sequence.rendererSequencerStates[rendererId] = {
+                    steps: Array(16).fill(null),
+                    bpm: 120,
+                    numSteps: 16,
+                    propertyTracks: []
+                };
+            }
+
+            // Actualizar el renderer global
+            draft.globalSettings.renderer = rendererId;
+        });
+
+        // Actualizar proyecto y resetear configuraciones
+        get().setProject(newProject);
+
+        // Si hay patrones en el nuevo renderer, cargar el primero
+        const newActivePatterns = newProject.sequences[activeSequenceIndex].activePatterns;
+        if (newActivePatterns.length > 0) {
+            // Cargar el primer patrón sin animación para evitar interferencia
+            const firstPattern = newActivePatterns[0];
+            set({
+                currentSettings: {
+                    ...get().currentSettings,
+                    ...firstPattern.settings
+                },
+                selectedPatternId: firstPattern.id,
+                isPatternDirty: false
+            });
+        } else {
+            // Resetear a configuración limpia para el nuevo renderer
+            set({
+                selectedPatternId: null,
+                isPatternDirty: false
+            });
+        }
+
+        // Resetear sequencer al cambiar renderer
+        set({
+            sequencerCurrentStep: 0,
+            sequencerStartTime: null
+        });
+
+        console.log(`[PROJECT] Renderer changed to ${rendererId}. Active patterns: ${newActivePatterns.length}`);
     },
 });

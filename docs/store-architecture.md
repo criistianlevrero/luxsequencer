@@ -18,11 +18,15 @@ Project
 └── sequences[]
     └── Sequence
         ├── interpolationSpeed (0-8 steps, soporta decimales)
-        ├── patterns[] (Pattern[])
-        └── sequencer
-            ├── steps[] (Pattern IDs por step)
-            ├── propertyTracks[] (automatización por propiedad)
-            └── configuración (BPM, numSteps)
+        ├── activeRenderer (string)
+        ├── activePatterns[] (Pattern[] - patrones del renderer activo)
+        ├── rendererPatterns (cache por renderer)
+        │   └── [rendererId]: Pattern[]
+        └── rendererSequencerStates (estado del sequencer por renderer)
+            └── [rendererId]: SequencerSettings
+                ├── steps[] (Pattern IDs por step)
+                ├── propertyTracks[] (automatización por propiedad)
+                └── configuración (BPM, numSteps)
 ```
 
 ### Estados Centrales
@@ -70,11 +74,33 @@ interface State {
 - `setProject()`: Actualización + auto-save a localStorage
 - `savePattern()`: Guarda `currentSettings` como nuevo patrón
 - `loadPattern()`: Carga patrón con transición animada
+- `changeRenderer()`: Cambia renderer activo, preserva patrones y estado
 
 **Flujo de persistencia**:
 ```
 setProject() → localStorage.setItem() → Auto-save automático
 ```
+
+### Sistema Híbrido de Patrones por Renderer
+**Arquitectura**: Cada secuencia mantiene patrones separados por renderer con cache inteligente
+
+**Componentes clave**:
+- `activePatterns[]`: Patrones del renderer actualmente activo
+- `rendererPatterns{}`: Cache de patrones por renderer ID
+- `rendererSequencerStates{}`: Estado del sequencer por renderer
+- `activeRenderer`: Renderer actualmente seleccionado
+
+**Flujo de cambio de renderer**:
+```
+changeRenderer(newId) → Cache patrones actuales → Cargar patrones cached → 
+Actualizar activePatterns → Resetear sequencer state → Auto-save
+```
+
+**Ventajas**:
+- Patrones preservados al cambiar renderer
+- Estado del sequencer independiente por renderer
+- Performance óptima (activePatterns pre-filtrado)
+- Migración automática desde versiones anteriores
 
 ### 2. Animation Slice (`animation.slice.ts`)
 **Responsabilidad**: Sistema centralizado de animaciones con prioridades
@@ -207,7 +233,7 @@ loadPattern() → requestPropertyChange(source: PatternSequencer) → Animation
 
 ### 5. Pattern Management Flow
 ```
-savePattern() → Snapshot currentSettings → Add to sequence.patterns[] → setProject()
+savePattern() → Snapshot currentSettings → Add to sequence.activePatterns[] → setProject()
 loadPattern() → Compare with current → requestPropertyChange() → Animated transition
 ```
 

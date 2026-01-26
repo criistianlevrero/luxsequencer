@@ -46,8 +46,12 @@ const Sequencer: React.FC = () => {
     const activeSequence = project.sequences[activeSequenceIndex];
     if (!activeSequence) return null;
 
-    const { patterns, sequencer } = activeSequence;
-    const { steps, bpm, numSteps } = sequencer;
+    // Get sequencer state for current renderer
+    const sequencerState = activeSequence.rendererSequencerStates[activeSequence.activeRenderer];
+    if (!sequencerState) return null;
+
+    const { activePatterns } = activeSequence;
+    const { steps, bpm, numSteps } = sequencerState;
     const canDelete = project.sequences.length > 1;
 
     const handleSaveNewSequence = () => {
@@ -338,7 +342,7 @@ const Sequencer: React.FC = () => {
                             ))}
 
                             {/* Pattern rows */}
-                            {patterns.map((pattern) => (
+                            {activePatterns.map((pattern) => (
                                 <React.Fragment key={pattern.id}>
                                     <div className="sticky left-0 bg-gray-800 z-10 text-xs text-gray-400 font-semibold truncate pr-2 flex items-center min-w-[100px]" title={pattern.name}>
                                         <span className="truncate">{pattern.name}</span>
@@ -363,7 +367,7 @@ const Sequencer: React.FC = () => {
                         </div>
                     </div>
                     
-                    {patterns.length === 0 && (
+                    {activePatterns.length === 0 && (
                         <div className="text-center py-8 text-gray-500 text-sm">
                             <div className="mb-2">🎵</div>
                             <div>{t('sequencer.saveCurrentPattern')}</div>

@@ -3,8 +3,8 @@ import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
 import { t } from '../../../i18n';
-// FIX: Import `ControlSection` from the root `types.ts` file.
-import type { ControlSection } from '../../../types';
+// FIX: Import `AccordionItem` from the root `types.ts` file.
+import type { AccordionItem } from '../../../types';
 
 // FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the scale gradient editor
@@ -59,7 +59,15 @@ const BorderColorPicker: React.FC = () => {
     );
 };
 
-export const getScaleTextureSchema = (): ControlSection[] => [
+export const getScaleTextureSchema = (): AccordionItem[] => [
+    // Motor de Renderizado (esto lo maneja el ControlPanel, no está aquí)
+    
+    // Patrones (esto lo maneja el ControlPanel, no está aquí)
+    
+    // Primer separador
+    { type: 'separator', id: 'separator-1' },
+    
+    // Configuración de Escama
     {
         title: t('section.scale'),
         defaultOpen: true,
@@ -77,6 +85,8 @@ export const getScaleTextureSchema = (): ControlSection[] => [
             }},
         ]
     },
+    
+    // Borde
     {
         title: t('section.border'),
         controls: [
@@ -84,6 +94,8 @@ export const getScaleTextureSchema = (): ControlSection[] => [
             { type: 'slider', id: 'scaleBorderWidth', label: t('controls.borderSize'), min: 0, max: 10, step: 0.1, formatter: (v) => `${v.toFixed(1)}px` },
         ]
     },
+    
+    // Velocidad de Rotación
     {
         title: t('controls.rotationSpeed'),
         controls: [
@@ -102,6 +114,8 @@ export const getScaleTextureSchema = (): ControlSection[] => [
             },
         ]
     },
+    
+    // Color de Escamas
     {
         title: t('section.animation'),
         controls: [
@@ -110,10 +124,17 @@ export const getScaleTextureSchema = (): ControlSection[] => [
             { type: 'slider', id: 'animationDirection', label: t('controls.animationDirection'), min: 0, max: 360, step: 1, formatter: (v) => `${Math.round(v)}°` },
         ]
     },
+    
+    // Fondo
     {
         title: t('section.background'),
         controls: [
             { type: 'custom', id: 'backgroundGradient', component: BackgroundGradientEditor },
         ]
-    }
+    },
+    
+    // Segundo separador
+    { type: 'separator', id: 'separator-2' },
+    
+    // Configuración Global (esto lo maneja el ControlPanel, no está aquí)
 ];

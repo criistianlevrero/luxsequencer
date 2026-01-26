@@ -29,15 +29,24 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         const { project, activeSequenceIndex, currentSettings } = get();
         if (!project) return;
 
+        const activeSequence = project.sequences[activeSequenceIndex];
         const newPattern: Pattern = {
             id: crypto.randomUUID(),
-            name: `Memoria ${project.sequences[activeSequenceIndex].patterns.length + 1}`,
+            name: `Memoria ${activeSequence.activePatterns.length + 1}`,
             settings: currentSettings,
             midiNote,
         };
         
         const newProject = produce(project, draft => {
-            draft.sequences[activeSequenceIndex].patterns.push(newPattern);
+            const sequence = draft.sequences[activeSequenceIndex];
+            sequence.activePatterns.push(newPattern);
+            
+            // Also add to the current renderer's cache
+            const rendererId = sequence.activeRenderer;
+            if (!sequence.rendererPatterns[rendererId]) {
+                sequence.rendererPatterns[rendererId] = [];
+            }
+            sequence.rendererPatterns[rendererId].push(newPattern);
         });
         get().setProject(newProject);
         set({ selectedPatternId: newPattern.id, isPatternDirty: false });
@@ -48,9 +57,17 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         if (!project || !selectedPatternId) return;
 
         const newProject = produce(project, draft => {
-            const pattern = draft.sequences[activeSequenceIndex].patterns.find(p => p.id === selectedPatternId);
+            const sequence = draft.sequences[activeSequenceIndex];
+            const pattern = sequence.activePatterns.find(p => p.id === selectedPatternId);
             if (pattern) {
                 pattern.settings = currentSettings;
+                
+                // Also update in renderer cache
+                const rendererId = sequence.activeRenderer;
+                const cachedPattern = sequence.rendererPatterns[rendererId]?.find(p => p.id === selectedPatternId);
+                if (cachedPattern) {
+                    cachedPattern.settings = currentSettings;
+                }
             }
         });
         get().setProject(newProject);
@@ -62,7 +79,7 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         if (!project) return;
 
         const activeSequence = project.sequences[activeSequenceIndex];
-        const pattern = activeSequence.patterns.find(p => p.id === id);
+        const pattern = activeSequence.activePatterns.find(p => p.id === id);
         if (!pattern) return;
 
         // Get interpolation settings
@@ -124,9 +141,22 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         if (!project) return;
         
         const newProject = produce(project, draft => {
-            const seq = draft.sequences[activeSequenceIndex];
-            seq.patterns = seq.patterns.filter(p => p.id !== id);
-            seq.sequencer.steps = seq.sequencer.steps.map(step => step === id ? null : step);
+            const sequence = draft.sequences[activeSequenceIndex];
+            
+            // Remove from active patterns
+            sequence.activePatterns = sequence.activePatterns.filter(p => p.id !== id);
+            
+            // Remove from renderer cache
+            const rendererId = sequence.activeRenderer;
+            if (sequence.rendererPatterns[rendererId]) {
+                sequence.rendererPatterns[rendererId] = sequence.rendererPatterns[rendererId].filter(p => p.id !== id);
+            }
+            
+            // Remove from sequencer steps
+            const sequencerState = sequence.rendererSequencerStates[rendererId];
+            if (sequencerState) {
+                sequencerState.steps = sequencerState.steps.map(step => step === id ? null : step);
+            }
         });
         
         get().setProject(newProject);
@@ -141,8 +171,18 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         const { project, activeSequenceIndex } = get();
         if (!project) return;
         const newProject = produce(project, draft => {
-            const pattern = draft.sequences[activeSequenceIndex].patterns.find(p => p.id === patternId);
-            if (pattern) delete pattern.midiNote;
+            const sequence = draft.sequences[activeSequenceIndex];
+            const pattern = sequence.activePatterns.find(p => p.id === patternId);
+            if (pattern) {
+                delete pattern.midiNote;
+                
+                // Also clear in renderer cache
+                const rendererId = sequence.activeRenderer;
+                const cachedPattern = sequence.rendererPatterns[rendererId]?.find(p => p.id === patternId);
+                if (cachedPattern) {
+                    delete cachedPattern.midiNote;
+                }
+            }
         });
         get().setProject(newProject);
     },

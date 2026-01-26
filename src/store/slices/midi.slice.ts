@@ -77,13 +77,13 @@ export const createMidiSlice: StateCreator<StoreState, [], [], MidiActions> = (s
                     const { learningPatternMidiNote, project, activeSequenceIndex } = get();
                     if (learningPatternMidiNote) { // Assign note to pattern
                         const newProject = produce(project!, draft => {
-                            const pattern = draft.sequences[activeSequenceIndex].patterns.find(p => p.id === learningPatternMidiNote);
+                            const pattern = draft.sequences[activeSequenceIndex].activePatterns.find(p => p.id === learningPatternMidiNote);
                             if (pattern) pattern.midiNote = data1;
                         });
                         get().setProject(newProject);
                         set({ learningPatternMidiNote: null });
                     } else { // Load pattern
-                        const patternToLoad = project?.sequences[activeSequenceIndex].patterns.find(p => p.midiNote === data1);
+                        const patternToLoad = project?.sequences[activeSequenceIndex].activePatterns.find(p => p.midiNote === data1);
                         if (patternToLoad) get().loadPattern(patternToLoad.id);
                     }
                 }
