@@ -2,7 +2,9 @@ import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, ProjectActions } from '../types';
 import type { Project, Sequence } from '../../types';
+import { isLegacyControlSettings } from '../../types';
 import { LOCAL_STORAGE_KEY } from '../utils/helpers';
+import { migrateLegacySettings, createInitialSettings } from '../../utils/settingsMigration';
 
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions> = (set, get) => ({
     initializeProject: (project) => {
@@ -83,19 +85,31 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             }
         });
         
-        const initialSettings = project.sequences[0].activePatterns[0]?.settings || get().currentSettings;
+        // Get initial settings and migrate if necessary
+        const patternSettings = project.sequences[0].activePatterns[0]?.settings;
+        let migratedSettings;
+        
+        if (patternSettings) {
+            if (isLegacyControlSettings(patternSettings)) {
+                console.log('[PROJECT] Migrating legacy pattern settings to new structure');
+                migratedSettings = migrateLegacySettings(patternSettings);
+            } else {
+                migratedSettings = patternSettings;
+            }
+        } else {
+            migratedSettings = get().currentSettings;
+        }
+        
         set({
             project,
-            textureRotation: initialSettings.textureRotation || 0,
-            currentSettings: {
-                ...get().currentSettings,
-                ...initialSettings
-            }
+            textureRotation: patternSettings?.textureRotation || 0,
+            currentSettings: migratedSettings
         });
         
         // Start texture rotation animation loop
         const animateRotation = () => {
-            const speed = get().currentSettings.textureRotationSpeed;
+            const settings = get().currentSettings;
+            const speed = settings.renderer?.webgl?.textureRotationSpeed || 0;
             if (speed !== 0) {
                 set(state => ({ textureRotation: (state.textureRotation + speed * 0.5) % 360 }));
             }
@@ -245,13 +259,22 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
               get().initializeProject(data);
               
               const settings = data.sequences[0]?.activePatterns[0]?.settings;
+              let migratedSettings;
+              
+              if (settings) {
+                  if (isLegacyControlSettings(settings)) {
+                      console.log('[PROJECT] Migrating imported legacy settings to new structure');
+                      migratedSettings = migrateLegacySettings(settings);
+                  } else {
+                      migratedSettings = settings;
+                  }
+              } else {
+                  migratedSettings = get().currentSettings;
+              }
               
               set({
                   activeSequenceIndex: 0,
-                  currentSettings: {
-                      ...get().currentSettings,
-                      ...settings,
-                  },
+                  currentSettings: migratedSettings,
                   selectedPatternId: null,
                   sequencerCurrentStep: 0,
               });
@@ -280,14 +303,23 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             // Use initializeProject to handle migration and setup  
             get().initializeProject(defaultProject);
             
-            const defaultSettings = defaultProject.sequences[0]?.activePatterns[0]?.settings || get().currentSettings;
+            const defaultSettings = defaultProject.sequences[0]?.activePatterns[0]?.settings;
+            let migratedDefaultSettings;
+            
+            if (defaultSettings) {
+                if (isLegacyControlSettings(defaultSettings)) {
+                    console.log('[PROJECT] Migrating default project legacy settings to new structure');
+                    migratedDefaultSettings = migrateLegacySettings(defaultSettings);
+                } else {
+                    migratedDefaultSettings = defaultSettings;
+                }
+            } else {
+                migratedDefaultSettings = get().currentSettings;
+            }
             
             set({
                 activeSequenceIndex: 0,
-                currentSettings: {
-                    ...get().currentSettings,
-                    ...defaultSettings,
-                },
+                currentSettings: migratedDefaultSettings,
                 selectedPatternId: null,
                 sequencerCurrentStep: 0,
             });

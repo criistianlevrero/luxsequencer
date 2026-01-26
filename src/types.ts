@@ -11,7 +11,54 @@ export interface MidiLogEntry {
   timeStamp: number;
 }
 
+// --- Flexible Renderer Settings System ---
+
+// Common settings shared across all renderers
+export interface CommonSettings {
+  // Global animation controls
+  animationSpeed: number;
+  animationDirection: number;
+  
+  // Global color settings
+  backgroundGradientColors: GradientColor[];
+}
+
+// Renderer-specific settings grouped by renderer ID
+export interface RendererSettings {
+  [rendererId: string]: any;
+}
+
+// WebGL renderer specific settings
+export interface WebGLSettings {
+  scaleSize: number;
+  scaleSpacing: number;
+  verticalOverlap: number;
+  horizontalOffset: number;
+  shapeMorph: number;
+  textureRotation: number;
+  textureRotationSpeed: number;
+  scaleBorderColor: string;
+  scaleBorderWidth: number;
+  gradientColors: GradientColor[];
+}
+
+// Concentric renderer specific settings
+export interface ConcentricSettings {
+  repetitionSpeed: number;
+  growthSpeed: number;
+  initialSize: number;
+  gradientColors: GradientColor[];
+}
+
+// New flexible control settings structure
 export interface ControlSettings {
+  common: CommonSettings;
+  renderer: RendererSettings;
+}
+
+// --- Backward Compatibility Types ---
+// Legacy flat structure for migration period
+export interface LegacyControlSettings {
   // Scale renderer settings
   scaleSize: number;
   scaleSpacing: number;
@@ -34,10 +81,23 @@ export interface ControlSettings {
   concentric_gradientColors?: GradientColor[];
 }
 
+// Union type for handling both new and legacy settings during migration
+export type AnyControlSettings = ControlSettings | LegacyControlSettings;
+
+// Type predicate to check if settings use new structure
+export const isNewControlSettings = (settings: AnyControlSettings): settings is ControlSettings => {
+  return typeof settings === 'object' && settings !== null && 'common' in settings && 'renderer' in settings;
+};
+
+// Type predicate to check if settings use legacy structure
+export const isLegacyControlSettings = (settings: AnyControlSettings): settings is LegacyControlSettings => {
+  return !isNewControlSettings(settings);
+};
+
 export interface Pattern {
     id: string;
     name: string;
-    settings: ControlSettings;
+    settings: AnyControlSettings;
     midiNote?: number;
 }
 
@@ -52,7 +112,7 @@ export enum ControlSource {
 export type InterpolationType = 'linear'; // Prepared for future expansion
 
 export interface AnimationRequest {
-  property: keyof ControlSettings;
+  property: string;  // More flexible property path (e.g., "common.animationSpeed" or "renderer.webgl.scaleSize")
   from: any;
   to: any;
   steps: number;              // 0 = immediate, >0 = animated
@@ -76,14 +136,14 @@ export interface Keyframe {
 
 export interface PropertyTrack {
   id: string;
-  property: keyof ControlSettings;
+  property: string;  // Flexible property path (e.g., "common.animationSpeed")
   keyframes: Keyframe[];
 }
 
 // --- Control Schema Types ---
 export interface SliderControlConfig {
   type: 'slider';
-  id: keyof ControlSettings;
+  id: string;  // Flexible property path (e.g., "common.animationSpeed")
   label: string;
   min: number;
   max: number;

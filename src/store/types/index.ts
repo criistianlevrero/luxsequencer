@@ -1,4 +1,4 @@
-import type { Project, ControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
+import type { Project, ControlSettings, AnyControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
 import type { LocaleCode } from '../../i18n/types';
 import type { DualScreenSlice, DualScreenState } from '../slices/dualScreen.slice';
 
@@ -38,8 +38,8 @@ export interface State {
         channelName: string;
     };
     
-    // Animation system
-    activeAnimations: Map<keyof ControlSettings, ActiveAnimation>;
+    // Animation system (updated for flexible property paths)
+    activeAnimations: Map<string, ActiveAnimation>;
     
     // Legacy fields kept for gradients (used by WebGL shaders)
     transitionProgress: number;
@@ -63,7 +63,7 @@ export interface ProjectActions {
 }
 
 export interface SettingsActions {
-    setCurrentSetting: <K extends keyof ControlSettings>(key: K, value: ControlSettings[K]) => void;
+    setCurrentSetting: (propertyPath: string, value: any) => void;
     saveCurrentPattern: (midiNote?: number) => void;
     overwriteSelectedPattern: () => void;
     loadPattern: (id: string) => void;
@@ -80,7 +80,7 @@ export interface SequencerActions {
     setSequencerNumSteps: (numSteps: number) => void;
     _tickSequencer: () => void;
     _updatePropertySequencer: () => void;
-    addPropertyTrack: (property: keyof ControlSettings) => void;
+    addPropertyTrack: (property: string) => void;
     removePropertyTrack: (trackId: string) => void;
     addKeyframe: (trackId: string, step: number) => void;
     updateKeyframeValue: (trackId: string, step: number, value: number) => void;
@@ -104,7 +104,7 @@ export interface UIActions {
 
 export interface AnimationActions {
     requestPropertyChange: (
-        property: keyof ControlSettings,
+        property: string,
         from: any,
         to: any,
         steps: number,
@@ -113,7 +113,7 @@ export interface AnimationActions {
     ) => void;
     _animationLoop: () => void;
     cancelAllAnimations: () => void;
-    cancelAnimationForProperty: (property: keyof ControlSettings) => void;
+    cancelAnimationForProperty: (property: string) => void;
 }
 
 export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions & DualScreenSlice;

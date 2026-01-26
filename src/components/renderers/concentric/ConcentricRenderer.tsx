@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
 import type { ControlSettings, GradientColor } from '../../../types';
+import { useConcentricCompatibleSettings } from '../../../utils/settingsMigration';
 
 type RGBColor = { r: number, g: number, b: number };
 
@@ -133,7 +134,9 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
         };
 
         const animate = (time: number) => {
-            const { currentSettings } = useTextureStore.getState();
+            const state = useTextureStore.getState();
+            // Use compatibility adapter to get settings in expected format
+            const currentSettings = useConcentricCompatibleSettings(state.currentSettings);
             drawScene(time, currentSettings);
             animationFrameId.current = requestAnimationFrame(animate);
         };

@@ -3,13 +3,14 @@ import type { StoreState, AnimationActions } from '../types';
 import type { ControlSettings, ControlSource, AnimationRequest, ActiveAnimation } from '../../types';
 import { lerp } from '../utils/helpers';
 import { env } from '../../config';
+import { getNestedProperty, setNestedProperty } from '../../utils/settingsMigration';
 
 export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationActions> = (set, get) => ({
     requestPropertyChange: (property, from, to, steps, source, interpolationType = 'linear') => {
         const { activeAnimations, project, currentSettings } = get();
         
-        // If from is not provided, use current value
-        const startValue = from !== undefined ? from : currentSettings[property];
+        // If from is not provided, use current value using property path
+        const startValue = from !== undefined ? from : getNestedProperty(currentSettings, property);
         
         // Check if there's an active animation for this property
         const existingAnimation = activeAnimations.get(property);
@@ -41,9 +42,11 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
             const newAnimations = new Map(activeAnimations);
             newAnimations.delete(property);
             
+            const newSettings = setNestedProperty(currentSettings, property, to);
+            
             set({ 
                 activeAnimations: newAnimations,
-                currentSettings: { ...currentSettings, [property]: to }
+                currentSettings: newSettings
             });
             
             if (env.debug.animation) {
@@ -90,18 +93,17 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
         newAnimations.set(property, animation);
         
         // Initialize gradient transition state if animating a gradient
-        const isGradient = property === 'gradientColors' || 
-                         property === 'backgroundGradientColors' || 
-                         property === 'concentric_gradientColors';
+        // Check for gradient properties using flexible paths
+        const isGradient = property.includes('gradientColors');
         
         if (isGradient && Array.isArray(startValue)) {
-            if (property === 'gradientColors') {
+            if (property.includes('renderer.webgl.gradientColors') || property === 'renderer.webgl.gradientColors') {
                 set({ 
                     activeAnimations: newAnimations,
                     previousGradient: startValue,
                     transitionProgress: 0,
                 });
-            } else if (property === 'backgroundGradientColors') {
+            } else if (property.includes('backgroundGradientColors') || property === 'common.backgroundGradientColors') {
                 set({ 
                     activeAnimations: newAnimations,
                     previousBackgroundGradient: startValue,
@@ -144,7 +146,7 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
             return; // Stop loop if no animations
         }
         
-        const newSettings = { ...currentSettings };
+        let newSettings = { ...currentSettings };
         const newAnimations = new Map(activeAnimations);
         let hasChanges = false;
         
@@ -163,12 +165,11 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
             
             if (animation.request.interpolationType === 'linear') {
                 if (typeof from === 'number' && typeof to === 'number') {
-                    newValue = lerp(from, to, progress);
+                    // Round to 2 decimal places to avoid floating point precision issues
+                    newValue = Math.round(lerp(from, to, progress) * 100) / 100;
                 } else if (Array.isArray(from) && Array.isArray(to)) {
                     // For arrays (like gradients), track animation progress for shader
-                    const isGradient = property === 'gradientColors' || 
-                                     property === 'backgroundGradientColors' || 
-                                     property === 'concentric_gradientColors';
+                    const isGradient = property.includes('gradientColors');
                     
                     if (isGradient) {
                         hasGradientAnimation = true;
@@ -179,9 +180,9 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
                         
                         // Update previous gradient and transition progress on first frame
                         if (animation.currentFrame === 1) {
-                            if (property === 'gradientColors') {
+                            if (property.includes('renderer.webgl.gradientColors')) {
                                 set({ previousGradient: from });
-                            } else if (property === 'backgroundGradientColors') {
+                            } else if (property.includes('backgroundGradientColors')) {
                                 set({ previousBackgroundGradient: from });
                             }
                         }
@@ -195,7 +196,8 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
                 }
             }
             
-            (newSettings as any)[property] = newValue;
+            // Use nested property setter
+            newSettings = setNestedProperty(newSettings, property, newValue);
             hasChanges = true;
             
             // Remove animation if complete

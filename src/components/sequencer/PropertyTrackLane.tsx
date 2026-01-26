@@ -36,7 +36,13 @@ const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
                 ? renderer.controlSchema() 
                 : renderer.controlSchema;
             
+            // Validate schema is an array
+            if (!Array.isArray(schema)) continue;
+            
             for (const section of schema) {
+                // Skip separator sections - they don't have controls
+                if (!section || section.type === 'separator' || !Array.isArray(section.controls)) continue;
+                
                 const control = section.controls.find(c => c.id === track.property);
                 if (control && control.type === 'slider') {
                     // FIX: Also return the category (section title) to be used in the UI.

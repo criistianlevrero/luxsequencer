@@ -6,6 +6,7 @@ import { ControlSource } from '../../types';
 import { lerp } from '../utils/helpers';
 import { renderers } from '../../components/renderers';
 import { env } from '../../config';
+import { mapPropertyIdToPath, normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
 
 export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerActions> = (set, get) => ({
     setIsSequencerPlaying: (isPlaying) => {
@@ -83,40 +84,35 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             
             if (newPattern) {
                 const interpolationSteps = activeSequence.interpolationSpeed;
+                const currentRenderer = project.globalSettings.renderer;
                 
-                // Compare with previous pattern settings (or current settings if no previous pattern)
-                const baseSettings = previousPattern?.settings || currentSettings;
+                // Normalize both patterns to new hierarchical structure
+                const normalizedNewPattern = normalizeSettings(newPattern.settings);
+                const normalizedBaseSettings = previousPattern 
+                    ? normalizeSettings(previousPattern.settings) 
+                    : currentSettings;
                 
-                // Calculate properties that differ
-                const changedKeys = (Object.keys(newPattern.settings) as Array<keyof ControlSettings>).filter(key => {
-                    const newValue = newPattern.settings[key];
-                    const oldValue = baseSettings[key];
-                    
-                    // Deep comparison for arrays (gradients)
-                    if (Array.isArray(newValue) && Array.isArray(oldValue)) {
-                        return JSON.stringify(newValue) !== JSON.stringify(oldValue);
-                    }
-                    return newValue !== oldValue;
-                });
+                // Find changed paths using hierarchical comparison
+                const changedPaths = findChangedPaths(normalizedBaseSettings, normalizedNewPattern);
                 
                 if (env.debug.sequencer) {
-                    console.log('[SEQUENCER] Pattern change - animating only differences', {
+                    console.log('[SEQUENCER] Pattern change - animating hierarchical differences', {
                         timestamp: Date.now(),
                         fromPattern: selectedPatternId,
                         toPattern: patternIdToLoad,
-                        totalProps: Object.keys(newPattern.settings).length,
-                        changedProps: changedKeys.length,
-                        changedKeys,
+                        changedPaths: changedPaths.length,
+                        paths: changedPaths,
                         interpolationSteps,
                     });
                 }
                 
-                // Request property changes only for properties that differ
-                changedKeys.forEach(key => {
-                    const from = baseSettings[key];
-                    const to = newPattern.settings[key];
+                // Request property changes using hierarchical paths
+                changedPaths.forEach(path => {
+                    const from = getNestedProperty(normalizedBaseSettings, path);
+                    const to = getNestedProperty(normalizedNewPattern, path);
+                    
                     requestPropertyChange(
-                        key,
+                        path,
                         from,
                         to,
                         interpolationSteps,

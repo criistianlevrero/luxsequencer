@@ -8,33 +8,13 @@ import { createMidiSlice } from './slices/midi.slice';
 import { createUISlice, initialLocale } from './slices/ui.slice';
 import { createAnimationSlice } from './slices/animation.slice';
 import { createDualScreenSlice } from './slices/dualScreen.slice';
+import { createInitialSettings } from '../utils/settingsMigration';
 
 // --- Initial State ---
 const initialState: State = {
     project: null,
     activeSequenceIndex: 0,
-    currentSettings: {
-        scaleSize: 150,
-        scaleSpacing: 0,
-        verticalOverlap: 0,
-        horizontalOffset: 0.5,
-        shapeMorph: 0,
-        animationSpeed: 1,
-        animationDirection: 90,
-        textureRotation: 0,
-        textureRotationSpeed: 0,
-        scaleBorderColor: '#000000',
-        scaleBorderWidth: 0,
-        gradientColors: [],
-        backgroundGradientColors: [{ id: 'bg-color-1', color: '#1f2937', hardStop: false }],
-        concentric_repetitionSpeed: 0.5,
-        concentric_growthSpeed: 0.5,
-        concentric_initialSize: 10,
-        concentric_gradientColors: [
-            { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
-            { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
-        ]
-    },
+    currentSettings: createInitialSettings(),  // Use new flexible structure
     textureRotation: 0,
     isPatternDirty: false,
     selectedPatternId: null,
@@ -65,7 +45,7 @@ const initialState: State = {
         channelName: 'luxsequencer-dualscreen'
     },
     
-    // Animation system
+    // Animation system (updated for flexible property paths)
     activeAnimations: new Map(),
     
     // Legacy fields for gradient transitions (used by WebGL shaders)
