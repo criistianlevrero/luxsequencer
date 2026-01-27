@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { GradientControlProps } from '../../types/declarativeControls';
-import { GradientEditor } from '../controls/GradientEditor';
-import type { GradientColor } from '../../types';
+import GradientEditor from '../../controls/GradientEditor';
+import type { GradientColor } from '../../../types';
 
 /**
  * Advanced gradient control using existing GradientEditor

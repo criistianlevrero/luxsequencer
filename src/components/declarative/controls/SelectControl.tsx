@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { SelectControlProps } from '../../types/declarativeControls';
+import type { SelectControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced select control with search, multi-select, and grouping

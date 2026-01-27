@@ -4,7 +4,7 @@
  */
 
 import type { RendererControlSpec, StandardControlSpec } from '../../types/declarativeControls';
-import { DependencyConditions, CommonDependencies, createDependencies } from '../declarative/dependencyUtils';
+import { DependencyConditions, CommonDependencies, createDependencies } from '../../declarative/dependencyUtils';
 
 /**
  * WebGL renderer control specification using declarative system

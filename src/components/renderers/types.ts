@@ -1,6 +1,6 @@
 import React from 'react';
 // FIX: Import shared types from the main `types.ts` file.
-import type { ControlSettings, AccordionItem, RendererValidationSpec } from '../../types';
+import type { ControlSettings, AccordionItem, RendererValidationSpec, DeclarativeControlSchema } from '../../types';
 
 // Updated RendererDefinition
 export interface RendererDefinition {
@@ -8,6 +8,9 @@ export interface RendererDefinition {
   name: string;
   component: React.FC<{ className?: string }>;
   controlSchema: AccordionItem[] | (() => AccordionItem[]);
+  
+  // Phase 1.4: Declarative Control Schema Support
+  declarativeSchema?: DeclarativeControlSchema;
   
   // Phase 1.2: Validation and Error Handling
   validation?: RendererValidationSpec;

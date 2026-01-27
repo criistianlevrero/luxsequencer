@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import type { ColorControlProps } from '../../types/declarativeControls';
+import type { ColorControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced color picker control with multiple input modes

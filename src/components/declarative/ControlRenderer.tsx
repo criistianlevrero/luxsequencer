@@ -6,10 +6,11 @@ import type {
   ControlType,
   ControlRenderContext,
   BaseControlProps,
-  PropertyDependency
+  PropertyDependency,
+  DeclarativeControlSchema
 } from '../types/declarativeControls';
 import type { ControlSettings } from '../types';
-import { getNestedProperty } from '../utils/settingsMigration';
+import { getNestedProperty } from '../../utils/settingsMigration';
 
 // Import control components (will be implemented next)
 import { SliderControl } from './controls/SliderControl';
@@ -20,6 +21,60 @@ import { SelectControl } from './controls/SelectControl';
 import { ToggleControl } from './controls/ToggleControl';
 import { RangeControl } from './controls/RangeControl';
 import { TextControl } from './controls/TextControl';
+
+/**
+ * Adapter function to convert DeclarativeControlSchema to RendererControlSpec
+ */
+const adaptDeclarativeSchemaToSpec = (schema: DeclarativeControlSchema): RendererControlSpec => {
+  const standardControls: StandardControlSpec[] = [];
+  
+  schema.sections.forEach((section, sectionIndex) => {
+    section.controls.forEach((control, controlIndex) => {
+      const standardControl: StandardControlSpec = {
+        id: control.id as keyof ControlSettings,
+        type: control.type,
+        category: section.title,
+        label: control.label,
+        constraints: {},
+        metadata: {
+          description: control.description,
+          category: section.title,
+          order: sectionIndex * 1000 + controlIndex,
+          dependencies: control.dependencies || []
+        }
+      };
+      
+      // Add type-specific constraints
+      switch (control.type) {
+        case 'slider':
+          standardControl.constraints.slider = {
+            min: control.min || 0,
+            max: control.max || 100,
+            step: control.step || 1,
+            defaultValue: control.defaultValue,
+            formatter: control.formatter,
+            valueLabels: control.valueLabels
+          };
+          break;
+        case 'gradient':
+          standardControl.constraints.gradient = {
+            maxColors: control.maxColors || 10,
+            minColors: control.minColors || 1,
+            supportsHardStops: control.supportsHardStops || false
+          };
+          break;
+        // Add other constraint types as needed
+      }
+      
+      standardControls.push(standardControl);
+    });
+  });
+  
+  return {
+    standard: standardControls,
+    custom: [] // No custom controls from declarative schema
+  };
+};
 
 /**
  * Central control renderer that generates components automatically from specifications
@@ -156,7 +211,22 @@ export const useDeclarativeControls = (
   
   // Render function for standard controls
   const renderStandardControl = useCallback((control: StandardControlSpec) => {
-    const value = getNestedProperty(settings, control.id as string);
+    // Map control ID to proper store path for reading the current value
+    const mapControlIdToStorePath = (controlId: string): string => {
+      // For renderer-specific properties, prefix with renderer path
+      if (['repetitionSpeed', 'growthSpeed', 'initialSize', 'gradientColors'].includes(controlId)) {
+        return `renderer.${rendererId}.${controlId}`;
+      }
+      // For common properties, prefix with common path
+      if (['animationSpeed', 'animationDirection', 'backgroundGradientColors'].includes(controlId)) {
+        return `common.${controlId}`;
+      }
+      // Fallback to original ID (for backward compatibility)
+      return controlId;
+    };
+    
+    const storePath = mapControlIdToStorePath(control.id as string);
+    const value = getNestedProperty(settings, storePath);
     const { visible, enabled } = controlRenderer.checkDependencies(control, settings);
     
     if (!visible) return null;
@@ -168,7 +238,7 @@ export const useDeclarativeControls = (
       context,
       !enabled
     );
-  }, [settings, onSettingChange, context]);
+  }, [settings, onSettingChange, context, rendererId]);
   
   // Render function for custom controls
   const renderCustomControl = useCallback((control: CustomControlSpec) => {
@@ -218,14 +288,57 @@ export const useDeclarativeControls = (
  * React component wrapper for declarative controls
  */
 export const DeclarativeControlPanel: React.FC<{
-  spec: RendererControlSpec;
+  spec: RendererControlSpec | DeclarativeControlSchema;
   settings: ControlSettings;
-  onSettingChange: (property: keyof ControlSettings, value: any) => void;
+  onSettingChange: (property: string, value: any) => void;
   rendererId: string;
   categoryOrder?: string[];
   className?: string;
 }> = ({ spec, settings, onSettingChange, rendererId, categoryOrder, className = '' }) => {
-  const { sections } = useDeclarativeControls(spec, settings, onSettingChange, rendererId);
+  
+  // Create property path mapping function to convert control IDs to store paths
+  const mapControlIdToStorePath = (controlId: string): string => {
+    // For renderer-specific properties, prefix with renderer path
+    if (['repetitionSpeed', 'growthSpeed', 'initialSize', 'gradientColors'].includes(controlId)) {
+      return `renderer.${rendererId}.${controlId}`;
+    }
+    // For common properties, prefix with common path
+    if (['animationSpeed', 'animationDirection', 'backgroundGradientColors'].includes(controlId)) {
+      return `common.${controlId}`;
+    }
+    // Fallback to original ID (for backward compatibility)
+    return controlId;
+  };
+  
+  // Wrap onSettingChange to apply property path mapping
+  const handleSettingChange = (property: string, value: any) => {
+    const storePath = mapControlIdToStorePath(property);
+    console.log(`[DeclarativeControlPanel] Mapping control '${property}' to store path '${storePath}' with value:`, value);
+    onSettingChange(storePath, value);
+  };
+  
+  // Adapt DeclarativeControlSchema to RendererControlSpec if needed
+  const rendererSpec: RendererControlSpec = useMemo(() => {
+    // Check if spec exists and is valid
+    if (!spec) {
+      console.warn(`[DeclarativeControlPanel] Spec is undefined for renderer: ${rendererId}`);
+      return { standard: [], custom: [] };
+    }
+    
+    if (typeof spec === 'object' && 'sections' in spec) {
+      // It's a DeclarativeControlSchema, convert it
+      return adaptDeclarativeSchemaToSpec(spec as DeclarativeControlSchema);
+    } else if (typeof spec === 'object' && 'standard' in spec) {
+      // It's already a RendererControlSpec
+      console.log(`[DeclarativeControlPanel] Using existing RendererControlSpec for renderer: ${rendererId}`);
+      return spec as RendererControlSpec;
+    } else {
+      console.warn(`[DeclarativeControlPanel] Invalid spec format for renderer: ${rendererId}`, spec);
+      return { standard: [], custom: [] };
+    }
+  }, [spec, rendererId]);
+  
+  const { sections } = useDeclarativeControls(rendererSpec, settings, handleSettingChange, rendererId);
   
   // Sort sections by categoryOrder if provided
   const orderedSections = categoryOrder 

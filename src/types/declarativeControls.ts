@@ -255,3 +255,78 @@ export interface RangeControlProps extends BaseControlProps<{ min: number; max: 
 export interface TextControlProps extends BaseControlProps<string> {
   spec: StandardControlSpec & { constraints: { text: TextConstraints } };
 }
+
+// ============================================================================
+// DECLARATIVE CONTROL SCHEMA
+// ============================================================================
+
+/**
+ * Complete declarative schema for a renderer
+ */
+export interface DeclarativeControlSchema {
+  schemaVersion: string;
+  rendererId: string;
+  rendererName: string;
+  description: string;
+  
+  presets?: Array<{
+    id: string;
+    name: string;
+    settings: any;
+  }>;
+  
+  sections: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    defaultOpen?: boolean;
+    controls: Array<{
+      type: ControlType;
+      id: string;
+      label: string;
+      description?: string;
+      min?: number;
+      max?: number;
+      step?: number;
+      defaultValue?: any;
+      formatter?: (value: any) => string;
+      valueLabels?: Record<number | string, string>;
+      maxColors?: number;
+      minColors?: number;
+      supportsHardStops?: boolean;
+      dependencies?: PropertyDependency[];
+    }>;
+  }>;
+  
+  globalDependencies?: PropertyDependency[];
+  
+  validation?: Array<{
+    property: string;
+    rules: Array<{
+      type: 'range' | 'custom';
+      min?: number;
+      max?: number;
+      validator?: (value: any) => boolean;
+      message: string;
+    }>;
+  }>;
+  
+  metadata?: {
+    version: string;
+    author: string;
+    created: string;
+    lastModified: string;
+    tags: string[];
+    performance: {
+      complexity: 'low' | 'medium' | 'high';
+      gpuIntensive: boolean;
+      recommendedMaxInstances: number;
+    };
+    features: string[];
+    requirements: {
+      webgl?: string;
+      shaderModel?: string;
+      extensions?: string[];
+    };
+  };
+}

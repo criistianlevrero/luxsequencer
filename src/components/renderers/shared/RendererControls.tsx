@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { useTextureStore } from '../../../store';
+import { renderers } from '../index';
 import MidiLearnButton from '../../midi/MidiLearnButton';
 import SliderInput from '../../controls/SliderInput';
 import CollapsibleSection from '../../shared/CollapsibleSection';
 // FIX: Import `AccordionItem`, `ControlSection` and `SliderControlConfig` from the root `types.ts` file.
 import type { AccordionItem, ControlSection, SeparatorSection, SliderControlConfig, ControlSettings } from '../../../types';
 import { getNestedProperty, toLegacySettings, mapPropertyIdToPath } from '../../../utils/settingsMigration';
+import { DeclarativeControlPanel } from '../../declarative/ControlRenderer';
 
 interface RendererControlsProps {
     schema: AccordionItem[] | (() => AccordionItem[]);
@@ -30,6 +32,23 @@ const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
         startMidiLearning,
     } = useTextureStore.getState();
     
+    // Check if the current renderer has a declarative schema
+    const currentRenderer = renderers[activeRenderer];
+    const declarativeSchema = currentRenderer?.declarativeSchema;
+    
+    // If declarative schema is available, use it
+    if (declarativeSchema) {
+        return (
+            <DeclarativeControlPanel
+                spec={declarativeSchema}
+                settings={currentSettings}
+                onSettingChange={(property, value) => setCurrentSetting(property, value)}
+                rendererId={activeRenderer}
+            />
+        );
+    }
+    
+    // Fallback to legacy schema system
     // Resolve schema function if it's a function
     const resolvedSchema = typeof schema === 'function' ? schema() : schema;
     

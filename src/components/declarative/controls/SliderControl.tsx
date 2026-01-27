@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import type { SliderControlProps } from '../../types/declarativeControls';
+import type { SliderControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced slider control with detents, presets, and bipolar support
@@ -39,8 +39,9 @@ export const SliderControl: React.FC<SliderControlProps> = ({
     }
   }, [onChange]);
 
-  // Calculate percentage for visual indicators
-  const percentage = ((value - constraints.min) / (constraints.max - constraints.min)) * 100;
+  // Calculate percentage for visual indicators - handle undefined values
+  const safeValue = value ?? constraints.defaultValue ?? constraints.min;
+  const percentage = ((safeValue - constraints.min) / (constraints.max - constraints.min)) * 100;
 
   return (
     <div className="space-y-2">
@@ -54,7 +55,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
         </label>
         <div className="flex items-center gap-2">
           <span className="text-sm font-mono bg-gray-700 text-cyan-300 px-2 py-1 rounded">
-            {constraints.formatter(value)}
+            {constraints.formatter ? constraints.formatter(safeValue) : safeValue.toString()}
           </span>
           {spec.metadata?.units && (
             <span className="text-xs text-gray-400">{spec.metadata.units}</span>
@@ -75,7 +76,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           min={constraints.min}
           max={constraints.max}
           step={constraints.step}
-          value={value}
+          value={safeValue}
           onChange={handleChange}
           onMouseDown={() => setIsDragging(true)}
           onMouseUp={() => setIsDragging(false)}
