@@ -58,6 +58,7 @@ export interface TranslationKeys {
   'midi.noDevices': string
   'midi.clearMappings': string
   'midi.configuration': string
+  'midi.configurationDescription': string
   'midi.connectionError': string
   'midi.retry': string
   'midi.inputDevice': string

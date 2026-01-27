@@ -100,7 +100,7 @@ export const SecondaryDisplay: React.FC = () => {
       
       {/* Renderer container */}
       <div className={getContainerClasses()}>
-        <RendererErrorBoundary renderer={rendererId}>
+        <RendererErrorBoundary renderer={renderers.find(r => r.id === rendererId)!}>
           <RendererComponent className={getRendererClasses()} />
         </RendererErrorBoundary>
       </div>

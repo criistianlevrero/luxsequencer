@@ -8,8 +8,8 @@ import type {
   BaseControlProps,
   PropertyDependency,
   DeclarativeControlSchema
-} from '../types/declarativeControls';
-import type { ControlSettings } from '../types';
+} from '../../types/declarativeControls';
+import type { ControlSettings } from '../../types';
 import { getNestedProperty } from '../../utils/settingsMigration';
 
 // Import control components (will be implemented next)

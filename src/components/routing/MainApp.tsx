@@ -95,7 +95,7 @@ export const MainApp: React.FC = () => {
             sequencerPanel={sequencerPanel}
           >
             {CanvasComponent && (
-              <RendererErrorBoundary renderer={rendererId}>
+              <RendererErrorBoundary renderer={renderers.find(r => r.id === rendererId)!}>
                 <CanvasComponent className="w-full h-full" />
               </RendererErrorBoundary>
             )}

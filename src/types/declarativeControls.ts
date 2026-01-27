@@ -1,4 +1,4 @@
-import type { ControlSettings } from './index';
+import type { ControlSettings } from '../types';
 
 // ============================================================================
 // DECLARATIVE CONTROL SYSTEM TYPES
@@ -55,7 +55,12 @@ export interface StandardControlSpec {
  */
 export interface CustomControlSpec {
   id: string;
-  component: React.FC<any>;
+  component: React.FC<{
+    spec: CustomControlSpec;
+    settings: ControlSettings;
+    onChange: (property: string, value: any) => void;
+    context: ControlRenderContext;
+  }>;
   category: string;
   label?: string;
   metadata?: {

@@ -3,7 +3,7 @@
  * Demonstrates advanced features of the declarative control system
  */
 
-import type { RendererControlSpec, StandardControlSpec } from '../../types/declarativeControls';
+import type { RendererControlSpec, StandardControlSpec } from '../../../types/declarativeControls';
 import { DependencyConditions, CommonDependencies, createDependencies } from '../../declarative/dependencyUtils';
 
 /**

@@ -141,14 +141,14 @@ const ControlPanel: React.FC = () => {
                         activeSequence.activePatterns.map(pattern => (
                             <div key={pattern.id} className="flex items-center bg-gray-700/50 p-2 rounded-lg space-x-2">
                                 <span
-                                    className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-200 ${
+                                    className={`w-2.5 h-2.5 rounded-full shrink-0 transition-all duration-200 ${
                                         selectedPatternId === pattern.id 
-                                            ? (isPatternDirty ? 'bg-orange-400 animate-midi-learn-pulse' : 'bg-cyan-400 shadow-[0_0_5px_theme(colors.cyan.400)]')
+                                            ? (isPatternDirty ? 'bg-orange-400 animate-midi-learn-pulse' : 'bg-cyan-400 shadow-[0_0_5px_var(--color-cyan-400)]')
                                             : 'bg-gray-600'
                                     }`}
                                     aria-hidden="true"
                                 />
-                                <button onClick={() => loadPattern(pattern.id)} className="flex-grow text-left px-2 py-1 hover:bg-gray-600 rounded-md transition-colors">
+                                <button onClick={() => loadPattern(pattern.id)} className="grow text-left px-2 py-1 hover:bg-gray-600 rounded-md transition-colors">
                                     {pattern.name}
                                 </button>
                                 <span className="text-xs font-mono text-cyan-400 w-12 text-center">
@@ -161,7 +161,7 @@ const ControlPanel: React.FC = () => {
                                     learnTitle={t('patterns.assignMidi', { name: pattern.name })}
                                     clearTitle={t('patterns.clearMidi', { name: pattern.name })}
                                 />
-                                <button onClick={() => deletePattern(pattern.id)} className="w-10 h-10 flex-shrink-0 rounded-lg flex items-center justify-center bg-gray-600 hover:bg-red-500/80 text-gray-300 hover:text-white transition-colors" aria-label={t('common.delete') + ` ${pattern.name}`}>
+                                <button onClick={() => deletePattern(pattern.id)} className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center bg-gray-600 hover:bg-red-500/80 text-gray-300 hover:text-white transition-colors" aria-label={t('common.delete') + ` ${pattern.name}`}>
                                     <TrashIcon className="w-5 h-5"/>
                                 </button>
                             </div>

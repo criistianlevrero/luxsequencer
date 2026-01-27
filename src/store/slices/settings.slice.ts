@@ -2,13 +2,12 @@ import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SettingsActions } from '../types';
 import type { ControlSettings, AnyControlSettings, Pattern } from '../../types';
-import { ControlSource } from '../../types';
+import { ControlSource, isNewControlSettings } from '../../types';
 import { env } from '../../config';
 import { 
     getNestedProperty, 
     setNestedProperty, 
-    normalizeSettings, 
-    isNewControlSettings,
+    normalizeSettings,
     toLegacySettings
 } from '../../utils/settingsMigration';
 

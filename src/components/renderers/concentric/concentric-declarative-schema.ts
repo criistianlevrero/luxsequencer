@@ -1,4 +1,4 @@
-import type { DeclarativeControlSchema } from '../../types';
+import type { DeclarativeControlSchema } from '../../../types';
 
 /**
  * CONCENTRIC RENDERER - DECLARATIVE CONTROL SCHEMA

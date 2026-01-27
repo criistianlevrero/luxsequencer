@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import type { RangeControlProps } from '../../types/declarativeControls';
+import type { RangeControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced range control for selecting min/max values

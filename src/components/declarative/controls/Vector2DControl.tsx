@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import type { Vector2DControlProps } from '../../types/declarativeControls';
+import type { Vector2DControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced 2D Vector control with interactive visualization

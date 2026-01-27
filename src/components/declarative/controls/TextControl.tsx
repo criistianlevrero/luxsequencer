@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import type { TextControlProps } from '../../types/declarativeControls';
+import type { TextControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced text input control with validation, multiline, and formatting

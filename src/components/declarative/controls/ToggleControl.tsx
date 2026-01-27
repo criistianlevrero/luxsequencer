@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ToggleControlProps } from '../../types/declarativeControls';
+import type { ToggleControlProps } from '../../../types/declarativeControls';
 
 /**
  * Advanced toggle control with multiple styles and states

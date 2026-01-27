@@ -63,7 +63,7 @@ export const DependencyConditions = {
  * Dependency builder for fluent API
  */
 export class DependencyBuilder {
-  private dependencies: import('../types/declarativeControls').PropertyDependency[] = [];
+  private dependencies: import('../../types/declarativeControls').PropertyDependency[] = [];
   
   /**
    * Add a show dependency
@@ -175,7 +175,7 @@ export const CommonDependencies = {
  * Evaluation helper for testing dependency conditions
  */
 export const evaluateDependency = (
-  dependency: import('../types/declarativeControls').PropertyDependency,
+  dependency: import('../../types/declarativeControls').PropertyDependency,
   settings: any
 ): boolean => {
   const getValue = (obj: any, path: string): any => {
@@ -190,7 +190,7 @@ export const evaluateDependency = (
  * Batch evaluate all dependencies for a control
  */
 export const evaluateAllDependencies = (
-  dependencies: import('../types/declarativeControls').PropertyDependency[],
+  dependencies: import('../../types/declarativeControls').PropertyDependency[],
   settings: any
 ): { visible: boolean; enabled: boolean } => {
   let visible = true;

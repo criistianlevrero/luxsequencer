@@ -22,7 +22,7 @@ export const MainViewport: React.FC<MainViewportProps> = ({
       <div className={
         viewportMode === 'horizontal'
           ? "w-full aspect-video overflow-hidden rounded-xl bg-gray-800"
-          : "w-full max-w-sm mx-auto aspect-[9/16] overflow-hidden rounded-xl bg-gray-800"
+          : "w-full max-w-sm mx-auto aspect-9/16 overflow-hidden rounded-xl bg-gray-800"
       }>
         {CanvasComponent && !dualScreenEnabled ? (
           <RendererErrorBoundary renderer={CanvasComponent.displayName || 'unknown'}>

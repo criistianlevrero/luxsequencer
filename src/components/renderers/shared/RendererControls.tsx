@@ -82,7 +82,7 @@ const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
                                     
                                     return (
                                         <div key={slider.id} className="flex items-center space-x-4">
-                                            <div className="flex-grow">
+                                            <div className="grow">
                                                 <SliderInput 
                                                     label={slider.label} 
                                                     value={value} 
