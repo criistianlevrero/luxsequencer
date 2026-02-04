@@ -1,5 +1,9 @@
 import type React from 'react';
 
+// Export Phase 1.2 validation types
+export * from './types/validation';
+export * from './types/declarativeControls';
+
 export interface GradientColor {
   id: string;
   color: string;

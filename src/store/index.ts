@@ -8,6 +8,7 @@ import { createMidiSlice } from './slices/midi.slice';
 import { createUISlice, initialLocale } from './slices/ui.slice';
 import { createAnimationSlice } from './slices/animation.slice';
 import { createDualScreenSlice } from './slices/dualScreen.slice';
+import { createValidationSlice, validationMiddleware } from './slices/validation.slice';
 import { createInitialSettings } from '../utils/settingsMigration';
 
 // --- Initial State ---
@@ -56,16 +57,19 @@ const initialState: State = {
 
 // --- Store Creation ---
 export const useTextureStore = createWithEqualityFn<StoreState>(
-    (set, get, api) => ({
-        ...initialState,
-        ...createProjectSlice(set, get, api),
-        ...createSettingsSlice(set, get, api),
-        ...createSequencerSlice(set, get, api),
-        ...createMidiSlice(set, get, api),
-        ...createUISlice(set, get, api),
-        ...createAnimationSlice(set, get, api),
-        ...createDualScreenSlice(set, get, api),
-    }),
+    validationMiddleware()(
+        (set, get, api) => ({
+            ...initialState,
+            ...createProjectSlice(set, get, api),
+            ...createSettingsSlice(set, get, api),
+            ...createSequencerSlice(set, get, api),
+            ...createMidiSlice(set, get, api),
+            ...createUISlice(set, get, api),
+            ...createAnimationSlice(set, get, api),
+            ...createDualScreenSlice(set, get, api),
+            ...createValidationSlice(set, get, api),
+        })
+    ),
     shallow
 );
 

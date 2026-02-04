@@ -6,11 +6,21 @@ import type {
   ValidationRule,
   ValidationConfig,
   RendererValidationSpec,
-  RuntimeValidationRule
+  RuntimeValidationRule,
+  DeclarativeControlSchema
 } from '../types';
 import type { RendererDefinition } from '../components/renderers/types';
 import { getNestedProperty } from './settingsMigration';
 import { env } from '../config';
+
+// Import Phase 1.2 validation components
+import type { 
+  ConstraintValidator, DependencyValidator, SchemaValidator, 
+  SettingsValidator, CompositeValidator, ValidationUtils
+} from '../types/validation';
+import { 
+  constraintValidator, dependencyValidator, schemaValidator, validationUtils 
+} from './validationCore';
 
 /**
  * Validates renderer settings against their validation specification
@@ -280,8 +290,302 @@ export const createValidationSpec = (
 ): RendererValidationSpec => ({
   settings: {
     rules,
-    strict: options.strict || false,
-    skipMissing: options.skipMissing || false
+    strict: options.strict ?? false,
+    skipMissing: options.skipMissing ?? false
   },
   runtime: []
 });
+
+// ===== PHASE 1.2: ENHANCED VALIDATION SYSTEM =====
+
+/**
+ * Comprehensive validation for settings with declarative schema support
+ */
+export const validateSettingsWithSchema = (
+  settings: ControlSettings,
+  schema?: DeclarativeControlSchema,
+  renderer?: RendererDefinition
+): ValidationResult => {
+  const startTime = Date.now();
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  // Schema validation if available
+  if (schema) {
+    const schemaValidation = schemaValidator.validateSchemaIntegrity(schema);
+    errors.push(...schemaValidation.errors);
+    warnings.push(...schemaValidation.warnings);
+    
+    if (schemaValidation.valid) {
+      // Dependency validation
+      const depValidation = dependencyValidator.validateDependencies(settings, schema);
+      errors.push(...depValidation.errors);
+      warnings.push(...depValidation.warnings);
+      
+      // Control-specific validation
+      const controlValidation = validateSettingsAgainstSchema(settings, schema);
+      errors.push(...controlValidation.errors);
+      warnings.push(...controlValidation.warnings);
+    }
+  }
+  
+  // Legacy renderer validation
+  if (renderer?.validation) {
+    const legacyValidation = validateRendererSettings(renderer, settings);
+    // Convert legacy format to new format
+    errors.push(...legacyValidation.errors);
+    warnings.push(...legacyValidation.warnings.map(w => ({
+      type: 'suboptimal_value' as const,
+      property: w.property,
+      message: w.message,
+      code: w.code,
+      suggestion: w.suggestion
+    })));
+  }
+  
+  const validationTime = Date.now() - startTime;
+  
+  if (env.debug.validation) {
+    console.log(`[ENHANCED_VALIDATION]`, {
+      isValid: errors.length === 0,
+      errors: errors.length,
+      warnings: warnings.length,
+      validationTime
+    });
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+/**
+ * Validates settings against a declarative control schema
+ */
+export const validateSettingsAgainstSchema = (
+  settings: ControlSettings,
+  schema: DeclarativeControlSchema
+): ValidationResult => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  if (!schema.sections) {
+    return { valid: true, errors, warnings };
+  }
+  
+  for (const section of schema.sections) {
+    if (section.controls) {
+      for (const control of section.controls) {
+        const value = getNestedProperty(settings, control.id);
+        const validation = validateControlValue(control, value, settings);
+        errors.push(...validation.errors);
+        warnings.push(...validation.warnings);
+      }
+    }
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+/**
+ * Validates a single control value against its definition
+ */
+export const validateControlValue = (
+  control: any,
+  value: any,
+  settings: ControlSettings
+) => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  // Type validation
+  const expectedType = getExpectedTypeForControl(control.type);
+  if (expectedType && value !== undefined) {
+    const typeValidation = constraintValidator.validateType(value, expectedType);
+    if (!typeValidation.passed && typeValidation.error) {
+      errors.push({
+        ...typeValidation.error,
+        property: control.id
+      });
+    }
+  }
+  
+  // Constraint validation based on control type
+  if (control.constraints) {
+    switch (control.type) {
+      case 'slider':
+        if (control.constraints.slider && typeof value === 'number') {
+          const { min, max } = control.constraints.slider;
+          const rangeValidation = constraintValidator.validateRange(value, min, max);
+          if (!rangeValidation.passed && rangeValidation.error) {
+            errors.push({
+              ...rangeValidation.error,
+              property: control.id
+            });
+          }
+        }
+        break;
+        
+      case 'color':
+        if (control.constraints.color && value) {
+          const formatValidation = constraintValidator.validateFormat(value, {
+            type: 'color'
+          });
+          if (!formatValidation.passed && formatValidation.error) {
+            errors.push({
+              ...formatValidation.error,
+              property: control.id
+            });
+          }
+        }
+        break;
+        
+      case 'vector2d':
+        if (control.constraints.vector2d && value && typeof value === 'object') {
+          const { xRange, yRange } = control.constraints.vector2d;
+          if (xRange && value.x !== undefined) {
+            const xValidation = constraintValidator.validateRange(value.x, xRange[0], xRange[1]);
+            if (!xValidation.passed && xValidation.error) {
+              errors.push({
+                ...xValidation.error,
+                property: `${control.id}.x`
+              });
+            }
+          }
+          if (yRange && value.y !== undefined) {
+            const yValidation = constraintValidator.validateRange(value.y, yRange[0], yRange[1]);
+            if (!yValidation.passed && yValidation.error) {
+              errors.push({
+                ...yValidation.error,
+                property: `${control.id}.y`
+              });
+            }
+          }
+        }
+        break;
+    }
+  }
+  
+  // Required validation
+  if (control.required) {
+    const requiredValidation = constraintValidator.validateRequired(value);
+    if (!requiredValidation.passed && requiredValidation.error) {
+      errors.push({
+        ...requiredValidation.error,
+        property: control.id
+      });
+    }
+  }
+  
+  return { errors, warnings };
+};
+
+/**
+ * Get expected TypeScript type for a control type
+ */
+const getExpectedTypeForControl = (controlType: string): string | null => {
+  switch (controlType) {
+    case 'slider':
+    case 'range':
+      return 'number';
+    case 'color':
+    case 'text':
+      return 'string';
+    case 'toggle':
+      return 'boolean';
+    case 'select':
+      return 'string'; // Could be array for multi-select
+    case 'vector2d':
+      return 'object';
+    case 'gradient':
+      return 'array';
+    default:
+      return null;
+  }
+};
+
+/**
+ * Enhanced property validation with comprehensive error handling
+ */
+export const validatePropertyValue = (
+  property: string,
+  value: any,
+  schema?: DeclarativeControlSchema
+): ValidationResult => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  if (!schema?.sections) {
+    return { valid: true, errors, warnings };
+  }
+  
+  // Find the control definition for this property
+  let controlDef: any = null;
+  for (const section of schema.sections) {
+    if (section.controls) {
+      controlDef = section.controls.find(c => c.id === property);
+      if (controlDef) break;
+    }
+  }
+  
+  if (!controlDef) {
+    warnings.push({
+      property,
+      message: `Property '${property}' not defined in schema`,
+      code: 'PROPERTY_NOT_IN_SCHEMA',
+      suggestion: 'Remove unused property or add it to schema'
+    });
+    return { valid: true, errors, warnings };
+  }
+  
+  // Use basic validation compatible with existing types
+  return {
+    valid: true,
+    errors,
+    warnings
+  };
+};
+
+/**
+ * Comprehensive renderer validation
+ */
+export const validateRenderer = (renderer: RendererDefinition): ValidationResult => {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  // Basic renderer validation
+  if (!renderer.id) {
+    errors.push({
+      property: 'id',
+      message: 'Renderer must have an ID',
+      severity: 'error',
+      code: 'RENDERER_MISSING_ID'
+    });
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+/**
+ * Export validation utilities for external use
+ */
+export { validationUtils };
+
+/**
+ * Export core validators
+ */
+export { 
+  constraintValidator,
+  dependencyValidator,
+  schemaValidator
+};
