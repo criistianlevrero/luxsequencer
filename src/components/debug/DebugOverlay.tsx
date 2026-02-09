@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
+import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
+import { PerformanceMonitor } from './PerformanceMonitor';
 
 interface DebugMetrics {
   sequencerTicks: number;
@@ -20,6 +22,7 @@ interface DebugMetrics {
 const DebugOverlay: React.FC = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'metrics' | 'performance' | 'logs'>('metrics');
   const [metrics, setMetrics] = useState<DebugMetrics>({
     sequencerTicks: 0,
     rafCalls: 0,
@@ -39,6 +42,10 @@ const DebugOverlay: React.FC = () => {
   const maxLogs = 100;
   const fpsFrames = useRef<number[]>([]);
   const lastFpsUpdate = useRef(Date.now());
+  
+  // Performance monitoring
+  const performanceData = usePerformanceMonitoring({ autoStart: true });
+  const alertData = usePerformanceAlerts();
   
   // Use refs to track previous values without causing re-renders
   const prevSettingsHashRef = useRef<string>('');
@@ -201,9 +208,19 @@ const DebugOverlay: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 right-4 w-96 max-h-[80vh] bg-gray-900/95 backdrop-blur-sm border-2 border-purple-500 rounded-lg shadow-2xl z-50 flex flex-col">
-      {/* Header */}
+      {/* Header with Performance Alert Indicator */}
       <div className="bg-purple-600 px-4 py-2 flex justify-between items-center rounded-t-lg">
-        <h3 className="font-bold text-white">🐛 {t('debug.console')}</h3>
+        <div className="flex items-center space-x-2">
+          <h3 className="font-bold text-white">🐛 {t('debug.console')}</h3>
+          {alertData.hasUnacknowledgedAlerts && (
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+              <span className="text-xs text-yellow-200">
+                {alertData.unacknowledgedAlerts.length}
+              </span>
+            </div>
+          )}
+        </div>
         <button
           onClick={() => setIsOpen(false)}
           className="text-white hover:text-gray-200"
@@ -211,111 +228,162 @@ const DebugOverlay: React.FC = () => {
           ✕
         </button>
       </div>
-
-      {/* Metrics */}
-      <div className="p-4 border-b border-gray-700 bg-gray-800/50">
-        <h4 className="font-semibold text-cyan-400 mb-2">{t('debug.metrics')}</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">FPS</div>
-            <div className="text-white font-mono font-bold">{metrics.fps}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.rafCalls')}</div>
-            <div className="text-white font-mono font-bold">{metrics.rafCalls}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.sequencerTicks')}</div>
-            <div className="text-white font-mono font-bold">{metrics.sequencerTicks}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.settingsUpdates')}</div>
-            <div className="text-white font-mono font-bold">{metrics.settingsUpdates}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.currentStep')}</div>
-            <div className="text-white font-mono font-bold">{metrics.sequencerStep}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.animationActive')}</div>
-            <div className={`font-mono font-bold ${metrics.animationFrameActive ? 'text-green-400' : 'text-red-400'}`}>
-              {metrics.animationFrameActive ? 'YES' : 'NO'}
-            </div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded col-span-2">
-            <div className="text-gray-400">{t('debug.transitionProgress')}</div>
-            <div className="text-white font-mono font-bold">{(metrics.transitionProgress * 100).toFixed(1)}%</div>
-            <div className="w-full bg-gray-600 rounded-full h-1.5 mt-1">
-              <div 
-                className="bg-cyan-500 h-1.5 rounded-full transition-all" 
-                style={{ width: `${metrics.transitionProgress * 100}%` }}
-              />
-            </div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.activeAnimations')}</div>
-            <div className="text-cyan-300 font-mono font-bold">
-              {storeState.activeAnimations.size}
-            </div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded">
-            <div className="text-gray-400">{t('debug.interpolationSpeed')}</div>
-            <div className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} {t('debug.steps')}</div>
-          </div>
-          <div className="bg-gray-700/50 p-2 rounded col-span-2">
-            <div className="text-gray-400">{t('debug.settingsHash')}</div>
-            <div className="text-cyan-300 font-mono text-xs truncate">{metrics.settingsHash}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="px-4 py-2 border-b border-gray-700 flex gap-2">
+      
+      {/* Tab Navigation */}
+      <div className="flex bg-gray-800 border-b border-gray-700">
         <button
-          onClick={clearLogs}
-          className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold py-1 px-2 rounded"
+          onClick={() => setActiveTab('metrics')}
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'metrics'
+              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
         >
-          {t('debug.clearLogs')}
+          Debug Metrics
         </button>
         <button
-          onClick={exportDebugData}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-2 rounded"
+          onClick={() => setActiveTab('performance')}
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'performance'
+              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
         >
-          {t('debug.exportData')}
-        </button>
-      </div>
-
-      {/* Event Logs */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <h4 className="font-semibold text-cyan-400 mb-2 sticky top-0 bg-gray-900/95">
-          {t('debug.eventLog')} ({logs.length}/{maxLogs})
-        </h4>
-        <div className="space-y-1">
-          {logs.length === 0 ? (
-            <div className="text-gray-500 text-xs italic">{t('debug.noEvents')}</div>
-          ) : (
-            logs.map((log, i) => (
-              <div key={i} className="bg-gray-800/50 p-2 rounded text-xs">
-                <div className="flex justify-between items-start mb-1">
-                  <span className={`font-semibold ${
-                    log.type === 'sequencer' ? 'text-blue-400' :
-                    log.type === 'animation-start' ? 'text-green-400' :
-                    log.type === 'animation-end' ? 'text-red-400' :
-                    'text-gray-400'
-                  }`}>
-                    {log.type}
-                  </span>
-                  <span className="text-gray-500 font-mono text-[10px]">
-                    {new Date(log.time).toLocaleTimeString()}.{log.time % 1000}
-                  </span>
-                </div>
-                <pre className="text-gray-300 font-mono text-[10px] overflow-x-auto">
-                  {JSON.stringify(log.data, null, 2)}
-                </pre>
-              </div>
-            ))
+          Performance
+          {alertData.hasUnacknowledgedAlerts && (
+            <span className="ml-1 w-1.5 h-1.5 bg-yellow-400 rounded-full inline-block" />
           )}
-        </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('logs')}
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'logs'
+              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Event Logs
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'metrics' && (
+          <>
+            {/* Original Debug Metrics */}
+            <div className="p-4 border-b border-gray-700 bg-gray-800/50">
+              <h4 className="font-semibold text-cyan-400 mb-2">{t('debug.metrics')}</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">FPS</div>
+                  <div className="text-white font-mono font-bold">{metrics.fps}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.rafCalls')}</div>
+                  <div className="text-white font-mono font-bold">{metrics.rafCalls}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.sequencerTicks')}</div>
+                  <div className="text-white font-mono font-bold">{metrics.sequencerTicks}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.settingsUpdates')}</div>
+                  <div className="text-white font-mono font-bold">{metrics.settingsUpdates}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.currentStep')}</div>
+                  <div className="text-white font-mono font-bold">{metrics.sequencerStep}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.animationActive')}</div>
+                  <div className={`font-mono font-bold ${metrics.animationFrameActive ? 'text-green-400' : 'text-red-400'}`}>
+                    {metrics.animationFrameActive ? 'YES' : 'NO'}
+                  </div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded col-span-2">
+                  <div className="text-gray-400">{t('debug.transitionProgress')}</div>
+                  <div className="text-white font-mono font-bold">{(metrics.transitionProgress * 100).toFixed(1)}%</div>
+                  <div className="w-full bg-gray-600 rounded-full h-1.5 mt-1">
+                    <div 
+                      className="bg-cyan-500 h-1.5 rounded-full transition-all" 
+                      style={{ width: `${metrics.transitionProgress * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.activeAnimations')}</div>
+                  <div className="text-cyan-300 font-mono font-bold">
+                    {storeState.activeAnimations.size}
+                  </div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded">
+                  <div className="text-gray-400">{t('debug.interpolationSpeed')}</div>
+                  <div className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} {t('debug.steps')}</div>
+                </div>
+                <div className="bg-gray-700/50 p-2 rounded col-span-2">
+                  <div className="text-gray-400">{t('debug.settingsHash')}</div>
+                  <div className="text-cyan-300 font-mono text-xs truncate">{metrics.settingsHash}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="px-4 py-2 border-b border-gray-700 flex gap-2">
+              <button
+                onClick={clearLogs}
+                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold py-1 px-2 rounded"
+              >
+                {t('debug.clearLogs')}
+              </button>
+              <button
+                onClick={exportDebugData}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-2 rounded"
+              >
+                {t('debug.exportData')}
+              </button>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'performance' && (
+          <div className="p-4">
+            <PerformanceMonitor compactMode={false} showCharts={true} />
+          </div>
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="p-4">
+            <h4 className="font-semibold text-cyan-400 mb-2">
+              {t('debug.eventLog')} ({logs.length}/{maxLogs})
+            </h4>
+            <div className="space-y-1">
+              {logs.length === 0 ? (
+                <div className="text-gray-500 text-xs italic">{t('debug.noEvents')}</div>
+              ) : (
+                logs.map((log, i) => (
+                  <div key={i} className="bg-gray-800/50 p-2 rounded text-xs">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className={`font-semibold ${
+                        log.type === 'sequencer' ? 'text-blue-400' :
+                        log.type === 'animation-start' ? 'text-green-400' :
+                        log.type === 'animation-end' ? 'text-red-400' :
+                        'text-gray-400'
+                      }`}>
+                        {log.type}
+                      </span>
+                      <span className="text-gray-500 font-mono text-[10px]">
+                        {new Date(log.time).toLocaleTimeString()}.{log.time % 1000}
+                      </span>
+                    </div>
+                    <pre className="text-gray-300 font-mono text-[10px] overflow-x-auto">
+                      {JSON.stringify(log.data, null, 2)}
+                    </pre>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

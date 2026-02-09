@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from 'react';
 import type { RendererDefinition } from '../components/renderers/types';
 import { renderers } from '../components/renderers';
 import { validateRendererSettings } from './validation';
@@ -51,7 +50,6 @@ export class RendererHotReloadManager {
     // Disable polling by default to prevent constant reloading messages
     // Uncomment the next line if you need fallback polling
     // this.startPolling();
-  }
   }
 
   /**

@@ -70,7 +70,7 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
 
   // Render legacy controls (for comparison or fallback)
   const renderLegacyControls = () => {
-    const currentRenderer = renderers.find(r => r.id === renderer);
+    const currentRenderer = renderers[renderer];
     if (!currentRenderer) return null;
 
     const schema = 'getControlSchema' in currentRenderer 

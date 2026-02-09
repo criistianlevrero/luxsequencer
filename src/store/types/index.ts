@@ -2,6 +2,7 @@ import type { Project, ControlSettings, AnyControlSettings, Pattern, Sequence, M
 import type { LocaleCode } from '../../i18n/types';
 import type { DualScreenSlice, DualScreenState } from '../slices/dualScreen.slice';
 import type { ValidationSlice } from '../slices/validation.slice';
+import type { PerformanceSlice } from '../slices/performance.slice';
 
 // Core app types
 export type ViewportMode = 'horizontal' | 'vertical';
@@ -120,6 +121,6 @@ export interface AnimationActions {
     cancelAnimationForProperty: (property: string) => void;
 }
 
-export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions & DualScreenSlice & ValidationSlice;
+export type Actions = ProjectActions & SettingsActions & SequencerActions & MidiActions & UIActions & AnimationActions & DualScreenSlice & ValidationSlice & PerformanceSlice;
 
 export type StoreState = State & Actions;

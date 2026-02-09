@@ -9,6 +9,7 @@ import { createUISlice, initialLocale } from './slices/ui.slice';
 import { createAnimationSlice } from './slices/animation.slice';
 import { createDualScreenSlice } from './slices/dualScreen.slice';
 import { createValidationSlice, validationMiddleware } from './slices/validation.slice';
+import { createPerformanceSlice } from './slices/performance.slice';
 import { createInitialSettings } from '../utils/settingsMigration';
 
 // --- Initial State ---
@@ -68,6 +69,7 @@ export const useTextureStore = createWithEqualityFn<StoreState>(
             ...createAnimationSlice(set, get, api),
             ...createDualScreenSlice(set, get, api),
             ...createValidationSlice(set, get, api),
+            ...createPerformanceSlice(set, get, api),
         })
     ),
     shallow

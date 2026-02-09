@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
 import type { ControlSettings, GradientColor } from '../../../types';
 import { useWebGLCompatibleSettings } from '../../../utils/settingsMigration';
+import { usePerformanceTimer } from '../../../hooks/usePerformanceMonitoring';
 
 type RGBColor = { r: number, g: number, b: number };
 
@@ -237,6 +238,9 @@ const WebGlRenderer: React.FC<TextureCanvasProps> = ({ className }) => {
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
   const uniformLocationsRef = useRef<Record<string, WebGLUniformLocation | null>>({});
+  
+  // Performance monitoring
+  const { startTimer, endTimer } = usePerformanceTimer('webgl');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -333,6 +337,9 @@ const WebGlRenderer: React.FC<TextureCanvasProps> = ({ className }) => {
         return;
       }
       
+      // Start performance timer
+      startTimer();
+      
       const state = useTextureStore.getState();
       // Use compatibility adapter to get settings in expected format
       const currentSettings = useWebGLCompatibleSettings(state.currentSettings);
@@ -398,6 +405,10 @@ const WebGlRenderer: React.FC<TextureCanvasProps> = ({ className }) => {
       }
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      
+      // End performance timer
+      endTimer();
+      
       animationFrameId.current = requestAnimationFrame(animate);
     };
 

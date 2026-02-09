@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import ControlPanel from '../controls/ControlPanel';
 import { renderers } from '../renderers';
@@ -34,13 +34,14 @@ export const MainApp: React.FC = () => {
   const appRef = useRef<HTMLDivElement>(null);
 
   // Get necessary state and actions from the store
+  const project = useTextureStore(state => state.project);
   const midiLog = useTextureStore(state => state.midiLog);
   const clearMidiLog = useTextureStore(state => state.clearMidiLog);
   const rendererId = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
   const dualScreenEnabled = useTextureStore(state => state.dualScreen.enabled);
   
   // Hot reload for renderers in development
-  const hotReload = useRendererHotReload(rendererId);
+  // const hotReload = useRendererHotReload(rendererId);
 
   const handleToggleFullscreen = () => toggleFullscreen(appRef);
 
@@ -62,13 +63,17 @@ export const MainApp: React.FC = () => {
   // Prepare components
   const controlPanel = <ControlPanel />;
   const sequencerPanel = <Sequencer />;
-  const CanvasComponent = renderers[rendererId]?.component;
+  
+  // Get current renderer with fallback handling
+  const currentRenderer = useMemo(() => renderers[rendererId], [rendererId]);
+  const CanvasComponent = currentRenderer?.component;
 
   const viewportSection = (
     <MainViewport
       viewportMode={layoutState.viewport.mode}
       onModeChange={layoutActions.setViewportMode}
       CanvasComponent={CanvasComponent}
+      renderer={currentRenderer}
       dualScreenEnabled={dualScreenEnabled}
     />
   );
@@ -76,57 +81,75 @@ export const MainApp: React.FC = () => {
   return (
     <DualScreenManager>
       <div ref={appRef} className="bg-gray-900">
-        {!isFullscreen ? (
-          <DesktopLayout
-            onFullscreen={handleToggleFullscreen}
-            onReset={handleResetToDefault}
-            controlPanel={controlPanel}
-            viewportSection={viewportSection}
-            sequencerPanel={sequencerPanel}
-          />
-        ) : (
-          <FullscreenLayout
-            isOverlayVisible={isOverlayVisible}
-            drawers={drawers}
-            drawerActions={drawerActions}
-            onFullscreen={handleToggleFullscreen}
-            onReset={handleResetToDefault}
-            controlPanel={controlPanel}
-            sequencerPanel={sequencerPanel}
-          >
-            {CanvasComponent && (
-              <RendererErrorBoundary renderer={renderers.find(r => r.id === rendererId)!}>
-                <CanvasComponent className="w-full h-full" />
-              </RendererErrorBoundary>
-            )}
-          </FullscreenLayout>
-        )}
-        
-        <MidiConsole
-          isOpen={drawers.isConsoleOpen}
-          onClose={() => drawerActions.setIsConsoleOpen(false)}
-          log={midiLog}
-          onClear={clearMidiLog}
-        />
-        
-        {!drawers.isConsoleOpen && !isFullscreen && (
-          <button
-            onClick={drawerActions.toggleConsole}
-            className="fixed bottom-4 right-4 z-50 w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-cyan-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500"
-            aria-label={t('ui.openMidiConsole')}
-          >
-            <ConsoleIcon className="w-6 h-6" />
-          </button>
-        )}
-        
-        {/* Debug Overlay - Only visible when VITE_DEBUG_MODE=true */}
-        {env.debugMode && <DebugOverlay />}
-        
-        {/* Hot Reload Indicator */}
-        {hotReload.isReloading && (
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
-            🔄 Reloading {rendererId} renderer...
+        {!project ? (
+          <div className="flex items-center justify-center h-screen bg-gray-900 text-gray-400">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+              <p>Loading project...</p>
+            </div>
           </div>
+        ) : (
+          <>
+            {!isFullscreen ? (
+              <DesktopLayout
+                onFullscreen={handleToggleFullscreen}
+                onReset={handleResetToDefault}
+                controlPanel={controlPanel}
+                viewportSection={viewportSection}
+                sequencerPanel={sequencerPanel}
+              />
+            ) : (
+              <FullscreenLayout
+                isOverlayVisible={isOverlayVisible}
+                drawers={drawers}
+                drawerActions={drawerActions}
+                onFullscreen={handleToggleFullscreen}
+                onReset={handleResetToDefault}
+                controlPanel={controlPanel}
+                sequencerPanel={sequencerPanel}
+              >
+                <RendererErrorBoundary renderer={currentRenderer}>
+                  {CanvasComponent ? (
+                    <CanvasComponent className="w-full h-full" />
+                  ) : (
+                    <div className="flex items-center justify-center h-full bg-gray-800 text-gray-400">
+                      <div className="text-center">
+                        <h2 className="text-lg font-bold mb-2">Canvas Component Missing</h2>
+                        <p className="text-sm">The renderer component could not be loaded</p>
+                      </div>
+                    </div>
+                  )}
+                </RendererErrorBoundary>
+              </FullscreenLayout>
+            )}
+            
+            <MidiConsole
+              isOpen={drawers.isConsoleOpen}
+              onClose={() => drawerActions.setIsConsoleOpen(false)}
+              log={midiLog}
+              onClear={clearMidiLog}
+            />
+            
+            {!drawers.isConsoleOpen && !isFullscreen && (
+              <button
+                onClick={drawerActions.toggleConsole}
+                className="fixed bottom-4 right-4 z-50 w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-cyan-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500"
+                aria-label={t('ui.openMidiConsole')}
+              >
+                <ConsoleIcon className="w-6 h-6" />
+              </button>
+            )}
+            
+            {/* Debug Overlay - Only visible when VITE_DEBUG_MODE=true */}
+            {env.debugMode && <DebugOverlay />}
+            
+            {/* Hot Reload Indicator */}
+            {/* {hotReload.isReloading && (
+              <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+                🔄 Reloading {rendererId} renderer...
+              </div>
+            )} */}
+          </>
         )}
       </div>
     </DualScreenManager>

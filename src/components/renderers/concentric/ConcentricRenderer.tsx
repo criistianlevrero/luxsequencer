@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
 import type { ControlSettings, GradientColor } from '../../../types';
 import { useConcentricCompatibleSettings, getNestedProperty } from '../../../utils/settingsMigration';
+import { usePerformanceTimer } from '../../../hooks/usePerformanceMonitoring';
 
 type RGBColor = { r: number, g: number, b: number };
 
@@ -24,6 +25,9 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
     const animationFrameId = useRef<number | null>(null);
     const hexagons = useRef<{ creationTime: number, initialSize: number }[]>([]);
     const lastCreationTime = useRef<number>(0);
+    
+    // Performance monitoring
+    const { startTimer, endTimer } = usePerformanceTimer('concentric');
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -133,9 +137,16 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
         };
 
         const animate = (time: number) => {
+            // Start performance timer
+            startTimer();
+            
             const state = useTextureStore.getState();
             // Use hierarchical settings directly
             drawScene(time, state.currentSettings);
+            
+            // End performance timer
+            endTimer();
+            
             animationFrameId.current = requestAnimationFrame(animate);
         };
 
