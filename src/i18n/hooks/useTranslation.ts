@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useTextureStore } from '../../store'
-import { t, getCurrentLocale, setLocale } from '../index'
+import { t, getCurrentLocale as _getCurrentLocale, setLocale } from '../index'
 import type { TranslationKeys, LocaleCode, TranslationParams } from '../types'
 
 export const useTranslation = () => {

@@ -3,8 +3,8 @@
  * Demonstrates advanced features of the declarative control system
  */
 
-import type { RendererControlSpec, StandardControlSpec } from '../../../types/declarativeControls';
-import { DependencyConditions, CommonDependencies, createDependencies } from '../../declarative/dependencyUtils';
+import type { RendererControlSpec, StandardControlSpec as _StandardControlSpec } from '../../../types/declarativeControls';
+import { DependencyConditions, CommonDependencies as _CommonDependencies, createDependencies as _createDependencies } from '../../declarative/dependencyUtils';
 
 /**
  * WebGL renderer control specification using declarative system

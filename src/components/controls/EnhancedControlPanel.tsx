@@ -8,7 +8,7 @@ import { useTextureStore } from '../../store';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { renderers } from '../renderers';
 import CollapsibleSection from '../shared/CollapsibleSection';
-import { useDeclarativeControls, DeclarativeControlPanel } from '../declarative/ControlRenderer';
+import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
 import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/webgl/webgl-declarative-schema';
 import type { RendererControlSpec } from '../types/declarativeControls';
 
@@ -28,10 +28,10 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
   useDeclarativeControls = true,
   showComparison = false
 }) => {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   
   const {
-    project,
+    project: _project,
     currentSettings,
     renderer,
   } = useTextureStore((state) => ({

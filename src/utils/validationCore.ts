@@ -4,7 +4,7 @@
  */
 
 import type { 
-  ValidationResult, ValidationError, ValidationWarning, ValidationRule
+  ValidationResult, ValidationError, ValidationWarning, ValidationRule as _ValidationRule
 } from '../types';
 import type { ControlSettings, DeclarativeControlSchema } from '../types';
 import type { RendererDefinition } from '../components/renderers/types';
@@ -12,7 +12,7 @@ import type { RendererDefinition } from '../components/renderers/types';
 // ===== SIMPLIFIED VALIDATION IMPLEMENTATIONS =====
 
 export class ConstraintValidatorImpl {
-  validateType(value: any, expectedType: string): { passed: boolean; error?: any } {
+  validateType(_value: any, _expectedType: string): { passed: boolean; error?: any } {
     return { passed: true }; // Simplified - always pass
   }
 
@@ -30,7 +30,7 @@ export class ConstraintValidatorImpl {
     return { passed: true };
   }
 
-  validateFormat(value: any, format: any): { passed: boolean; error?: any } {
+  validateFormat(_value: any, _format: any): { passed: boolean; error?: any } {
     return { passed: true }; // Simplified - always pass
   }
 
@@ -66,7 +66,7 @@ export class ConstraintValidatorImpl {
 }
 
 export class DependencyValidatorImpl {
-  validateDependencies(settings: ControlSettings, schema: DeclarativeControlSchema): ValidationResult {
+  validateDependencies(_settings: ControlSettings, _schema: DeclarativeControlSchema): ValidationResult {
     // Simplified - no dependency validation for now
     return {
       valid: true,
@@ -75,7 +75,7 @@ export class DependencyValidatorImpl {
     };
   }
 
-  validateConditionalLogic(settings: ControlSettings, dependencies: any[]): ValidationResult {
+  validateConditionalLogic(_settings: ControlSettings, _dependencies: any[]): ValidationResult {
     // Simplified - no conditional logic validation for now
     return {
       valid: true,
@@ -84,7 +84,7 @@ export class DependencyValidatorImpl {
     };
   }
 
-  detectCircularDependencies(schema: DeclarativeControlSchema): string[] {
+  detectCircularDependencies(_schema: DeclarativeControlSchema): string[] {
     // Simplified - no circular dependency detection for now
     return [];
   }
@@ -112,7 +112,7 @@ export class SchemaValidatorImpl {
     };
   }
 
-  validateControlDefinitions(schema: DeclarativeControlSchema): ValidationResult {
+  validateControlDefinitions(_schema: DeclarativeControlSchema): ValidationResult {
     // Simplified - basic control definition validation
     return {
       valid: true,
@@ -121,7 +121,7 @@ export class SchemaValidatorImpl {
     };
   }
 
-  validateSchemaVersion(schema: DeclarativeControlSchema, targetVersion?: string): ValidationResult {
+  validateSchemaVersion(_schema: DeclarativeControlSchema, _targetVersion?: string): ValidationResult {
     // Simplified - no version validation for now
     return {
       valid: true,

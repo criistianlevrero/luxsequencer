@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
-import type { ControlSettings, GradientColor } from '../../../types';
-import { useConcentricCompatibleSettings, getNestedProperty } from '../../../utils/settingsMigration';
+import { getNestedProperty } from '../../../utils/settingsMigration';
 import { usePerformanceTimer } from '../../../hooks/usePerformanceMonitoring';
 
 type RGBColor = { r: number, g: number, b: number };

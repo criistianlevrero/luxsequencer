@@ -6,7 +6,7 @@ import type {
   ControlType,
   ControlRenderContext,
   BaseControlProps,
-  PropertyDependency,
+  PropertyDependency as _PropertyDependency,
   DeclarativeControlSchema
 } from '../../types/declarativeControls';
 import type { ControlSettings } from '../../types';

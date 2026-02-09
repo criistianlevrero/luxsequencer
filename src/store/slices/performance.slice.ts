@@ -139,7 +139,7 @@ export const createPerformanceSlice: StateCreator<
   [],
   [],
   PerformanceSlice
-> = (set, get) => ({
+> = (set, __get) => ({
   ...initialState,
   
   // Monitoring control

@@ -4,9 +4,9 @@ import type {
   ValidationError, 
   ValidationWarning,
   ValidationRule,
-  ValidationConfig,
+  ValidationConfig as _ValidationConfig,
   RendererValidationSpec,
-  RuntimeValidationRule,
+  RuntimeValidationRule as _RuntimeValidationRule,
   DeclarativeControlSchema
 } from '../types';
 import type { RendererDefinition } from '../components/renderers/types';
@@ -15,8 +15,8 @@ import { env } from '../config';
 
 // Import Phase 1.2 validation components
 import type { 
-  ConstraintValidator, DependencyValidator, SchemaValidator, 
-  SettingsValidator, CompositeValidator, ValidationUtils
+  ConstraintValidator as _ConstraintValidator, DependencyValidator as _DependencyValidator, SchemaValidator as _SchemaValidator, 
+  SettingsValidator as _SettingsValidator, CompositeValidator as _CompositeValidator, ValidationUtils as _ValidationUtils
 } from '../types/validation';
 import { 
   constraintValidator, dependencyValidator, schemaValidator, validationUtils 
@@ -399,7 +399,7 @@ export const validateSettingsAgainstSchema = (
 export const validateControlValue = (
   control: any,
   value: any,
-  settings: ControlSettings
+  _settings: ControlSettings
 ) => {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];

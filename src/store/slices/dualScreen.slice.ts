@@ -44,7 +44,7 @@ export const createDualScreenSlice: StateCreator<
       
       // Configurar listener para recibir actualizaciones
       channel.addEventListener('message', (event) => {
-        const { type, payload, source } = event.data;
+        const { type, payload, source: _source } = event.data;
         
         if (type === 'STATE_UPDATE') {
           // Aplicar cambios sin disparar broadcast para evitar bucles

@@ -1,14 +1,14 @@
 import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SettingsActions } from '../types';
-import type { ControlSettings, AnyControlSettings, Pattern } from '../../types';
-import { ControlSource, isNewControlSettings } from '../../types';
+import type { ControlSettings, AnyControlSettings as _AnyControlSettings, Pattern } from '../../types';
+import { ControlSource, isNewControlSettings as _isNewControlSettings } from '../../types';
 import { env } from '../../config';
 import { 
     getNestedProperty, 
-    setNestedProperty, 
+    setNestedProperty as _setNestedProperty, 
     normalizeSettings,
-    toLegacySettings
+    toLegacySettings as _toLegacySettings
 } from '../../utils/settingsMigration';
 
 // Helper function to find changed property paths between two settings objects

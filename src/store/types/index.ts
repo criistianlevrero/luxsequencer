@@ -1,6 +1,6 @@
-import type { Project, ControlSettings, AnyControlSettings, Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
+import type { Project, ControlSettings, AnyControlSettings as _AnyControlSettings, Pattern as _Pattern, Sequence, MidiLogEntry, ControlSource, ActiveAnimation, InterpolationType } from '../../types';
 import type { LocaleCode } from '../../i18n/types';
-import type { DualScreenSlice, DualScreenState } from '../slices/dualScreen.slice';
+import type { DualScreenSlice, DualScreenState as _DualScreenState } from '../slices/dualScreen.slice';
 import type { ValidationSlice } from '../slices/validation.slice';
 import type { PerformanceSlice } from '../slices/performance.slice';
 

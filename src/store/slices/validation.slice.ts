@@ -6,7 +6,7 @@
 import { StateCreator } from 'zustand';
 import type { 
   ValidationResult, ValidationError, ValidationWarning,
-  ControlSettings, DeclarativeControlSchema 
+  ControlSettings, DeclarativeControlSchema as _DeclarativeControlSchema 
 } from '../../types';
 import { validateRendererSettings } from '../../utils/validation';
 import { renderers } from '../../components/renderers';
@@ -133,7 +133,7 @@ export const createValidationSlice: StateCreator<
     }
   },
 
-  validateProperty: async (property: string, value: any) => {
+  validateProperty: async (property: string, _value: any) => {
     const validation: ValidationResult = {
       valid: true,
       errors: [],

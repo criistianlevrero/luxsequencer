@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useEffect as _useEffect, useMemo } from 'react';
 import type { Vector2DControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -123,7 +123,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
   }, []);
 
   const polar = toPolar(safeValue);
-  const canvasPos = valueToCanvas(safeValue);
+  const _canvasPos = valueToCanvas(safeValue);
 
   if (constraints.polarMode) {
     // Polar mode: show as speed + angle

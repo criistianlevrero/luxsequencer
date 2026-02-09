@@ -6,8 +6,8 @@ import MidiLearnButton from '../../midi/MidiLearnButton';
 import SliderInput from '../../controls/SliderInput';
 import CollapsibleSection from '../../shared/CollapsibleSection';
 // FIX: Import `AccordionItem`, `ControlSection` and `SliderControlConfig` from the root `types.ts` file.
-import type { AccordionItem, ControlSection, SeparatorSection, SliderControlConfig, ControlSettings } from '../../../types';
-import { getNestedProperty, toLegacySettings, mapPropertyIdToPath } from '../../../utils/settingsMigration';
+import type { AccordionItem, ControlSection, SeparatorSection, SliderControlConfig, ControlSettings as _ControlSettings } from '../../../types';
+import { getNestedProperty, toLegacySettings as _toLegacySettings, mapPropertyIdToPath } from '../../../utils/settingsMigration';
 import { DeclarativeControlPanel } from '../../declarative/ControlRenderer';
 
 interface RendererControlsProps {

@@ -1,7 +1,7 @@
 import type { RendererDefinition } from '../components/renderers/types';
 import type { DeclarativeControlSchema, ControlSettings, ValidationResult } from '../types';
 import { renderers } from '../components/renderers';
-import { validateRendererSettings, validateSettingsWithSchema } from './validation';
+import { validateRendererSettings as _validateRendererSettings, validateSettingsWithSchema } from './validation';
 import { getFallbackManager } from './rendererFallback';
 import { env, isDevelopment } from '../config';
 
@@ -351,8 +351,8 @@ export class RendererHotReloadManager {
     console.warn(`[HOT RELOAD] Validation failed for renderer ${change.rendererId}:`, validation.errors);
     
     // Apply fallback strategy
-    const fallbackManager = getFallbackManager();
-    // await fallbackManager.handleRendererFailure(change.rendererId, new Error('Hot reload validation failed'));
+    const _fallbackManager = getFallbackManager();
+    // await _fallbackManager.handleRendererFailure(change.rendererId, new Error('Hot reload validation failed'));
   }
 
   /**
@@ -551,7 +551,7 @@ export class RendererHotReloadManager {
     console.error(`[HOT RELOAD] Renderer error for ${rendererId}:`, error);
     
     if (this.config.fallbackOnError) {
-      const fallbackManager = getFallbackManager();
+      const _fallbackManager = getFallbackManager();
       // await fallbackManager.handleRendererFailure(rendererId, error);
     }
   }

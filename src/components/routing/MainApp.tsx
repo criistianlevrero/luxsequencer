@@ -20,7 +20,7 @@ import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { useDrawerStates } from '../../hooks/useDrawerStates';
 import { useAppEventHandlers } from '../../hooks/useAppEventHandlers';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import { useRendererHotReload } from '../../utils/hotReloadHooks';
+import { useRendererHotReload as _useRendererHotReload } from '../../utils/hotReloadHooks';
 
 export const MainApp: React.FC = () => {
   const { t } = useTranslation();

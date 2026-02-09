@@ -131,7 +131,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
         const eyeDropper = new EyeDropper();
         const result = await eyeDropper.open();
         handleColorChange(result.sRGBHex);
-      } catch (_err) {
+      } catch {
         console.log('User cancelled eyedropper');
       }
     }

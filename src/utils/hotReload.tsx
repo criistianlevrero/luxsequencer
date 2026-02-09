@@ -1,6 +1,6 @@
-import type { RendererDefinition } from '../components/renderers/types';
+import type { RendererDefinition as _RendererDefinition } from '../components/renderers/types';
 import { renderers } from '../components/renderers';
-import { validateRendererSettings } from './validation';
+import { validateRendererSettings as _validateRendererSettings } from './validation';
 import { getFallbackManager } from './rendererFallback';
 import { env, isDevelopment } from '../config';
 

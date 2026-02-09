@@ -7,9 +7,9 @@ import type {
   ControlSettings, ValidationResult, ValidationError, DeclarativeControlSchema
 } from '../types';
 import type { RendererDefinition } from '../components/renderers/types';
-import type { ValidationUtils } from '../types/validation';
-import { validationUtils, validateSettingsWithSchema } from './validation';
-import { normalizeSettings, createInitialSettings, getNestedProperty, setNestedProperty } from './settingsMigration';
+import type { ValidationUtils as _ValidationUtils } from '../types/validation';
+import { validationUtils, validateSettingsWithSchema as _validateSettingsWithSchema } from './validation';
+import { normalizeSettings as _normalizeSettings, createInitialSettings, getNestedProperty, setNestedProperty } from './settingsMigration';
 import { getFallbackManager } from './rendererFallback';
 import { env } from '../config';
 
@@ -387,9 +387,9 @@ export class RendererFallbackStrategy implements RecoveryStrategy {
            (error.type === 'validation' && validationUtils.shouldBlockAction(error.validation!));
   }
 
-  async recover(error: RecoveryError): Promise<RecoveryResult> {
+  async recover(_error: RecoveryError): Promise<RecoveryResult> {
     const warnings: string[] = [];
-    const fallbackManager = getFallbackManager();
+    const _fallbackManager = getFallbackManager();
     
     try {
       // Note: handleRendererFailure method not available yet
@@ -413,12 +413,12 @@ export class RendererFallbackStrategy implements RecoveryStrategy {
         warnings,
         details: 'Switched to fallback renderer due to critical errors'
       };
-    } catch (fallbackError) {
+    } catch (_fallbackError) {
       return {
         success: false,
         strategy: this.id,
         warnings,
-        details: `Fallback failed: ${fallbackError}`
+        details: `Fallback failed: ${_fallbackError}`
       };
     }
   }
@@ -437,7 +437,7 @@ export class FullResetStrategy implements RecoveryStrategy {
     return true; // Can always recover by resetting
   }
 
-  async recover(error: RecoveryError): Promise<RecoveryResult> {
+  async recover(_error: RecoveryError): Promise<RecoveryResult> {
     const warnings = ['Performed full settings reset due to unrecoverable errors'];
     
     // Create fresh default settings

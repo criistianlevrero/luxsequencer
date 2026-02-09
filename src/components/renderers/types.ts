@@ -1,6 +1,6 @@
 import React from 'react';
 // FIX: Import shared types from the main `types.ts` file.
-import type { ControlSettings, AccordionItem, RendererValidationSpec, DeclarativeControlSchema } from '../../types';
+import type { ControlSettings as _ControlSettings, AccordionItem, RendererValidationSpec, DeclarativeControlSchema } from '../../types';
 
 // Updated RendererDefinition
 export interface RendererDefinition {

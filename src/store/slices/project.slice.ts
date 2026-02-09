@@ -4,7 +4,7 @@ import type { StoreState, ProjectActions } from '../types';
 import type { Project, Sequence } from '../../types';
 import { isLegacyControlSettings } from '../../types';
 import { LOCAL_STORAGE_KEY } from '../utils/helpers';
-import { migrateLegacySettings, createInitialSettings } from '../../utils/settingsMigration';
+import { migrateLegacySettings, createInitialSettings as _createInitialSettings } from '../../utils/settingsMigration';
 import { validateRendererSettings } from '../../utils/validation';
 import { renderers } from '../../components/renderers';
 import { config } from '../../config';

@@ -92,7 +92,7 @@ export const Select: React.FC<SelectProps> = ({
                       ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
-                    {({ selected, active }) => (
+                    {({ selected, active: _active }) => (
                       <>
                         <div className="flex items-center">
                           {option.icon && (

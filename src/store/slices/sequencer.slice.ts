@@ -1,12 +1,12 @@
 import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SequencerActions } from '../types';
-import type { ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
+import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
 import { ControlSource } from '../../types';
 import { lerp } from '../utils/helpers';
 import { renderers } from '../../components/renderers';
 import { env } from '../../config';
-import { mapPropertyIdToPath, normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
+import { mapPropertyIdToPath as _mapPropertyIdToPath, normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
 
 export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerActions> = (set, get) => ({
     setIsSequencerPlaying: (isPlaying) => {
@@ -84,7 +84,7 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             
             if (newPattern) {
                 const interpolationSteps = activeSequence.interpolationSpeed;
-                const currentRenderer = project.globalSettings.renderer;
+                const _currentRenderer = project.globalSettings.renderer;
                 
                 // Normalize both patterns to new hierarchical structure
                 const normalizedNewPattern = normalizeSettings(newPattern.settings);
