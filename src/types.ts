@@ -44,6 +44,8 @@ export interface WebGLSettings {
   scaleBorderColor: string;
   scaleBorderWidth: number;
   gradientColors: GradientColor[];
+  centerOffset: { x: number; y: number };
+  scaleRange: { min: number; max: number };
 }
 
 // Concentric renderer specific settings

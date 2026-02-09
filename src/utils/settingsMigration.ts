@@ -75,6 +75,8 @@ export const toLegacySettings = (newSettings: ControlSettings): LegacyControlSet
     scaleBorderColor: webglSettings?.scaleBorderColor ?? '#000000',
     scaleBorderWidth: webglSettings?.scaleBorderWidth ?? 0,
     gradientColors: webglSettings?.gradientColors ?? [],
+    centerOffset: webglSettings?.centerOffset ?? { x: 0, y: 0 },
+    scaleRange: webglSettings?.scaleRange ?? { min: 1.0, max: 1.0 },
 
     // Concentric settings
     concentric_repetitionSpeed: concentricSettings?.repetitionSpeed,
@@ -293,6 +295,8 @@ export const createDefaultRendererSettings = (rendererId: string): any => {
         scaleBorderColor: '#000000',
         scaleBorderWidth: 0,
         gradientColors: [],
+        centerOffset: { x: 0, y: 0 },
+        scaleRange: { min: 1.0, max: 1.0 }
       } as WebGLSettings;
       
     case 'concentric':
@@ -371,6 +375,8 @@ export const useWebGLCompatibleSettings = (settings: ControlSettings) => {
     scaleBorderColor: webglSettings.scaleBorderColor,
     scaleBorderWidth: webglSettings.scaleBorderWidth,
     gradientColors: webglSettings.gradientColors,
+    centerOffset: webglSettings.centerOffset,
+    scaleRange: webglSettings.scaleRange,
     
     // Common settings
     animationSpeed: commonSettings.animationSpeed,

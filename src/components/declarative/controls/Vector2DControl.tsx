@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import type { Vector2DControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -14,6 +14,18 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
   const constraints = spec.constraints.vector2d!;
   const [isDragging, setIsDragging] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Ensure value is valid, use default if not
+  const safeValue = useMemo(() => {
+    if (value && typeof value === 'object' && typeof value.x === 'number' && typeof value.y === 'number') {
+      return value;
+    }
+    // Return center of the range as default
+    return {
+      x: (constraints.xRange[0] + constraints.xRange[1]) / 2,
+      y: (constraints.yRange[0] + constraints.yRange[1]) / 2
+    };
+  }, [value, constraints]);
 
   // Convert value to canvas coordinates
   const valueToCanvas = useCallback((val: { x: number; y: number }) => {
@@ -110,8 +122,8 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
     };
   }, []);
 
-  const polar = toPolar(value);
-  const canvasPos = valueToCanvas(value);
+  const polar = toPolar(safeValue);
+  const canvasPos = valueToCanvas(safeValue);
 
   if (constraints.polarMode) {
     // Polar mode: show as speed + angle
@@ -169,7 +181,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
         </div>
         
         <div className="text-xs text-gray-500">
-          Cartesian: X: {value.x.toFixed(3)}, Y: {value.y.toFixed(3)}
+          Cartesian: X: {safeValue.x.toFixed(3)}, Y: {safeValue.y.toFixed(3)}
         </div>
       </div>
     );
@@ -245,8 +257,8 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
             }
           `}
           style={{
-            left: `${((value.x - constraints.xRange[0]) / (constraints.xRange[1] - constraints.xRange[0])) * 100}%`,
-            top: `${(1 - (value.y - constraints.yRange[0]) / (constraints.yRange[1] - constraints.yRange[0])) * 100}%`
+            left: `${((safeValue.x - constraints.xRange[0]) / (constraints.xRange[1] - constraints.xRange[0])) * 100}%`,
+            top: `${(1 - (safeValue.y - constraints.yRange[0]) / (constraints.yRange[1] - constraints.yRange[0])) * 100}%`
           }}
         />
         
@@ -265,7 +277,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
           <label className="text-sm text-gray-400 block mb-1">X</label>
           <input
             type="number"
-            value={value.x}
+            value={safeValue.x}
             onChange={(e) => {
               const newX = Number(e.target.value);
               if (newX >= constraints.xRange[0] && newX <= constraints.xRange[1]) {
@@ -283,7 +295,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
           <label className="text-sm text-gray-400 block mb-1">Y</label>
           <input
             type="number"
-            value={value.y}
+            value={safeValue.y}
             onChange={(e) => {
               const newY = Number(e.target.value);
               if (newY >= constraints.yRange[0] && newY <= constraints.yRange[1]) {
