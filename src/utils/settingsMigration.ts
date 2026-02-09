@@ -1,3 +1,4 @@
+import React from 'react';
 import type { 
   AnyControlSettings, 
   ControlSettings, 
@@ -5,10 +6,9 @@ import type {
   CommonSettings, 
   RendererSettings, 
   WebGLSettings, 
-  ConcentricSettings,
-  GradientColor
+  ConcentricSettings
 } from '../types';
-import { isNewControlSettings, isLegacyControlSettings } from '../types';
+import { isNewControlSettings } from '../types';
 
 /**
  * Migrates legacy flat settings structure to new hierarchical structure
@@ -355,7 +355,7 @@ export const ensureRendererSettings = (
  * WebGL Renderer Compatibility Adapter
  * Provides backward compatibility interface for the WebGL renderer
  */
-export const useWebGLCompatibleSettings = (settings: ControlSettings) => {
+export const getWebGLCompatibleSettings = (settings: ControlSettings) => {
   const webglSettings = getRendererSettings<WebGLSettings>(settings, 'webgl') || createDefaultRendererSettings('webgl');
   const commonSettings = settings.common || {
     animationSpeed: 1,
@@ -389,7 +389,7 @@ export const useWebGLCompatibleSettings = (settings: ControlSettings) => {
  * Concentric Renderer Compatibility Adapter
  * Provides backward compatibility interface for the Concentric renderer
  */
-export const useConcentricCompatibleSettings = (settings: ControlSettings) => {
+export const getConcentricCompatibleSettings = (settings: ControlSettings) => {
   const concentricSettings = getRendererSettings<ConcentricSettings>(settings, 'concentric') || createDefaultRendererSettings('concentric');
   const commonSettings = settings.common || {
     animationSpeed: 1,
@@ -412,17 +412,30 @@ export const useConcentricCompatibleSettings = (settings: ControlSettings) => {
 };
 
 /**
- * Hook to get compatible settings for any renderer
- * This provides a smooth migration path for existing renderers
+ * Direct function for getting compatible settings without hooks
  */
-export const useCompatibleSettings = (settings: ControlSettings, rendererId: string) => {
+export const getCompatibleSettings = (settings: ControlSettings, rendererId: string) => {
   switch (rendererId) {
     case 'webgl':
-      return useWebGLCompatibleSettings(settings);
+      return getWebGLCompatibleSettings(settings);
     case 'concentric':
-      return useConcentricCompatibleSettings(settings);
+      return getConcentricCompatibleSettings(settings);
     default:
       // For unknown renderers, return legacy format as fallback
       return toLegacySettings(settings);
   }
+};
+
+/**
+ * Hook version for React components - WebGL
+ */
+export const useWebGLCompatibleSettings = (settings: ControlSettings) => {
+  return React.useMemo(() => getWebGLCompatibleSettings(settings), [settings]);
+};
+
+/**
+ * Hook version for React components - Concentric
+ */
+export const useConcentricCompatibleSettings = (settings: ControlSettings) => {
+  return React.useMemo(() => getConcentricCompatibleSettings(settings), [settings]);
 };

@@ -10,7 +10,7 @@ export const GradientControl: React.FC<GradientControlProps> = ({
   spec,
   value,
   onChange,
-  context,
+  context: _context,
   disabled = false
 }) => {
   const constraints = spec.constraints.gradient!;

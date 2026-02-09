@@ -44,7 +44,7 @@ const DebugOverlay: React.FC = () => {
   const lastFpsUpdate = useRef(Date.now());
   
   // Performance monitoring
-  const performanceData = usePerformanceMonitoring({ autoStart: true });
+  const _performanceData = usePerformanceMonitoring({ autoStart: true });
   const alertData = usePerformanceAlerts();
   
   // Use refs to track previous values without causing re-renders

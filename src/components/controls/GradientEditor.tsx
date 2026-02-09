@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PlusIcon, TrashIcon, SplitIcon } from '../shared/icons';
+import { PlusIcon, TrashIcon } from '../shared/icons';
 import { Switch } from '../shared/Switch';
 import type { GradientColor } from '../../types';
 

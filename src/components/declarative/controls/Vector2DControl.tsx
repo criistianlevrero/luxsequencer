@@ -8,7 +8,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
   spec,
   value,
   onChange,
-  context,
+  context: _context,
   disabled = false
 }) => {
   const constraints = spec.constraints.vector2d!;

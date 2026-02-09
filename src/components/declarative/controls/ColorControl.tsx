@@ -8,7 +8,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
   spec,
   value,
   onChange,
-  context,
+  context: _context,
   disabled = false
 }) => {
   const constraints = spec.constraints.color!;
@@ -131,7 +131,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
         const eyeDropper = new EyeDropper();
         const result = await eyeDropper.open();
         handleColorChange(result.sRGBHex);
-      } catch (err) {
+      } catch (_err) {
         console.log('User cancelled eyedropper');
       }
     }

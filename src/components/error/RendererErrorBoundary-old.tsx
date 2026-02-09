@@ -76,13 +76,6 @@ export const withRendererErrorBoundary = <P extends object>(
   );
   return WithErrorBoundary;
 };
-    return {
-      hasError: true,
-      error
-    };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { renderer, onError } = this.props;
     
     console.error(`[RENDERER ERROR] ${renderer.id}:`, error);

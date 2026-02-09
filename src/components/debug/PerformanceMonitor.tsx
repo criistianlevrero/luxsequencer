@@ -34,10 +34,10 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   compactMode = false,
   showCharts = true,
 }) => {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const [showSettings, setShowSettings] = useState(false);
   
-  const performanceData = usePerformanceMonitoring({ autoStart: true });
+  const _performanceData = usePerformanceMonitoring({ autoStart: true });
   const alertData = usePerformanceAlerts();
   
   const {

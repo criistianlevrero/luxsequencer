@@ -8,7 +8,7 @@ export const RangeControl: React.FC<RangeControlProps> = ({
   spec,
   value,
   onChange,
-  context,
+  context: _context,
   disabled = false
 }) => {
   const constraints = spec.constraints.range!;

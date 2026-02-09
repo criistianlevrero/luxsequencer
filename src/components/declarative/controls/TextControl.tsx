@@ -8,7 +8,7 @@ export const TextControl: React.FC<TextControlProps> = ({
   spec,
   value,
   onChange,
-  context,
+  context: _context,
   disabled = false
 }) => {
   const constraints = spec.constraints.text!;

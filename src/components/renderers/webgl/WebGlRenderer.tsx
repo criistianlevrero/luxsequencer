@@ -1,8 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
-import type { ControlSettings, GradientColor } from '../../../types';
-import { useWebGLCompatibleSettings } from '../../../utils/settingsMigration';
+import { useWebGLCompatibleSettings, getWebGLCompatibleSettings } from '../../../utils/settingsMigration';
 import { usePerformanceTimer } from '../../../hooks/usePerformanceMonitoring';
 
 type RGBColor = { r: number, g: number, b: number };
@@ -342,7 +341,7 @@ const WebGlRenderer: React.FC<TextureCanvasProps> = ({ className }) => {
       
       const state = useTextureStore.getState();
       // Use compatibility adapter to get settings in expected format
-      const currentSettings = useWebGLCompatibleSettings(state.currentSettings);
+      const currentSettings = getWebGLCompatibleSettings(state.currentSettings);
       const { 
         textureRotation, 
         previousGradient,
