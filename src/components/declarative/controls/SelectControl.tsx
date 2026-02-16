@@ -198,17 +198,25 @@ export const SelectControl: React.FC<SelectControlProps> = ({
           <div className="flex items-center gap-2">
             {/* Clear button for multi-select or when value exists */}
             {((isMultiSelect && selectedValues.length > 0) || (!isMultiSelect && value)) && (
-              <button
+              <span
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleClear();
+                  if (!disabled) handleClear();
                 }}
-                disabled={disabled}
-                className="text-gray-400 hover:text-gray-200 p-1"
+                className={`p-1 ${disabled ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-gray-200 cursor-pointer'}`}
                 title="Clear selection"
+                role="button"
+                tabIndex={disabled ? -1 : 0}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleClear();
+                  }
+                }}
               >
                 ✕
-              </button>
+              </span>
             )}
             
             {/* Dropdown arrow */}

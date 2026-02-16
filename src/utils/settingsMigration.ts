@@ -39,6 +39,10 @@ export const migrateLegacySettings = (legacySettings: LegacyControlSettings): Co
     repetitionSpeed: legacySettings.concentric_repetitionSpeed ?? 0.5,
     growthSpeed: legacySettings.concentric_growthSpeed ?? 0.5,
     initialSize: legacySettings.concentric_initialSize ?? 10,
+    rotationSpeed: legacySettings.concentric_rotationSpeed ?? 0,
+    strokeWidth: legacySettings.concentric_strokeWidth ?? 2,
+    fillMode: legacySettings.concentric_fillMode ?? 'stroke',
+    sides: legacySettings.concentric_sides ?? 6,
     gradientColors: legacySettings.concentric_gradientColors ?? [],
   };
 
@@ -84,6 +88,10 @@ export const toLegacySettings = (newSettings: ControlSettings): LegacyControlSet
     concentric_repetitionSpeed: concentricSettings?.repetitionSpeed,
     concentric_growthSpeed: concentricSettings?.growthSpeed,
     concentric_initialSize: concentricSettings?.initialSize,
+    concentric_rotationSpeed: concentricSettings?.rotationSpeed,
+    concentric_strokeWidth: concentricSettings?.strokeWidth,
+    concentric_fillMode: concentricSettings?.fillMode,
+    concentric_sides: concentricSettings?.sides,
     concentric_gradientColors: concentricSettings?.gradientColors,
   };
 };
@@ -157,6 +165,10 @@ export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string =
     'concentric_repetitionSpeed': 'renderer.concentric.repetitionSpeed',
     'concentric_growthSpeed': 'renderer.concentric.growthSpeed',
     'concentric_initialSize': 'renderer.concentric.initialSize',
+    'concentric_rotationSpeed': 'renderer.concentric.rotationSpeed',
+    'concentric_strokeWidth': 'renderer.concentric.strokeWidth',
+    'concentric_fillMode': 'renderer.concentric.fillMode',
+    'concentric_sides': 'renderer.concentric.sides',
     'concentric_gradientColors': 'renderer.concentric.gradientColors',
   };
 
@@ -313,6 +325,10 @@ export const createDefaultRendererSettings = (rendererId: string): WebGLSettings
         repetitionSpeed: 0.5,
         growthSpeed: 0.5,
         initialSize: 10,
+        rotationSpeed: 0,
+        strokeWidth: 2,
+        fillMode: 'stroke',
+        sides: 6,
         gradientColors: [
           { id: "c-color-1", color: "#00ffff", hardStop: false },
           { id: "c-color-2", color: "#ff00ff", hardStop: false }
@@ -411,6 +427,10 @@ export const getConcentricCompatibleSettings = (settings: ControlSettings) => {
     concentric_repetitionSpeed: concentricSettings.repetitionSpeed,
     concentric_growthSpeed: concentricSettings.growthSpeed,
     concentric_initialSize: concentricSettings.initialSize,
+    concentric_rotationSpeed: concentricSettings.rotationSpeed,
+    concentric_strokeWidth: concentricSettings.strokeWidth,
+    concentric_fillMode: concentricSettings.fillMode,
+    concentric_sides: concentricSettings.sides,
     concentric_gradientColors: concentricSettings.gradientColors,
     
     // Common settings

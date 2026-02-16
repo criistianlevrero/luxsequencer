@@ -15,6 +15,10 @@ const CONCENTRIC_PRESETS = [
       repetitionSpeed: 1.0,
       growthSpeed: 1.5,
       initialSize: 20,
+      rotationSpeed: 0,
+      strokeWidth: 2,
+      fillMode: 'stroke',
+      sides: 6,
       gradientColors: [
         { color: '#00ffff', hardStop: false },
         { color: '#ff00ff', hardStop: false },
@@ -34,6 +38,10 @@ const CONCENTRIC_PRESETS = [
       repetitionSpeed: 2.5,
       growthSpeed: 3.0,
       initialSize: 10,
+      rotationSpeed: 0,
+      strokeWidth: 2,
+      fillMode: 'stroke',
+      sides: 6,
       gradientColors: [
         { color: '#FF6B6B', hardStop: false },
         { color: '#4ECDC4', hardStop: false },
@@ -53,6 +61,10 @@ const CONCENTRIC_PRESETS = [
       repetitionSpeed: 0.5,
       growthSpeed: 0.8,
       initialSize: 50,
+      rotationSpeed: 0,
+      strokeWidth: 2,
+      fillMode: 'stroke',
+      sides: 6,
       gradientColors: [
         { color: '#8E44AD', hardStop: true },
         { color: '#3498DB', hardStop: true },
@@ -73,6 +85,10 @@ const CONCENTRIC_PRESETS = [
       repetitionSpeed: 1.2,
       growthSpeed: 1.0,
       initialSize: 30,
+      rotationSpeed: 0,
+      strokeWidth: 2,
+      fillMode: 'stroke',
+      sides: 6,
       gradientColors: [
         { color: '#FFFFFF', hardStop: false },
         { color: '#ECF0F1', hardStop: false }
@@ -148,6 +164,55 @@ export const concentricDeclarativeSchema: DeclarativeControlSchema = {
           step: 1,
           defaultValue: 20,
           formatter: (value: number) => value != null ? `${value}px` : '0px'
+        },
+        {
+          type: 'slider',
+          id: 'rotationSpeed',
+          label: 'Rotation Speed',
+          description: 'Rotation speed for the concentric polygon in degrees per second',
+          min: -180,
+          max: 180,
+          step: 1,
+          defaultValue: 0,
+          formatter: (value: number) => value != null ? `${Math.round(value)}°/s` : '0°/s'
+        },
+        {
+          type: 'slider',
+          id: 'strokeWidth',
+          label: 'Stroke Width',
+          description: 'Line width of the concentric polygon stroke',
+          min: 0.5,
+          max: 10,
+          step: 0.5,
+          defaultValue: 2,
+          formatter: (value: number) => value != null ? `${value.toFixed(1)}px` : '2.0px'
+        },
+        {
+          type: 'select',
+          id: 'fillMode',
+          label: 'Fill Mode',
+          description: 'Whether rings are stroked, filled, or both',
+          constraints: {
+            select: {
+              options: [
+                { value: 'stroke', label: 'Stroke' },
+                { value: 'fill', label: 'Fill' },
+                { value: 'both', label: 'Both' }
+              ]
+            }
+          },
+          defaultValue: 'stroke'
+        },
+        {
+          type: 'slider',
+          id: 'sides',
+          label: 'Shape Sides',
+          description: 'Number of sides for the concentric polygon (3-12)',
+          min: 3,
+          max: 12,
+          step: 1,
+          defaultValue: 6,
+          formatter: (value: number) => value != null ? `${Math.round(value)}` : '6'
         }
       ]
     },
@@ -283,6 +348,49 @@ export const concentricDeclarativeSchema: DeclarativeControlSchema = {
           min: 1,
           max: 100,
           message: 'Initial ring size must be between 1 and 100 pixels'
+        }
+      ]
+    },
+    {
+      property: 'rotationSpeed',
+      rules: [
+        {
+          type: 'range',
+          min: -180,
+          max: 180,
+          message: 'Rotation speed must be between -180 and 180 degrees per second'
+        }
+      ]
+    },
+    {
+      property: 'strokeWidth',
+      rules: [
+        {
+          type: 'range',
+          min: 0.5,
+          max: 10,
+          message: 'Stroke width must be between 0.5 and 10 pixels'
+        }
+      ]
+    },
+    {
+      property: 'fillMode',
+      rules: [
+        {
+          type: 'custom',
+          validator: (value: any) => ['stroke', 'fill', 'both'].includes(value),
+          message: 'Fill mode must be stroke, fill, or both'
+        }
+      ]
+    },
+    {
+      property: 'sides',
+      rules: [
+        {
+          type: 'range',
+          min: 3,
+          max: 12,
+          message: 'Shape sides must be between 3 and 12'
         }
       ]
     }

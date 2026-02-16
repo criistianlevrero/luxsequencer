@@ -64,6 +64,36 @@ const adaptDeclarativeSchemaToSpec = (schema: DeclarativeControlSchema): Rendere
             supportsHardStops: control.supportsHardStops || false
           };
           break;
+        case 'select':
+          if (control.constraints?.select) {
+            standardControl.constraints.select = control.constraints.select;
+          }
+          break;
+        case 'color':
+          if (control.constraints?.color) {
+            standardControl.constraints.color = control.constraints.color;
+          }
+          break;
+        case 'toggle':
+          if (control.constraints?.toggle) {
+            standardControl.constraints.toggle = control.constraints.toggle;
+          }
+          break;
+        case 'vector2d':
+          if (control.constraints?.vector2d) {
+            standardControl.constraints.vector2d = control.constraints.vector2d;
+          }
+          break;
+        case 'range':
+          if (control.constraints?.range) {
+            standardControl.constraints.range = control.constraints.range;
+          }
+          break;
+        case 'text':
+          if (control.constraints?.text) {
+            standardControl.constraints.text = control.constraints.text;
+          }
+          break;
         // Add other constraint types as needed
       }
       
@@ -215,7 +245,7 @@ export const useDeclarativeControls = (
     // Map control ID to proper store path for reading the current value
     const mapControlIdToStorePath = (controlId: string): string => {
       // For renderer-specific properties, prefix with renderer path
-      if (['repetitionSpeed', 'growthSpeed', 'initialSize', 'gradientColors'].includes(controlId)) {
+      if (['repetitionSpeed', 'growthSpeed', 'initialSize', 'gradientColors', 'sides', 'rotationSpeed', 'strokeWidth', 'fillMode'].includes(controlId)) {
         return `renderer.${rendererId}.${controlId}`;
       }
       // For common properties, prefix with common path
@@ -235,7 +265,7 @@ export const useDeclarativeControls = (
     return controlRenderer.render(
       control,
       value,
-      (newValue) => onSettingChange(control.id, newValue),
+      (newValue) => onSettingChange(storePath, newValue),
       context,
       !enabled
     );

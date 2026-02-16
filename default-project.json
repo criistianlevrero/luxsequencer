@@ -49,6 +49,9 @@
             "concentric_repetitionSpeed": 0.5,
             "concentric_growthSpeed": 0.5,
             "concentric_initialSize": 10,
+            "concentric_rotationSpeed": 0,
+            "concentric_strokeWidth": 2,
+            "concentric_fillMode": "stroke",
             "concentric_gradientColors": [
               { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
               { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
@@ -83,6 +86,9 @@
             "concentric_repetitionSpeed": 0.2,
             "concentric_growthSpeed": 1,
             "concentric_initialSize": 20,
+            "concentric_rotationSpeed": 0,
+            "concentric_strokeWidth": 2,
+            "concentric_fillMode": "stroke",
             "concentric_gradientColors": [
               { "id": "c-color-1", "color": "#f0ff00", "hardStop": false },
               { "id": "c-color-2", "color": "#00eaff", "hardStop": true },
@@ -119,6 +125,9 @@
             "concentric_repetitionSpeed": 1,
             "concentric_growthSpeed": 0.2,
             "concentric_initialSize": 5,
+            "concentric_rotationSpeed": 0,
+            "concentric_strokeWidth": 2,
+            "concentric_fillMode": "stroke",
             "concentric_gradientColors": [
               { "id": "c-color-1", "color": "#ffffff", "hardStop": false },
               { "id": "c-color-2", "color": "#000000", "hardStop": false }
@@ -156,6 +165,9 @@
               "concentric_repetitionSpeed": 0.5,
               "concentric_growthSpeed": 0.5,
               "concentric_initialSize": 10,
+              "concentric_rotationSpeed": 0,
+              "concentric_strokeWidth": 2,
+              "concentric_fillMode": "stroke",
               "concentric_gradientColors": [
                 { "id": "c-color-1", "color": "#00ffff", "hardStop": false },
                 { "id": "c-color-2", "color": "#ff00ff", "hardStop": false }
@@ -190,6 +202,9 @@
               "concentric_repetitionSpeed": 0.2,
               "concentric_growthSpeed": 1,
               "concentric_initialSize": 20,
+              "concentric_rotationSpeed": 0,
+              "concentric_strokeWidth": 2,
+              "concentric_fillMode": "stroke",
               "concentric_gradientColors": [
                 { "id": "c-color-1", "color": "#f0ff00", "hardStop": false },
                 { "id": "c-color-2", "color": "#00eaff", "hardStop": true },
@@ -226,6 +241,9 @@
               "concentric_repetitionSpeed": 1,
               "concentric_growthSpeed": 0.2,
               "concentric_initialSize": 5,
+              "concentric_rotationSpeed": 0,
+              "concentric_strokeWidth": 2,
+              "concentric_fillMode": "stroke",
               "concentric_gradientColors": [
                 { "id": "c-color-1", "color": "#ffffff", "hardStop": false },
                 { "id": "c-color-2", "color": "#000000", "hardStop": false }

@@ -38,6 +38,8 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'controls.scaleSize': 'Scale Size',
     'controls.animationSpeed': 'Animation Speed',
     'controls.borderSize': 'Border Size',
+    'controls.strokeWidth': 'Stroke Width',
+    'controls.fillMode': 'Fill Mode',
     'controls.borderColor': 'Border Color',
     'controls.scaleGradient': 'Scale Gradient',
     'controls.backgroundGradient': 'Background Gradient',
@@ -127,6 +129,7 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'shape.circleToDiamond': 'Circle → Diamond',
     'shape.diamondToStar': 'Diamond → Star',
     'shape.stopped': 'Stopped',
+    'controls.shapeSides': 'Shape Sides',
     
     // Renderers
     'renderer.webgl': 'WebGL Scale',
@@ -217,6 +220,8 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'controls.scaleSize': 'Tamaño de Escala',
     'controls.animationSpeed': 'Velocidad de Animación',
     'controls.borderSize': 'Tamaño del Borde',
+    'controls.strokeWidth': 'Grosor de Linea',
+    'controls.fillMode': 'Modo de Relleno',
     'controls.borderColor': 'Color del Borde',
     'controls.scaleGradient': 'Gradiente de Escala',
     'controls.backgroundGradient': 'Gradiente de Fondo',
@@ -306,6 +311,7 @@ export const translations: Record<LocaleCode, TranslationKeys> = {
     'shape.circleToDiamond': 'Círculo → Rombo',
     'shape.diamondToStar': 'Rombo → Estrella',
     'shape.stopped': 'Detenido',
+    'controls.shapeSides': 'Caras de la figura',
     
     // Renderers
     'renderer.webgl': 'Escala WebGL',

@@ -56,6 +56,33 @@ export const getConcentricSchema = (): AccordionItem[] => [
                 formatter: (v) => `${v}px`
             },
             {
+                type: 'slider',
+                id: 'renderer.concentric.rotationSpeed',
+                label: t('controls.rotationSpeed'),
+                min: -180,
+                max: 180,
+                step: 1,
+                formatter: (v) => `${Math.round(v)}°/s`
+            },
+            {
+                type: 'slider',
+                id: 'renderer.concentric.strokeWidth',
+                label: t('controls.strokeWidth'),
+                min: 0.5,
+                max: 10,
+                step: 0.5,
+                formatter: (v) => `${v.toFixed(1)}px`
+            },
+            {
+                type: 'slider',
+                id: 'renderer.concentric.sides',
+                label: t('controls.shapeSides'),
+                min: 3,
+                max: 12,
+                step: 1,
+                formatter: (v) => `${Math.round(v)}`
+            },
+            {
                 type: 'custom',
                 id: 'concentric_gradient',
                 component: ConcentricGradientEditor,

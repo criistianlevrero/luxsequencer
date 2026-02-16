@@ -56,6 +56,10 @@ export interface ConcentricSettings {
   repetitionSpeed: number;
   growthSpeed: number;
   initialSize: number;
+  rotationSpeed: number;
+  strokeWidth: number;
+  fillMode: 'stroke' | 'fill' | 'both';
+  sides: number;
   gradientColors: GradientColor[];
 }
 
@@ -89,6 +93,10 @@ export interface LegacyControlSettings {
   concentric_repetitionSpeed?: number;
   concentric_growthSpeed?: number;
   concentric_initialSize?: number;
+  concentric_rotationSpeed?: number;
+  concentric_strokeWidth?: number;
+  concentric_fillMode?: 'stroke' | 'fill' | 'both';
+  concentric_sides?: number;
   concentric_gradientColors?: GradientColor[];
 }
 

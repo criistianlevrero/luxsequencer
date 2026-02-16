@@ -36,6 +36,8 @@ export interface TranslationKeys {
   'controls.animationSpeed': string
   'controls.borderSize': string
   'controls.borderColor': string
+  'controls.strokeWidth': string
+  'controls.fillMode': string
   'controls.scaleGradient': string
   'controls.backgroundGradient': string
   'controls.rotationSpeed': string
@@ -124,6 +126,7 @@ export interface TranslationKeys {
   'shape.circleToDiamond': string
   'shape.diamondToStar': string
   'shape.stopped': string
+  'controls.shapeSides': string
   
   // Renderers
   'renderer.webgl': string
