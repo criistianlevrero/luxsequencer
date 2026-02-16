@@ -67,13 +67,13 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
              return lerpColor(effectiveGradient[startIndex].rgb, effectiveGradient[endIndex].rgb, amount);
         };
 
-        const drawScene = (time: number, settings: ControlSettings) => {
-            // Extract values from hierarchical settings
-            const repetitionSpeed = getNestedProperty(settings, 'renderer.concentric.repetitionSpeed') ?? 0.5;
-            const growthSpeed = getNestedProperty(settings, 'renderer.concentric.growthSpeed') ?? 0.5;
-            const initialSize = getNestedProperty(settings, 'renderer.concentric.initialSize') ?? 10;
-            const gradientColors = getNestedProperty(settings, 'renderer.concentric.gradientColors') ?? [];
-            const backgroundGradientColors = getNestedProperty(settings, 'common.backgroundGradientColors') ?? [];
+        const drawScene = (time: number, settings: import('../../../types').ControlSettings) => {
+            // Extract values from hierarchical settings with proper typing
+            const repetitionSpeed = (getNestedProperty(settings, 'renderer.concentric.repetitionSpeed') as number) ?? 0.5;
+            const growthSpeed = (getNestedProperty(settings, 'renderer.concentric.growthSpeed') as number) ?? 0.5;
+            const initialSize = (getNestedProperty(settings, 'renderer.concentric.initialSize') as number) ?? 10;
+            const gradientColors = (getNestedProperty(settings, 'renderer.concentric.gradientColors') as any[]) ?? [];
+            const backgroundGradientColors = (getNestedProperty(settings, 'common.backgroundGradientColors') as any[]) ?? [];
 
             const dpr = window.devicePixelRatio || 1;
             const displayWidth = canvas.offsetWidth;

@@ -4,14 +4,14 @@ import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
 import { t } from '../../../i18n';
 // FIX: Import `AccordionItem` from the root `types.ts` file.
-import type { AccordionItem } from '../../../types';
+import type { AccordionItem, GradientColor } from '../../../types';
 import { getNestedProperty } from '../../../utils/settingsMigration';
 
 // FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the concentric gradient editor
 // FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const ConcentricGradientEditor: React.FC = () => {
-    const colors = useTextureStore(state => getNestedProperty(state.currentSettings, 'renderer.concentric.gradientColors') ?? []);
+    const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.concentric.gradientColors') as GradientColor[]) ?? []);
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement('div', { className: "pt-4 border-t border-gray-700/50" },
         React.createElement(GradientEditor, {

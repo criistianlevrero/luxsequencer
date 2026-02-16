@@ -6,7 +6,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  children: React.ReactNode;
+  children?: React.ReactNode;  // Made optional since iconOnly buttons don't need children
   icon?: React.ReactNode;
   iconOnly?: boolean;
 }

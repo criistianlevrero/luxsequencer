@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import type { RangeControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -16,9 +16,11 @@ export const RangeControl: React.FC<RangeControlProps> = ({
   const trackRef = useRef<HTMLDivElement>(null);
 
   // Ensure value is always a valid range
-  const rangeValue = Array.isArray(value) && value.length === 2 
-    ? { min: Math.min(value[0], value[1]), max: Math.max(value[0], value[1]) }
-    : { min: constraints.min, max: constraints.max };
+  const rangeValue = useMemo(() => {
+    return Array.isArray(value) && value.length === 2 
+      ? { min: Math.min(value[0], value[1]), max: Math.max(value[0], value[1]) }
+      : { min: constraints.min, max: constraints.max };
+  }, [value, constraints.min, constraints.max]);
 
   // Convert position to value
   const positionToValue = useCallback((clientX: number) => {
@@ -55,9 +57,9 @@ export const RangeControl: React.FC<RangeControlProps> = ({
     const newValue = positionToValue(e.clientX);
     
     if (isDragging === 'min') {
-      onChange([Math.min(newValue, rangeValue.max), rangeValue.max]);
+      onChange({ min: Math.min(newValue, rangeValue.max), max: rangeValue.max });
     } else if (isDragging === 'max') {
-      onChange([rangeValue.min, Math.max(newValue, rangeValue.min)]);
+      onChange({ min: rangeValue.min, max: Math.max(newValue, rangeValue.min) });
     }
   }, [isDragging, disabled, positionToValue, onChange, rangeValue]);
 
@@ -86,9 +88,9 @@ export const RangeControl: React.FC<RangeControlProps> = ({
     const maxDistance = Math.abs(newValue - rangeValue.max);
     
     if (minDistance < maxDistance) {
-      onChange([newValue, rangeValue.max]);
+      onChange({ min: newValue, max: rangeValue.max });
     } else {
-      onChange([rangeValue.min, newValue]);
+      onChange({ min: rangeValue.min, max: newValue });
     }
   }, [disabled, isDragging, positionToValue, onChange, rangeValue]);
 
@@ -182,7 +184,7 @@ export const RangeControl: React.FC<RangeControlProps> = ({
             onChange={(e) => {
               const newMin = Number(e.target.value);
               if (newMin >= constraints.min && newMin <= rangeValue.max) {
-                onChange([newMin, rangeValue.max]);
+                onChange({ min: newMin, max: rangeValue.max });
               }
             }}
             min={constraints.min}
@@ -200,7 +202,7 @@ export const RangeControl: React.FC<RangeControlProps> = ({
             onChange={(e) => {
               const newMax = Number(e.target.value);
               if (newMax <= constraints.max && newMax >= rangeValue.min) {
-                onChange([rangeValue.min, newMax]);
+                onChange({ min: rangeValue.min, max: newMax });
               }
             }}
             min={rangeValue.min}

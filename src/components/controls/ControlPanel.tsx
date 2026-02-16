@@ -205,7 +205,7 @@ const ControlPanel: React.FC = () => {
                                 <Select 
                                     id="midiDevice"
                                     value={selectedMidiDevice || ''}
-                                    onChange={(value) => selectMidiDevice(value)}
+                                    onChange={(value) => selectMidiDevice(String(value))}
                                     fullWidth
                                 >
                                     <option value="">{t('midi.notConnected')}</option>

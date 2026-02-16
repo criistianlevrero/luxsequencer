@@ -53,7 +53,7 @@ export const GradientControl: React.FC<GradientControlProps> = ({
     
     if (typeof value === 'string') {
       // Try to parse CSS gradient or treat as solid color
-      if (value.startsWith('linear-gradient') || value.startsWith('radial-gradient')) {
+      if ((value as string).startsWith('linear-gradient') || (value as string).startsWith('radial-gradient')) {
         // TODO: Parse CSS gradient - for now, return default
         return [
           { id: crypto.randomUUID(), color: '#000000', hardStop: false },
@@ -62,8 +62,8 @@ export const GradientControl: React.FC<GradientControlProps> = ({
       } else {
         // Single color
         return [
-          { id: crypto.randomUUID(), color: value, hardStop: false },
-          { id: crypto.randomUUID(), color: value, hardStop: false }
+          { id: crypto.randomUUID(), color: value as string, hardStop: false },
+          { id: crypto.randomUUID(), color: value as string, hardStop: false }
         ];
       }
     }

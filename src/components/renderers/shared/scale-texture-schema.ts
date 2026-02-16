@@ -4,14 +4,14 @@ import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
 import { t } from '../../../i18n';
 // FIX: Import `AccordionItem` from the root `types.ts` file.
-import type { AccordionItem } from '../../../types';
+import type { AccordionItem, GradientColor } from '../../../types';
 import { getNestedProperty } from '../../../utils/settingsMigration';
 
 // FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the scale gradient editor
 // FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const ScaleGradientEditor: React.FC = () => {
-    const colors = useTextureStore(state => getNestedProperty(state.currentSettings, 'renderer.webgl.gradientColors') || []);
+    const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.webgl.gradientColors') as GradientColor[]) || []);
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement(GradientEditor, {
         title: t('controls.scaleGradient'),
@@ -25,7 +25,7 @@ const ScaleGradientEditor: React.FC = () => {
 // Custom component for the background gradient editor
 // FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const BackgroundGradientEditor: React.FC = () => {
-    const colors = useTextureStore(state => getNestedProperty(state.currentSettings, 'common.backgroundGradientColors') || []);
+    const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'common.backgroundGradientColors') as GradientColor[]) || []);
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement(GradientEditor, {
         title: t('controls.backgroundGradient'),
@@ -39,7 +39,7 @@ const BackgroundGradientEditor: React.FC = () => {
 // Custom component for border color picker
 // FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const BorderColorPicker: React.FC = () => {
-    const borderColor = useTextureStore(state => getNestedProperty(state.currentSettings, 'renderer.webgl.scaleBorderColor') || '#000000');
+    const borderColor = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.webgl.scaleBorderColor') as string) || '#000000');
     const { setCurrentSetting } = useTextureStore.getState();
     return React.createElement('div', { className: "space-y-3" },
         React.createElement('div', { className: "flex justify-between items-center" },

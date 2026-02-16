@@ -15,16 +15,14 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.scaleSize',
       type: 'slider',
-      label: 'Scale Size',
       category: 'Scale',
+      label: 'Scale Size',
       constraints: {
         slider: {
           min: 45,
           max: 400,
           step: 1,
-          formatter: (v) => `${v}px`,
-          detents: [100, 200, 300],
-          logarithmic: false
+          formatter: (v) => `${v}px`
         }
       },
       metadata: {
@@ -42,8 +40,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.scaleSpacing',
       type: 'slider',
-      label: 'Horizontal Spacing',
       category: 'Scale',
+      label: 'Horizontal Spacing',
       constraints: {
         slider: {
           min: -0.4,
@@ -69,8 +67,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.verticalOverlap',
       type: 'slider',
-      label: 'Vertical Spacing',
       category: 'Scale',
+      label: 'Vertical Spacing',
       constraints: {
         slider: {
           min: -0.4,
@@ -88,8 +86,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.horizontalOffset',
       type: 'slider',
-      label: 'Horizontal Offset',
       category: 'Scale',
+      label: 'Horizontal Offset',
       constraints: {
         slider: {
           min: 0,
@@ -106,8 +104,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.shapeMorph',
       type: 'slider',
-      label: 'Shape Form',
       category: 'Scale',
+      label: 'Shape Form',
       constraints: {
         slider: {
           min: 0,
@@ -139,8 +137,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.scaleBorderColor',
       type: 'color',
-      label: 'Border Color',
       category: 'Border',
+      label: 'Border Color',
       constraints: {
         color: {
           format: 'hex',
@@ -164,8 +162,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.scaleBorderWidth',
       type: 'slider',
-      label: 'Border Size',
       category: 'Border',
+      label: 'Border Size',
       constraints: {
         slider: {
           min: 0,
@@ -191,8 +189,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.borderGlow',
       type: 'toggle',
-      label: 'Border Glow',
       category: 'Border',
+      label: 'Border Glow',
       constraints: {
         toggle: {
           style: 'switch',
@@ -215,8 +213,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.borderGlowIntensity',
       type: 'slider',
-      label: 'Glow Intensity',
       category: 'Border',
+      label: 'Glow Intensity',
       constraints: {
         slider: {
           min: 0,
@@ -241,8 +239,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.textureRotationSpeed',
       type: 'slider',
+      category: 'Transform',
       label: 'Rotation Speed',
-      category: 'Animation',
       constraints: {
         slider: {
           min: -5,
@@ -273,12 +271,14 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.gradientColors',
       type: 'gradient',
-      label: 'Scale Gradient',
       category: 'Colors',
+      label: 'Scale Gradient',
       constraints: {
         gradient: {
           minColors: 2,
           maxColors: 10,
+          allowHardStops: true,
+          supportsHardStops: true,
           format: 'array'
         }
       },
@@ -306,8 +306,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'common.animationSpeed',
       type: 'slider',
-      label: 'Animation Speed',
       category: 'Animation',
+      label: 'Animation Speed',
       constraints: {
         slider: {
           min: 0.10,
@@ -332,8 +332,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'common.animationDirection',
       type: 'slider',
-      label: 'Animation Direction',
       category: 'Animation',
+      label: 'Animation Direction',
       constraints: {
         slider: {
           min: 0,
@@ -359,12 +359,14 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'common.backgroundGradientColors',
       type: 'gradient',
-      label: 'Background Gradient',
       category: 'Background',
+      label: 'Background Gradient',
       constraints: {
         gradient: {
           minColors: 1,
           maxColors: 5,
+          allowHardStops: true,
+          supportsHardStops: true,
           format: 'array'
         }
       },
@@ -389,8 +391,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.performanceMode',
       type: 'select',
-      label: 'Performance Mode',
       category: 'Advanced',
+      label: 'Performance Mode',
       constraints: {
         select: {
           options: [
@@ -410,8 +412,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.textureResolution',
       type: 'select',
-      label: 'Texture Resolution',
       category: 'Advanced',
+      label: 'Texture Resolution',
       constraints: {
         select: {
           options: [
@@ -438,8 +440,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.centerOffset',
       type: 'vector2d',
-      label: 'Center Offset',
       category: 'Transform',
+      label: 'Center Offset',
       constraints: {
         vector2d: {
           xRange: [-1, 1],
@@ -459,8 +461,8 @@ export const webglRendererControlSpec: RendererControlSpec = {
     {
       id: 'renderer.webgl.scaleRange',
       type: 'range',
+      category: 'Scale',
       label: 'Scale Size Range',
-      category: 'Transform',
       constraints: {
         range: {
           min: 0.1,

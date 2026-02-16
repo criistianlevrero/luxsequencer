@@ -53,7 +53,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     stopMonitoring,
     resetMetrics,
     updateSettings,
-  } = performanceData;
+  } = _performanceData;
   
   // Format values for display
   const formatBytes = (bytes: number) => {

@@ -53,13 +53,14 @@ const adaptDeclarativeSchemaToSpec = (schema: DeclarativeControlSchema): Rendere
             step: control.step || 1,
             defaultValue: control.defaultValue,
             formatter: control.formatter,
-            valueLabels: control.valueLabels
+            valueLabels: typeof control.valueLabels === 'function' ? control.valueLabels : undefined
           };
           break;
         case 'gradient':
           standardControl.constraints.gradient = {
             maxColors: control.maxColors || 10,
             minColors: control.minColors || 1,
+            allowHardStops: control.supportsHardStops || false,
             supportsHardStops: control.supportsHardStops || false
           };
           break;
@@ -174,7 +175,7 @@ const controlRenderer = new ControlRenderer();
 export const useDeclarativeControls = (
   spec: RendererControlSpec,
   settings: ControlSettings,
-  onSettingChange: (property: keyof ControlSettings, value: any) => void,
+  onSettingChange: (property: string, value: any) => void,
   rendererId: string
 ) => {
   const context: ControlRenderContext = useMemo(() => ({
@@ -313,7 +314,9 @@ export const DeclarativeControlPanel: React.FC<{
   // Wrap onSettingChange to apply property path mapping
   const handleSettingChange = (property: string, value: any) => {
     const storePath = mapControlIdToStorePath(property);
-    console.log(`[DeclarativeControlPanel] Mapping control '${property}' to store path '${storePath}' with value:`, value);
+    if (import.meta.env.DEV) {
+      console.log(`[DeclarativeControlPanel] Mapping control '${property}' to store path '${storePath}' with value:`, value);
+    }
     onSettingChange(storePath, value);
   };
   
@@ -321,7 +324,9 @@ export const DeclarativeControlPanel: React.FC<{
   const rendererSpec: RendererControlSpec = useMemo(() => {
     // Check if spec exists and is valid
     if (!spec) {
-      console.warn(`[DeclarativeControlPanel] Spec is undefined for renderer: ${rendererId}`);
+      if (import.meta.env.DEV) {
+        console.warn(`[DeclarativeControlPanel] Spec is undefined for renderer: ${rendererId}`);
+      }
       return { standard: [], custom: [] };
     }
     
@@ -330,10 +335,14 @@ export const DeclarativeControlPanel: React.FC<{
       return adaptDeclarativeSchemaToSpec(spec as DeclarativeControlSchema);
     } else if (typeof spec === 'object' && 'standard' in spec) {
       // It's already a RendererControlSpec
-      console.log(`[DeclarativeControlPanel] Using existing RendererControlSpec for renderer: ${rendererId}`);
+      if (import.meta.env.DEV) {
+        console.log(`[DeclarativeControlPanel] Using existing RendererControlSpec for renderer: ${rendererId}`);
+      }
       return spec as RendererControlSpec;
     } else {
-      console.warn(`[DeclarativeControlPanel] Invalid spec format for renderer: ${rendererId}`, spec);
+      if (import.meta.env.DEV) {
+        console.warn(`[DeclarativeControlPanel] Invalid spec format for renderer: ${rendererId}`, spec);
+      }
       return { standard: [], custom: [] };
     }
   }, [spec, rendererId]);

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useAppLayout } from '../contexts/AppLayoutContext';
 
 export const useFullscreenLayout = () => {

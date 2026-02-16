@@ -31,6 +31,8 @@ export const migrateLegacySettings = (legacySettings: LegacyControlSettings): Co
     scaleBorderColor: legacySettings.scaleBorderColor,
     scaleBorderWidth: legacySettings.scaleBorderWidth,
     gradientColors: legacySettings.gradientColors,
+    centerOffset: legacySettings.centerOffset,
+    scaleRange: legacySettings.scaleRange,
   };
 
   const concentricSettings: ConcentricSettings = {
@@ -100,7 +102,7 @@ export const normalizeSettings = (settings: AnyControlSettings): ControlSettings
 /**
  * Gets a specific renderer's settings from the hierarchical structure
  */
-export const getRendererSettings = <T = any>(
+export const getRendererSettings = <T = unknown>(
   settings: ControlSettings, 
   rendererId: string
 ): T | undefined => {
@@ -113,7 +115,7 @@ export const getRendererSettings = <T = any>(
 export const setRendererSettings = (
   settings: ControlSettings, 
   rendererId: string, 
-  rendererSettings: any
+  rendererSettings: unknown
 ): ControlSettings => {
   return {
     ...settings,
@@ -130,14 +132,14 @@ export const setRendererSettings = (
  */
 export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string = 'webgl'): string => {
   // Common properties (shared across renderers)
-  const commonProperties = {
+  const commonProperties: Record<string, string> = {
     'animationSpeed': 'common.animationSpeed',
     'animationDirection': 'common.animationDirection',
     'backgroundGradientColors': 'common.backgroundGradientColors',
   };
 
   // WebGL renderer properties
-  const webglProperties = {
+  const webglProperties: Record<string, string> = {
     'scaleSize': 'renderer.webgl.scaleSize',
     'scaleSpacing': 'renderer.webgl.scaleSpacing',
     'verticalOverlap': 'renderer.webgl.verticalOverlap',
@@ -151,7 +153,7 @@ export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string =
   };
 
   // Concentric renderer properties
-  const concentricProperties = {
+  const concentricProperties: Record<string, string> = {
     'concentric_repetitionSpeed': 'renderer.concentric.repetitionSpeed',
     'concentric_growthSpeed': 'renderer.concentric.growthSpeed',
     'concentric_initialSize': 'renderer.concentric.initialSize',
@@ -189,14 +191,18 @@ export const findChangedPaths = (
 ): string[] => {
   const changedPaths: string[] = [];
   
-  const compareObjects = (obj1: any, obj2: any, currentPath: string = '') => {
+  const compareObjects = (obj1: unknown, obj2: unknown, currentPath: string = '') => {
+    // Convert to objects with string keys for comparison
+    const o1 = obj1 as Record<string, unknown>;
+    const o2 = obj2 as Record<string, unknown>;
+    
     // Get all unique keys from both objects
-    const allKeys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
+    const allKeys = new Set([...Object.keys(o1 || {}), ...Object.keys(o2 || {})]);
     
     for (const key of allKeys) {
       const path = currentPath ? `${currentPath}.${key}` : key;
-      const val1 = obj1?.[key];
-      const val2 = obj2?.[key];
+      const val1 = o1?.[key];
+      const val2 = o2?.[key];
       
       // If one is undefined and the other isn't, it's a change
       if ((val1 === undefined) !== (val2 === undefined)) {
@@ -232,7 +238,7 @@ export const findChangedPaths = (
     }
   };
   
-  compareObjects(oldSettings, newSettings);
+  compareObjects(oldSettings as unknown, newSettings as unknown);
   return changedPaths;
 };
 
@@ -240,12 +246,15 @@ export const findChangedPaths = (
  * Gets a nested property value using a dot-notation path
  * e.g., "common.animationSpeed" or "renderer.webgl.scaleSize"
  */
-export const getNestedProperty = (settings: ControlSettings | undefined, propertyPath: string): any => {
+export const getNestedProperty = (settings: ControlSettings | undefined, propertyPath: string): unknown => {
   if (!settings) return undefined;
   
-  return propertyPath.split('.').reduce((obj, key) => {
-    return obj && obj[key] !== undefined ? obj[key] : undefined;
-  }, settings as any);
+  return propertyPath.split('.').reduce<unknown>((obj, key) => {
+    if (obj && typeof obj === 'object' && obj !== null && key in obj) {
+      return (obj as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, settings);
 };
 
 /**
@@ -255,7 +264,7 @@ export const getNestedProperty = (settings: ControlSettings | undefined, propert
 export const setNestedProperty = (
   settings: ControlSettings, 
   propertyPath: string, 
-  value: any
+  value: unknown
 ): ControlSettings => {
   const keys = propertyPath.split('.');
   const lastKey = keys.pop()!;
@@ -281,7 +290,7 @@ export const setNestedProperty = (
 /**
  * Creates default settings for a specific renderer
  */
-export const createDefaultRendererSettings = (rendererId: string): any => {
+export const createDefaultRendererSettings = (rendererId: string): WebGLSettings | ConcentricSettings | Record<string, unknown> => {
   switch (rendererId) {
     case 'webgl':
       return {
@@ -311,7 +320,7 @@ export const createDefaultRendererSettings = (rendererId: string): any => {
       } as ConcentricSettings;
       
     default:
-      return {};
+      return {} as Record<string, unknown>;
   }
 };
 
@@ -356,7 +365,7 @@ export const ensureRendererSettings = (
  * Provides backward compatibility interface for the WebGL renderer
  */
 export const getWebGLCompatibleSettings = (settings: ControlSettings) => {
-  const webglSettings = getRendererSettings<WebGLSettings>(settings, 'webgl') || createDefaultRendererSettings('webgl');
+  const webglSettings = getRendererSettings<WebGLSettings>(settings, 'webgl') || createDefaultRendererSettings('webgl') as WebGLSettings;
   const commonSettings = settings.common || {
     animationSpeed: 1,
     animationDirection: 90,
@@ -390,7 +399,7 @@ export const getWebGLCompatibleSettings = (settings: ControlSettings) => {
  * Provides backward compatibility interface for the Concentric renderer
  */
 export const getConcentricCompatibleSettings = (settings: ControlSettings) => {
-  const concentricSettings = getRendererSettings<ConcentricSettings>(settings, 'concentric') || createDefaultRendererSettings('concentric');
+  const concentricSettings = getRendererSettings<ConcentricSettings>(settings, 'concentric') || createDefaultRendererSettings('concentric') as ConcentricSettings;
   const commonSettings = settings.common || {
     animationSpeed: 1,
     animationDirection: 90,

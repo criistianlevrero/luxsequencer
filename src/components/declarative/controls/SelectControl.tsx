@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { SelectControlProps } from '../../../types/declarativeControls';
+import type { SelectControlProps, SelectOption } from '../../../types/declarativeControls';
 
 /**
  * Advanced select control with search, multi-select, and grouping
@@ -25,12 +25,12 @@ export const SelectControl: React.FC<SelectControlProps> = ({
   // Group options if needed
   const processedOptions = React.useMemo(() => {
     if (constraints.allowGroups && constraints.options.some(opt => 'group' in opt)) {
-      const groups: { [key: string]: typeof constraints.options } = {};
-      const ungrouped: typeof constraints.options = [];
+      const groups: { [key: string]: SelectOption[] } = {};
+      const ungrouped: SelectOption[] = [];
       
       constraints.options.forEach(option => {
-        if ('group' in option) {
-          const groupName = (option as any).group;
+        if ('group' in option && option.group) {
+          const groupName = option.group;
           if (!groups[groupName]) groups[groupName] = [];
           groups[groupName].push(option);
         } else {
@@ -63,7 +63,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
       ),
       ungrouped: processedOptions.ungrouped.filter(filterFn)
     };
-  }, [processedOptions, searchTerm, constraints.options]);
+  }, [processedOptions, searchTerm, constraints]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -112,14 +112,14 @@ export const SelectControl: React.FC<SelectControlProps> = ({
 
   const getDisplayText = () => {
     if (isMultiSelect) {
-      if (selectedValues.length === 0) return spec.placeholder || 'Select options...';
+      if (selectedValues.length === 0) return constraints.placeholder || 'Select options...';;
       if (selectedValues.length === 1) {
         const option = getSelectedOption(selectedValues[0]);
         return option?.label || selectedValues[0];
       }
       return `${selectedValues.length} selected`;
     } else {
-      if (!value) return spec.placeholder || 'Select an option...';
+      if (!value) return constraints.placeholder || 'Select an option...';
       const option = getSelectedOption(value as string);
       return option?.label || value;
     }
@@ -159,7 +159,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
       case 'Enter':
         e.preventDefault();
         if (highlightedIndex >= 0 && allOptions[highlightedIndex]) {
-          handleOptionSelect(allOptions[highlightedIndex].value);
+          handleOptionSelect((allOptions[highlightedIndex] as SelectOption).value);
         }
         break;
     }
@@ -290,11 +290,11 @@ export const SelectControl: React.FC<SelectControlProps> = ({
                   <div className="px-3 py-1 text-sm font-medium text-gray-400 bg-gray-750 border-b border-gray-600">
                     {groupName}
                   </div>
-                  {options.map((option, groupIndex) => {
+                  {(options as SelectOption[]).map((option, groupIndex) => {
                     const globalIndex = filteredOptions.ungrouped.length + 
                       Object.entries(filteredOptions.grouped)
                         .slice(0, Object.keys(filteredOptions.grouped).indexOf(groupName))
-                        .reduce((sum, [, opts]) => sum + opts.length, 0) + groupIndex;
+                        .reduce((sum, [, opts]) => sum + (opts as SelectOption[]).length, 0) + groupIndex;
                     
                     return (
                       <button

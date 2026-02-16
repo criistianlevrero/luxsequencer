@@ -113,8 +113,8 @@ export const DualScreenManager: React.FC<DualScreenManagerProps> = ({ children }
     };
     
     // Interceptar loadPattern
-    (store as any).loadPattern = (patternId: string, source?: any) => {
-      originalLoadPattern(patternId, source);
+    (store as any).loadPattern = (patternId: string, _source?: any) => {
+      originalLoadPattern(patternId);
       // La suscripción se encargará de sincronizar los cambios durante la animación
     };
     

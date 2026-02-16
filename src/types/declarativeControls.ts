@@ -34,19 +34,22 @@ export interface RendererControlSpec {
  * Standard control specification - fully declarative
  */
 export interface StandardControlSpec {
-  id: keyof ControlSettings;
+  id: string;  // Changed from keyof ControlSettings to string to support dotted paths
   type: ControlType;
   category: string;
   label: string;
   constraints: ControlConstraints;
+  presets?: PresetValue[];  // Added direct presets support
   
   // Metadata for automatic generation
   metadata?: {
     description?: string;
     tooltip?: string;
     units?: string;
+    category?: string;
+    order?: number;  // Added order support
     presets?: PresetValue[];
-    dependencies?: PropertyDependency[]; // Controls that depend on others
+    dependencies?: PropertyDependency[];
   };
 }
 
@@ -55,7 +58,7 @@ export interface StandardControlSpec {
  */
 export interface CustomControlSpec {
   id: string;
-  component: React.FC<{
+  component: import('react').FC<{
     spec: CustomControlSpec;
     settings: ControlSettings;
     onChange: (property: string, value: any) => void;
@@ -90,8 +93,10 @@ export interface SliderConstraints {
   min: number;
   max: number;
   step: number;
+  defaultValue?: number;  // Added defaultValue for backward compatibility
   logarithmic?: boolean;
   formatter: (value: number) => string;
+  valueLabels?: (value: number) => string;  // Added valueLabels support
   
   // Advanced characteristics
   curves?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
@@ -115,6 +120,8 @@ export interface GradientConstraints {
   minColors: number;
   maxColors: number;
   allowHardStops: boolean;
+  supportsHardStops: boolean;  // Keep both for compatibility
+  format?: 'array' | 'object' | 'css';  // Added css format support
   presetPalettes?: ColorPalette[];
   colorSpace?: 'rgb' | 'hsl' | 'lab';
 }
@@ -126,6 +133,9 @@ export interface SelectConstraints {
   options: SelectOption[];
   searchable?: boolean;
   multiple?: boolean;
+  multiSelect?: boolean;  // Alias for multiple
+  allowGroups?: boolean;  // Support for grouped options
+  placeholder?: string;   // Placeholder text
 }
 
 /**
@@ -134,6 +144,8 @@ export interface SelectConstraints {
 export interface ToggleConstraints {
   style?: 'switch' | 'checkbox' | 'button';
   size?: 'sm' | 'md' | 'lg';
+  onLabel?: string;   // Added for backward compatibility
+  offLabel?: string;  // Added for backward compatibility
 }
 
 /**
@@ -164,16 +176,28 @@ export interface RangeConstraints {
  */
 export interface TextConstraints {
   maxLength?: number;
+  minLength?: number;     // Added minLength
   pattern?: RegExp;
+  patternError?: string;  // Added custom pattern error message
   placeholder?: string;
   multiline?: boolean;
+  validator?: (value: string) => string | true;  // Added custom validator
+  formatter?: (value: string) => string;        // Added formatter
+  allowInvalid?: boolean; // Added allowInvalid flag
+  autoResize?: boolean;   // Added autoResize for textareas
+  showCharacterCount?: boolean; // Added character count display
+  required?: boolean;     // Added required field validation
+  rows?: number;          // Added rows for textarea
+  inputType?: string;     // Added input type (text, email, password, etc.)
+  clearable?: boolean;    // Added clearable button for input
+  formatHints?: string[]; // Added format hints for display
 }
 
 /**
  * Property dependencies for conditional display
  */
 export interface PropertyDependency {
-  property: keyof ControlSettings;
+  property: string;  // Changed from keyof ControlSettings to string for dotted paths
   condition: (value: any) => boolean;
   effect: 'show' | 'hide' | 'enable' | 'disable';
 }
@@ -205,6 +229,7 @@ export interface SelectOption {
   label: string;
   description?: string;
   icon?: string;
+  group?: string;  // Added group support for option grouping
 }
 
 /**
@@ -237,7 +262,7 @@ export interface ColorControlProps extends BaseControlProps<string> {
   spec: StandardControlSpec & { constraints: { color: ColorConstraints } };
 }
 
-export interface GradientControlProps extends BaseControlProps<any[]> {
+export interface GradientControlProps extends BaseControlProps<any[] | string> {
   spec: StandardControlSpec & { constraints: { gradient: GradientConstraints } };
 }
 

@@ -26,8 +26,8 @@ const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
 
     const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
-    const sequencer = project?.sequences[activeSequenceIndex].sequencer;
-    const numSteps = sequencer?.numSteps ?? 16;
+    const sequencerState = project?.sequences[activeSequenceIndex]?.rendererSequencerStates[project?.sequences[activeSequenceIndex]?.activeRenderer];
+    const numSteps = sequencerState?.numSteps ?? 16;
 
     const controlInfo = useMemo(() => {
         for (const renderer of Object.values(renderers)) {
@@ -41,12 +41,15 @@ const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
             
             for (const section of schema) {
                 // Skip separator sections - they don't have controls
-                if (!section || section.type === 'separator' || !Array.isArray(section.controls)) continue;
+                if (!section || 'type' in section) continue; // SeparatorSection has 'type' property
                 
-                const control = section.controls.find(c => c.id === track.property);
+                const controlSection = section as import('../../types').ControlSection;
+                if (!Array.isArray(controlSection.controls)) continue;
+                
+                const control = controlSection.controls.find(c => c.id === track.property);
                 if (control && control.type === 'slider') {
                     // FIX: Also return the category (section title) to be used in the UI.
-                    return { ...(control as SliderControlConfig), category: section.title };
+                    return { ...(control as SliderControlConfig), category: controlSection.title };
                 }
             }
         }

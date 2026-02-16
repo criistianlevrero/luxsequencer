@@ -101,7 +101,7 @@ export const TextControl: React.FC<TextControlProps> = ({
     onFocus: handleFocus,
     onBlur: handleBlur,
     disabled,
-    placeholder: spec.placeholder || '',
+    placeholder: constraints.placeholder || '',
     maxLength: constraints.maxLength,
     className: `
       w-full px-3 py-2 bg-gray-700 border rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none transition-colors

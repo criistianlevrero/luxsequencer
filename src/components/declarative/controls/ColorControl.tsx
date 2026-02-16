@@ -132,7 +132,9 @@ export const ColorControl: React.FC<ColorControlProps> = ({
         const result = await eyeDropper.open();
         handleColorChange(result.sRGBHex);
       } catch {
-        console.log('User cancelled eyedropper');
+        if (import.meta.env.DEV) {
+          console.log('User cancelled eyedropper');
+        }
       }
     }
   }, [handleColorChange]);

@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTextureStore } from '../../../store';
 import { getWebGLCompatibleSettings } from '../../../utils/settingsMigration';
 import { usePerformanceTimer } from '../../../hooks/usePerformanceMonitoring';
+import type { GradientColor } from '../../../types';
 
 type RGBColor = { r: number, g: number, b: number };
 

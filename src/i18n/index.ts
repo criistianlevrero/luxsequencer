@@ -6,8 +6,8 @@ import type { TranslationKeys, LocaleCode, TranslationParams } from './types'
 const r = rosetta()
 
 // Helper function to convert flat dot notation to nested objects for rosetta
-const flatToNested = (flat: Record<string, string>): any => {
-  const nested: any = {}
+const flatToNested = (flat: Record<string, string>): Record<string, unknown> => {
+  const nested: Record<string, unknown> = {}
   
   for (const [key, value] of Object.entries(flat)) {
     const parts = key.split('.')
@@ -18,7 +18,7 @@ const flatToNested = (flat: Record<string, string>): any => {
       if (!(part in current)) {
         current[part] = {}
       }
-      current = current[part]
+      current = current[part] as Record<string, unknown>
     }
     
     current[parts[parts.length - 1]] = value
@@ -28,8 +28,8 @@ const flatToNested = (flat: Record<string, string>): any => {
 }
 
 // Convert flat translations to nested structure for rosetta
-const nestedEn = flatToNested(translations.en)
-const nestedEs = flatToNested(translations.es)
+const nestedEn = flatToNested(translations.en as Record<string, string>)
+const nestedEs = flatToNested(translations.es as Record<string, string>)
 
 // Add translations to rosetta
 r.set('en', nestedEn);

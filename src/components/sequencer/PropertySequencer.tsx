@@ -24,8 +24,8 @@ const PropertySequencer: React.FC = () => {
 
     const allAnimatableProps = useMemo(() => {
         // Get only properties from the selected renderer
-        const props: { id: keyof ControlSettings; label: string; category: string }[] = [];
-        const addedProps = new Set<keyof ControlSettings>();
+        const props: { id: string; label: string; category: string }[] = [];
+        const addedProps = new Set<string>();
 
         // Get the currently selected renderer
         const selectedRendererId = activeSequence?.activeRenderer || 'webgl';
@@ -76,7 +76,7 @@ const PropertySequencer: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2 p-3 bg-gray-900/50 rounded-lg">
                 <Select
                     value={selectedProperty}
-                    onChange={(value) => setSelectedProperty(value)}
+                    onChange={(value) => setSelectedProperty(String(value))}
                     className="flex-1"
                     placeholder="Seleccione una propiedad..."
                 >

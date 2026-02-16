@@ -46,7 +46,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
     setViewportMode: (mode) => set({ viewportMode: mode }),
     
     setRenderer: (renderer) => {
-        const { project, currentSettings } = get();
+        const { project } = get();
         if (!project) return;
 
         const newProject = produce(project, draft => {
@@ -55,7 +55,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
         get().setProject(newProject);
         
         // Validate and migrate current settings for the new renderer
-        const migratedSettings = createInitialSettings(renderer, currentSettings);
+        const migratedSettings = createInitialSettings();
         const rendererDefinition = renderers[renderer];
         
         if (rendererDefinition) {

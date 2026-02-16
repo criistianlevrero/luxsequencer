@@ -10,7 +10,8 @@ import { renderers } from '../renderers';
 import CollapsibleSection from '../shared/CollapsibleSection';
 import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
 import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/webgl/webgl-declarative-schema';
-import type { RendererControlSpec } from '../types/declarativeControls';
+import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';
+import type { ControlSection } from '../../types';
 
 interface EnhancedControlPanelProps {
   /**
@@ -43,7 +44,7 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
   const { setCurrentSetting } = useTextureStore.getState();
 
   // Get renderer control spec
-  const rendererControlSpec: RendererControlSpec | null = useMemo(() => {
+  const rendererControlSpec: RendererControlSpec | DeclarativeControlSchema | null = useMemo(() => {
     switch (renderer) {
       case 'webgl':
         return webglRendererControlSpec;
@@ -73,14 +74,14 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
     const currentRenderer = renderers[renderer];
     if (!currentRenderer) return null;
 
-    const schema = 'getControlSchema' in currentRenderer 
-      ? currentRenderer.getControlSchema()
-      : [];
+    const schema = typeof currentRenderer.controlSchema === 'function' 
+      ? currentRenderer.controlSchema()
+      : currentRenderer.controlSchema || [];
 
     return (
       <div className="space-y-4">
         {schema.map((section, index) => {
-          if (section.type === 'separator') {
+          if ('type' in section && section.type === 'separator') {
             return (
               <div 
                 key={section.id || `separator-${index}`} 
@@ -89,14 +90,17 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
             );
           }
 
+          // Type guard: section is ControlSection
+          const controlSection = section as ControlSection;
+
           return (
             <CollapsibleSection
-              key={section.title || `section-${index}`}
-              title={section.title || 'Untitled'}
-              defaultOpen={section.defaultOpen}
+              key={controlSection.title || `section-${index}`}
+              title={controlSection.title || 'Untitled'}
+              defaultOpen={controlSection.defaultOpen}
             >
               <div className="space-y-4">
-                {section.controls?.map((control, controlIndex) => (
+                {controlSection.controls?.map((control, controlIndex) => (
                   <div key={control.id || `control-${controlIndex}`}>
                     {/* Legacy control rendering logic */}
                     {control.type === 'custom' && control.component && (
@@ -132,10 +136,16 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
           {rendererControlSpec && (
             <div className="text-right">
               <div className="text-sm text-gray-400">
-                {rendererControlSpec.standard.length} controls
+                {'standard' in rendererControlSpec 
+                  ? `${(rendererControlSpec as RendererControlSpec).standard.length} controls`
+                  : `${(rendererControlSpec as DeclarativeControlSchema).sections.flatMap(s => s.controls).length} controls`
+                }
               </div>
               <div className="text-xs text-gray-500">
-                {new Set(rendererControlSpec.standard.map(c => c.category)).size} categories
+                {'standard' in rendererControlSpec
+                  ? `${new Set((rendererControlSpec as RendererControlSpec).standard.map(c => c.category)).size} categories`
+                  : `${(rendererControlSpec as DeclarativeControlSchema).sections.length} sections`
+                }
               </div>
             </div>
           )}

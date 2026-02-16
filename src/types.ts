@@ -4,6 +4,9 @@ import type React from 'react';
 export * from './types/validation';
 export * from './types/declarativeControls';
 
+// Core app types
+export type ViewportMode = 'horizontal' | 'vertical';
+
 export interface GradientColor {
   id: string;
   color: string;
@@ -79,6 +82,8 @@ export interface LegacyControlSettings {
   scaleBorderWidth: number;
   gradientColors: GradientColor[];
   backgroundGradientColors: GradientColor[];
+  centerOffset: { x: number; y: number };
+  scaleRange: { min: number; max: number };
   
   // Concentric renderer settings
   concentric_repetitionSpeed?: number;

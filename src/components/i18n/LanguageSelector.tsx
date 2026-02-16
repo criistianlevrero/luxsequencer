@@ -23,7 +23,7 @@ export const LanguageSelector: React.FC<{ className?: string }> = ({ className }
   return (
     <Select
       value={locale}
-      onChange={(value) => setLocale(value as any)}
+      onChange={(value) => setLocale(value as LocaleCode)}
       options={options}
       className={className}
       size="sm"
