@@ -257,7 +257,23 @@ export const useDeclarativeControls = (
     };
     
     const storePath = mapControlIdToStorePath(control.id as string);
-    const value = getNestedProperty(settings, storePath);
+    let value = getNestedProperty(settings, storePath);
+    
+    // If value is not found, try using the default value from control constraints
+    if (value === undefined) {
+      if (control.constraints.slider?.defaultValue !== undefined) {
+        value = control.constraints.slider.defaultValue;
+      } else if (control.constraints.color?.alpha !== undefined) {
+        value = undefined; // No default for colors
+      } else if (control.constraints.gradient?.minColors !== undefined) {
+        value = undefined; // No default for gradients
+      } else if (control.constraints.select?.options) {
+        // Try first option as default
+        const options = control.constraints.select.options;
+        value = Array.isArray(options) && options.length > 0 ? options[0].value : undefined;
+      }
+    }
+    
     const { visible, enabled } = controlRenderer.checkDependencies(control, settings);
     
     if (!visible) return null;
