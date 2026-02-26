@@ -6,7 +6,8 @@ import type {
   CommonSettings, 
   RendererSettings, 
   WebGLSettings, 
-  ConcentricSettings
+  ConcentricSettings,
+  DvdScreensaverSettings
 } from '../types';
 import { isNewControlSettings } from '../types';
 
@@ -302,7 +303,7 @@ export const setNestedProperty = (
 /**
  * Creates default settings for a specific renderer
  */
-export const createDefaultRendererSettings = (rendererId: string): WebGLSettings | ConcentricSettings | Record<string, unknown> => {
+export const createDefaultRendererSettings = (rendererId: string): WebGLSettings | ConcentricSettings | DvdScreensaverSettings | Record<string, unknown> => {
   switch (rendererId) {
     case 'webgl':
       return {
@@ -334,6 +335,46 @@ export const createDefaultRendererSettings = (rendererId: string): WebGLSettings
           { id: "c-color-2", color: "#ff00ff", hardStop: false }
         ],
       } as ConcentricSettings;
+    case 'dvd-screensaver':
+      return {
+        assets: [
+          {
+            id: 'asset-1',
+            type: 'text',
+            text: 'DVD',
+            svg: '',
+            delayMs: 0,
+            speed: 120,
+            rotationSpeed: 20,
+            rotationDirection: 1,
+            direction: 45,
+            scale: 1,
+            opacity: 1
+          }
+        ],
+        background: {
+          color: '#0b0b0b'
+        },
+        glitch: {
+          chromaticAberration: {
+            enabled: false,
+            amount: 2
+          },
+          horizontalBands: {
+            enabled: false,
+            intensity: 0.5,
+            bandCount: 6,
+            speed: 0.6
+          },
+          channelFlicker: {
+            enabled: false,
+            probability: 0.1,
+            channel: 'r'
+          }
+        },
+        globalSpeed: 1,
+        globalRotationSpeed: 1
+      } as DvdScreensaverSettings;
       
     default:
       return {} as Record<string, unknown>;
@@ -353,6 +394,7 @@ export const createInitialSettings = (): ControlSettings => {
   const renderer: RendererSettings = {
     webgl: createDefaultRendererSettings('webgl'),
     concentric: createDefaultRendererSettings('concentric'),
+    'dvd-screensaver': createDefaultRendererSettings('dvd-screensaver'),
   };
 
   return { common, renderer };

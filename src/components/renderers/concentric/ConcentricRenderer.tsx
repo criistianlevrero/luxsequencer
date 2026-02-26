@@ -188,7 +188,9 @@ const ConcentricRenderer: React.FC<{ className?: string }> = ({ className }) => 
                 const age = time - ring.creationTime;
                 // Use ring's own growth speed for size calculation
                 const currentSize = ring.initialSize + age * ring.growthSpeed * 0.1;
-                return currentSize < diagonal / 2;
+                // Keep polygon visible until it exceeds the diagonal distance
+                // This ensures complete fill for all polygon types including thin shapes like triangles
+                return currentSize < diagonal;
             });
         };
 

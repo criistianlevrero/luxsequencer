@@ -63,6 +63,51 @@ export interface ConcentricSettings {
   gradientColors: GradientColor[];
 }
 
+// DVD screensaver renderer specific settings
+export interface DvdScreensaverAsset {
+  id: string;
+  type: 'text' | 'svg';
+  text?: string;
+  svg?: string;
+  delayMs: number;
+  speed: number;
+  rotationSpeed: number;
+  rotationDirection: 1 | -1;
+  direction: number;
+  scale: number;
+  opacity: number;
+}
+
+export interface DvdScreensaverBackground {
+  color: string;
+}
+
+export interface DvdScreensaverGlitch {
+  chromaticAberration: {
+    enabled: boolean;
+    amount: number;
+  };
+  horizontalBands: {
+    enabled: boolean;
+    intensity: number;
+    bandCount: number;
+    speed: number;
+  };
+  channelFlicker: {
+    enabled: boolean;
+    probability: number;
+    channel: 'r' | 'g' | 'b';
+  };
+}
+
+export interface DvdScreensaverSettings {
+  assets: DvdScreensaverAsset[];
+  background: DvdScreensaverBackground;
+  glitch: DvdScreensaverGlitch;
+  globalSpeed: number;
+  globalRotationSpeed: number;
+}
+
 // New flexible control settings structure
 export interface ControlSettings {
   common: CommonSettings;

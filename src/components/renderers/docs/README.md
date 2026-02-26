@@ -14,7 +14,6 @@ This guide describes how to build and register renderers in LuxSequencer. It tar
 
 All renderers are registered via the `RendererDefinition` interface:
 
-```ts
 export interface RendererDefinition {
   id: string;
   name: string;
@@ -22,16 +21,14 @@ export interface RendererDefinition {
   controlSchema: AccordionItem[] | (() => AccordionItem[]);
   declarativeSchema?: DeclarativeControlSchema;
   validation?: RendererValidationSpec;
-  fallbackRenderer?: string;
-  version?: string;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  [webglRenderer.id]: webglRenderer,
+  [concentricRenderer.id]: concentricRenderer,
+  [yourRenderer.id]: yourRenderer
   onRecover?: () => void;
 }
 ```
 
 Important fields:
-
-- `id`: stable, unique string. Use lowercase and no spaces.
 - `name`: human-readable name displayed in UI.
 - `component`: the renderer React component.
 - `controlSchema`: legacy accordion control schema (still used by default UI).
@@ -61,15 +58,15 @@ Register your renderer in:
 
 - `src/components/renderers/index.ts`
 
-Example:
+Example (use the renderer `id` as the key to keep mapping stable):
 
 ```ts
 import { yourRenderer } from './your-renderer';
 
 export const renderers: Record<string, RendererDefinition> = {
-  webgl: webglRenderer,
-  concentric: concentricRenderer,
-  yourRenderer: yourRenderer
+  [webglRenderer.id]: webglRenderer,
+  [concentricRenderer.id]: concentricRenderer,
+  [yourRenderer.id]: yourRenderer
 };
 ```
 
@@ -235,6 +232,13 @@ export default YourRenderer;
 - Use `getNestedProperty` for hierarchical settings.
 - Prefer shared UI controls and helpers.
 - Keep IDs stable to avoid breaking saved projects.
+
+## Defaults
+
+If the renderer introduces new settings paths, add defaults to:
+
+- `public/default-project.json` (runtime fetch)
+- `default-project.json` (keep in sync for versioning)
 
 ## Checklist for New Renderers
 
