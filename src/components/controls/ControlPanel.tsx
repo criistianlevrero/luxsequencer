@@ -5,7 +5,7 @@ import { TrashIcon, DownloadIcon, UploadIcon } from '../ui/icons';
 import { renderers } from '../renderers';
 import MidiLearnButton from '../midi/MidiLearnButton';
 import RendererControls from '../renderers/shared/RendererControls';
-import { CollapsibleSection, Select } from '../ui';
+import { Button, CollapsibleSection, Input, Select } from '../ui';
 
 const ControlPanel: React.FC = () => {
   const { t } = useTranslation();
@@ -117,20 +117,24 @@ const ControlPanel: React.FC = () => {
         <CollapsibleSection title={t('patterns.title')}>
             <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                    <button
+                    <Button
+                        variant="primary"
+                        size="md"
                         onClick={() => saveCurrentPattern()}
-                        className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                        className="w-full"
                     >
                         {t('patterns.saveAsNew')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="md"
                         onClick={overwriteSelectedPattern}
                         disabled={!selectedPatternId}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         title={!selectedPatternId ? t('patterns.overwriteTooltip') : t('patterns.overwriteSelectedTooltip')}
                     >
                         {t('patterns.overwrite')}
-                    </button>
+                    </Button>
                 </div>
                 <div className="space-y-2 pt-2">
                     <h4 className="font-medium text-gray-400">{t('patterns.savedMemories')}</h4>
@@ -147,9 +151,9 @@ const ControlPanel: React.FC = () => {
                                     }`}
                                     aria-hidden="true"
                                 />
-                                <button onClick={() => loadPattern(pattern.id)} className="grow text-left px-2 py-1 hover:bg-gray-600 rounded-md transition-colors">
+                                <Button variant="ghost" size="sm" onClick={() => loadPattern(pattern.id)} className="grow justify-start text-left font-normal px-2 py-1 hover:bg-gray-600 rounded-md">
                                     {pattern.name}
-                                </button>
+                                </Button>
                                 <span className="text-xs font-mono text-cyan-400 w-12 text-center">
                                     {pattern.midiNote !== undefined ? `N: ${pattern.midiNote}` : '-'}
                                 </span>
@@ -160,9 +164,9 @@ const ControlPanel: React.FC = () => {
                                     learnTitle={t('patterns.assignMidi', { name: pattern.name })}
                                     clearTitle={t('patterns.clearMidi', { name: pattern.name })}
                                 />
-                                <button onClick={() => deletePattern(pattern.id)} className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center bg-gray-600 hover:bg-red-500/80 text-gray-300 hover:text-white transition-colors" aria-label={t('common.delete') + ` ${pattern.name}`}>
+                                <Button variant="danger" size="icon" onClick={() => deletePattern(pattern.id)} className="w-10 h-10 shrink-0 rounded-lg" aria-label={t('common.delete') + ` ${pattern.name}`}>
                                     <TrashIcon className="w-5 h-5"/>
-                                </button>
+                                </Button>
                             </div>
                         ))
                     )}
@@ -184,18 +188,20 @@ const ControlPanel: React.FC = () => {
                             <strong className="font-bold block mb-2">{t('midi.connectionError')}</strong>
                             <p className="mt-1">{midiConnectionError}</p>
                              <div className="mt-4 flex items-center space-x-3">
-                                <button
+                                <Button
+                                    variant="primary"
+                                    size="sm"
                                     onClick={connectMidi}
-                                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
                                 >
                                     {t('midi.retry')}
-                                </button>
-                                 <button
+                                </Button>
+                                 <Button
+                                    variant="secondary"
+                                    size="sm"
                                     onClick={clearMidiError}
-                                    className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-3 rounded-md text-xs transition-colors"
                                 >
                                     {t('common.close')}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     ) : midiDevices.length > 0 ? (
@@ -214,12 +220,14 @@ const ControlPanel: React.FC = () => {
                                 </Select>
                         </div>
                     ) : (
-                        <button
+                        <Button
+                            variant="primary"
+                            size="md"
                             onClick={connectMidi}
-                            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500"
+                            className="w-full"
                         >
                             {t('midi.connect')}
-                        </button>
+                        </Button>
                     )}
                 </div>
                 
@@ -229,27 +237,32 @@ const ControlPanel: React.FC = () => {
                         {t('project.dataManagementDescription')}
                     </p>
                     <div className="grid grid-cols-2 gap-4 mt-3">
-                        <button 
+                        <Button 
+                            variant="secondary"
+                            size="md"
                             onClick={exportProject} 
-                            className="flex items-center justify-center w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                            className="flex items-center justify-center w-full"
                         >
                             <DownloadIcon className="w-5 h-5 mr-2" />
                             {t('project.export')}
-                        </button>
-                        <input
+                        </Button>
+                        <Input
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileImport}
                             className="hidden"
                             accept=".json"
+                            unstyled
                         />
-                        <button 
+                        <Button 
+                            variant="primary"
+                            size="md"
                             onClick={handleImportClick} 
-                            className="flex items-center justify-center w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                            className="flex items-center justify-center w-full"
                         >
                              <UploadIcon className="w-5 h-5 mr-2" />
                             {t('project.import')}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

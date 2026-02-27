@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PlusIcon, TrashIcon } from '../ui/icons';
-import { Switch } from '../ui';
+import { Button, Input, Switch } from '../ui';
 import type { GradientColor } from '../../types';
 
 interface GradientEditorProps {
@@ -53,26 +53,29 @@ const GradientEditor: React.FC<GradientEditorProps> = ({ title, colors, onColors
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-md font-semibold text-gray-200">{title}</h3>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={addColor}
-          className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-md transition-colors"
+          className="flex items-center space-x-2"
           aria-label="Añadir color"
         >
             <PlusIcon className="w-4 h-4" />
             <span>Añadir</span>
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
         {colors.map((color, index) => (
           <div key={color.id} className="flex items-center space-x-3">
-             <input
+             <Input
                 type="color"
                 value={color.color}
                 onChange={(e) => handleColorChange(color.id, e.target.value)}
                 className="p-0 border-2 border-gray-600 rounded-md cursor-pointer appearance-none bg-transparent w-8 h-8 flex-shrink-0"
                 style={{'backgroundColor': color.color}}
                 aria-label={`Color ${index + 1}`}
+               unstyled
             />
             <span className="flex-grow font-mono text-gray-400 select-all">{color.color.toUpperCase()}</span>
             <div className="flex items-center gap-2">
@@ -87,14 +90,16 @@ const GradientEditor: React.FC<GradientEditorProps> = ({ title, colors, onColors
                 {color.hardStop ? "Hard" : "Soft"}
               </span>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => removeColor(color.id)}
-              className="p-2 text-gray-500 hover:text-red-400 disabled:text-gray-700 disabled:cursor-not-allowed transition-colors"
+              className="text-gray-500 hover:text-red-400 disabled:text-gray-700"
               disabled={colors.length <= minColors}
               aria-label={`Eliminar color ${index + 1}`}
             >
               <TrashIcon className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
         ))}
       </div>

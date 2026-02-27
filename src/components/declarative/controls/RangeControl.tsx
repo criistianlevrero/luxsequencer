@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { Button, Input } from '../../ui';
 import type { RangeControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -178,7 +179,7 @@ export const RangeControl: React.FC<RangeControlProps> = ({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-gray-400 block mb-1">Min</label>
-          <input
+          <Input
             type="number"
             value={rangeValue.min}
             onChange={(e) => {
@@ -191,12 +192,12 @@ export const RangeControl: React.FC<RangeControlProps> = ({
             max={rangeValue.max}
             step={constraints.step || 0.01}
             disabled={disabled}
-            className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
+            className="w-full"
           />
         </div>
         <div>
           <label className="text-sm text-gray-400 block mb-1">Max</label>
-          <input
+          <Input
             type="number"
             value={rangeValue.max}
             onChange={(e) => {
@@ -209,7 +210,7 @@ export const RangeControl: React.FC<RangeControlProps> = ({
             max={constraints.max}
             step={constraints.step || 0.01}
             disabled={disabled}
-            className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
+            className="w-full"
           />
         </div>
       </div>
@@ -220,17 +221,16 @@ export const RangeControl: React.FC<RangeControlProps> = ({
           <div className="text-sm text-gray-400 mb-2">Presets</div>
           <div className="flex gap-2 flex-wrap">
             {spec.presets.map((preset, index) => (
-              <button
+              <Button
                 key={index}
+                variant="secondary"
+                size="sm"
                 onClick={() => onChange(preset.value)}
                 disabled={disabled}
-                className={`
-                  px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600
-                  ${disabled && 'opacity-50 cursor-not-allowed'}
-                `}
+                className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 {preset.name}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

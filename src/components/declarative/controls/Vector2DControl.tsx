@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect as _useEffect, useMemo } from 'react';
+import { Input } from '../../ui';
 import type { Vector2DControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -143,7 +144,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-gray-400 block mb-1">Speed</label>
-            <input
+            <Input
               type="range"
               min={0}
               max={Math.max(...constraints.xRange.map(Math.abs), ...constraints.yRange.map(Math.abs))}
@@ -156,13 +157,14 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
               }}
               disabled={disabled}
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              unstyled
             />
             <div className="text-xs text-gray-500 mt-1">{polar.radius.toFixed(2)}</div>
           </div>
           
           <div>
             <label className="text-sm text-gray-400 block mb-1">Angle</label>
-            <input
+            <Input
               type="range"
               min={-180}
               max={180}
@@ -175,6 +177,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
               }}
               disabled={disabled}
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              unstyled
             />
             <div className="text-xs text-gray-500 mt-1">{polar.angle.toFixed(1)}°</div>
           </div>
@@ -275,7 +278,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-sm text-gray-400 block mb-1">X</label>
-          <input
+          <Input
             type="number"
             value={safeValue.x}
             onChange={(e) => {
@@ -288,12 +291,12 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
             max={constraints.xRange[1]}
             step={constraints.gridSize || 0.01}
             disabled={disabled}
-            className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
+            className="w-full"
           />
         </div>
         <div>
           <label className="text-sm text-gray-400 block mb-1">Y</label>
-          <input
+          <Input
             type="number"
             value={safeValue.y}
             onChange={(e) => {
@@ -306,7 +309,7 @@ export const Vector2DControl: React.FC<Vector2DControlProps> = ({
             max={constraints.yRange[1]}
             step={constraints.gridSize || 0.01}
             disabled={disabled}
-            className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
+            className="w-full"
           />
         </div>
       </div>

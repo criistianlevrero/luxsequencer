@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { GradientControlProps } from '../../../types/declarativeControls';
 import GradientEditor from '../../controls/GradientEditor';
+import { Button } from '../../ui';
 import type { GradientColor } from '../../../types';
 
 /**
@@ -132,10 +133,11 @@ export const GradientControl: React.FC<GradientControlProps> = ({
           <div className="text-sm text-gray-400 mb-2">Presets</div>
           <div className="grid grid-cols-2 gap-2">
             {spec.presets.map((preset, index) => (
-              <button
+              <Button
                 key={index}
                 onClick={() => onChange(preset.value)}
                 disabled={disabled}
+                unstyled
                 className={`
                   h-8 rounded border border-gray-600 hover:border-gray-500 transition-colors relative overflow-hidden
                   ${disabled && 'opacity-50 cursor-not-allowed'}
@@ -160,7 +162,7 @@ export const GradientControl: React.FC<GradientControlProps> = ({
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-xs opacity-0 hover:opacity-100 transition-opacity">
                   {preset.name}
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         </div>

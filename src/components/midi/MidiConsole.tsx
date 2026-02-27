@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { CloseIcon } from '../ui/icons';
+import { Button } from '../ui';
 import type { MidiLogEntry } from '../../types';
 
 interface MidiConsoleProps {
@@ -26,20 +27,24 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
         <header className="flex items-center justify-between p-3 border-b border-gray-600 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-100">{t('midi.console')}</h2>
           <div className="flex items-center space-x-2">
-            <button
-                onClick={onClear}
-                className="px-3 py-1 text-sm bg-gray-600 hover:bg-gray-500 text-gray-200 rounded-md transition-colors"
-                aria-label={t('ui.clearConsole')}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onClear}
+              aria-label={t('ui.clearConsole')}
+              className="bg-gray-600 hover:bg-gray-500 text-gray-200"
             >
-                {t('ui.clear')}
-            </button>
-            <button
+              {t('ui.clear')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              icon={<CloseIcon className="w-5 h-5" />}
+              iconOnly
               onClick={onClose}
-              className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
               aria-label={t('ui.closeConsole')}
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
+              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+            />
           </div>
         </header>
         <div className="flex-grow p-4 overflow-y-auto font-mono text-sm">

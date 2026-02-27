@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { Button, Input } from '../../ui';
 import type { ColorControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -171,13 +172,14 @@ export const ColorControl: React.FC<ColorControlProps> = ({
           />
           
           {/* Native color input (hidden) */}
-          <input
+          <Input
             ref={fileInputRef}
             type="color"
             value={color.hex}
             onChange={(e) => handleColorChange(e.target.value)}
             disabled={disabled}
             className="sr-only"
+            unstyled
           />
           
           {/* Color value display and input */}
@@ -185,12 +187,14 @@ export const ColorControl: React.FC<ColorControlProps> = ({
             {/* Format selector */}
             <div className="flex gap-1">
               {(['hex', 'rgb', 'hsl'] as const).map((mode) => (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   key={mode}
                   onClick={() => setColorMode(mode)}
                   disabled={disabled}
                   className={`
-                    px-2 py-1 text-xs rounded uppercase
+                    px-2 uppercase
                     ${colorMode === mode 
                       ? 'bg-cyan-600 text-white' 
                       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -199,28 +203,30 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                   `}
                 >
                   {mode}
-                </button>
+                </Button>
               ))}
               
               {/* Eyedropper tool */}
               {'EyeDropper' in window && (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handleEyeDropper}
                   disabled={disabled}
                   className={`
-                    px-2 py-1 text-xs bg-gray-700 text-gray-300 hover:bg-gray-600 rounded
+                    px-2 bg-gray-700 text-gray-300 hover:bg-gray-600
                     ${disabled && 'opacity-50 cursor-not-allowed'}
                   `}
                   title="Pick color from screen"
                 >
                   💧
-                </button>
+                </Button>
               )}
             </div>
             
             {/* Color value input */}
             {colorMode === 'hex' && (
-              <input
+              <Input
                 type="text"
                 value={color.hex}
                 onChange={(e) => {
@@ -234,13 +240,14 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                 disabled={disabled}
                 className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50 font-mono"
                 placeholder="#RRGGBB"
+                unstyled
               />
             )}
             
             {colorMode === 'rgb' && (
               <div className="grid grid-cols-3 gap-1">
                 {['r', 'g', 'b'].map((channel) => (
-                  <input
+                  <Input
                     key={channel}
                     type="number"
                     min={0}
@@ -255,6 +262,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                     disabled={disabled}
                     className="w-full px-1 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                     placeholder={channel.toUpperCase()}
+                    unstyled
                   />
                 ))}
               </div>
@@ -262,7 +270,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
             
             {colorMode === 'hsl' && (
               <div className="grid grid-cols-3 gap-1">
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={360}
@@ -276,9 +284,10 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                   disabled={disabled}
                   className="w-full px-1 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                   placeholder="H"
+                  unstyled
                 />
                 {['s', 'l'].map((channel) => (
-                  <input
+                  <Input
                     key={channel}
                     type="number"
                     min={0}
@@ -294,6 +303,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                     disabled={disabled}
                     className="w-full px-1 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                     placeholder={channel.toUpperCase()}
+                    unstyled
                   />
                 ))}
               </div>
@@ -307,10 +317,11 @@ export const ColorControl: React.FC<ColorControlProps> = ({
             <div className="text-sm text-gray-400 mb-2">Palette</div>
             <div className="grid grid-cols-9 gap-1">
               {palette.map((paletteColor, index) => (
-                <button
+                <Button
                   key={index}
                   onClick={() => handlePaletteColor(paletteColor)}
                   disabled={disabled}
+                  unstyled
                   className={`
                     w-6 h-6 rounded border-2 hover:scale-110 transition-transform
                     ${color.hex.toLowerCase() === paletteColor.toLowerCase()
@@ -333,12 +344,14 @@ export const ColorControl: React.FC<ColorControlProps> = ({
             <div className="text-sm text-gray-400 mb-2">Presets</div>
             <div className="flex gap-2 flex-wrap">
               {spec.presets.map((preset, index) => (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   key={index}
                   onClick={() => handleColorChange(preset.value)}
                   disabled={disabled}
                   className={`
-                    px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 
+                    px-3 bg-gray-700 text-gray-300 hover:bg-gray-600 
                     flex items-center gap-2
                     ${disabled && 'opacity-50 cursor-not-allowed'}
                   `}
@@ -348,7 +361,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
                     style={{ backgroundColor: preset.value }}
                   />
                   {preset.name}
-                </button>
+                </Button>
               ))}
             </div>
           </div>

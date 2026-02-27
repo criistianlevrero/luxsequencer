@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { Button, Input, Textarea } from '../../ui';
 import type { TextControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -136,28 +137,34 @@ export const TextControl: React.FC<TextControlProps> = ({
       <div className="relative">
         {/* Input/Textarea */}
         {constraints.multiline ? (
-          <textarea
+          <Textarea
             ref={textareaRef}
             {...commonProps}
             rows={constraints.rows || 3}
             onInput={adjustTextareaHeight}
+            unstyled
           />
         ) : (
-          <input
+          <Input
             type={constraints.inputType || 'text'}
             {...commonProps}
+            unstyled
           />
         )}
         
         {/* Clear button */}
         {value && !disabled && constraints.clearable && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            icon="✕"
+            iconOnly
             onClick={() => onChange('')}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 h-6 w-6 min-h-0 min-w-0"
             title="Clear"
           >
-            ✕
-          </button>
+            Clear
+          </Button>
         )}
       </div>
       
@@ -190,18 +197,17 @@ export const TextControl: React.FC<TextControlProps> = ({
           <div className="text-sm text-gray-400 mb-2">Presets</div>
           <div className="flex gap-2 flex-wrap">
             {spec.presets.map((preset, index) => (
-              <button
+              <Button
                 key={index}
+                variant="secondary"
+                size="sm"
                 onClick={() => onChange(preset.value)}
                 disabled={disabled}
-                className={`
-                  px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600
-                  ${disabled && 'opacity-50 cursor-not-allowed'}
-                `}
+                className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 title={preset.value}
               >
                 {preset.name}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

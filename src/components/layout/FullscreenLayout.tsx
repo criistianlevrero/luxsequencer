@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon, ResetIcon } from '../ui/icons';
+import { Button } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { DrawerStates, DrawerActions } from '../../hooks/useDrawerStates';
 
@@ -37,36 +38,44 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
         }`}
       >
         <div className="flex items-center space-x-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            icon={drawers.isDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SettingsIcon className="w-6 h-6" />}
+            iconOnly
             onClick={drawerActions.toggleDrawer}
-            className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
             aria-label={drawers.isDrawerOpen ? t('ui.closeControls') : t('ui.openControls')}
-          >
-            {drawers.isDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SettingsIcon className="w-6 h-6" />}
-          </button>
-          <button
+            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            icon={drawers.isSequencerDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SequencerIcon className="w-6 h-6" />}
+            iconOnly
             onClick={drawerActions.toggleSequencerDrawer}
-            className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
             aria-label={drawers.isSequencerDrawerOpen ? t('ui.closeSequencer') : t('ui.openSequencer')}
-          >
-            {drawers.isSequencerDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SequencerIcon className="w-6 h-6" />}
-          </button>
+            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+          />
         </div>
         <div className="flex items-center space-x-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            icon={<ResetIcon className="w-6 h-6" />}
+            iconOnly
             onClick={onReset}
-            className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
             title={t('ui.resetToDefault')}
-          >
-            <ResetIcon className="w-6 h-6" />
-          </button>
-          <button
+            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            icon={<ExitFullscreenIcon className="w-6 h-6" />}
+            iconOnly
             onClick={onFullscreen}
-            className="p-3 bg-gray-800/70 text-white rounded-full backdrop-blur-sm hover:bg-gray-700/90 transition-colors"
             aria-label={t('ui.exitFullscreen')}
-          >
-            <ExitFullscreenIcon className="w-6 h-6" />
-          </button>
+            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+          />
         </div>
       </div>
        

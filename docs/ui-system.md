@@ -156,6 +156,23 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 - ✅ Focus ring para accesibilidad
 - ✅ Transiciones suaves
 
+#### Criterios de uso de `unstyled`
+Para mantener consistencia visual, usar siempre variantes estándar (`variant` + `size`) como primera opción.
+
+Usar `unstyled` **solo** en estos casos:
+- Interacciones altamente custom (ejemplo: swatches de color pequeños, handles visuales, chips con layout no estándar)
+- Inputs ocultos de infraestructura (`type="file"`, `type="color"` oculto para trigger externo)
+- Controles con geometría no compatible con el padding/ring base de la primitiva
+
+Evitar `unstyled` cuando:
+- El componente puede representarse con `primary`, `secondary`, `danger` o `ghost`
+- Solo se requiere ajustar ancho, alineación o spacing (usar `className` sobre la variante estándar)
+- El objetivo es replicar un botón/input común de formulario
+
+Regla práctica del proyecto:
+- Si el control sigue siendo un botón o input tradicional, usar primitiva estándar.
+- Si el control funciona como parte de una UI dibujada o mini-widget, permitir `unstyled`.
+
 ### 2. Select Component (Headless UI)
 **Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
 **Implementación actual**: [`src/components/ui/Select.tsx`](../src/components/ui/Select.tsx)

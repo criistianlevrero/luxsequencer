@@ -3,6 +3,7 @@ import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
 import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
 import { PerformanceMonitor } from './PerformanceMonitor';
+import { Button } from '../ui';
 
 interface DebugMetrics {
   sequencerTicks: number;
@@ -196,13 +197,15 @@ const DebugOverlay: React.FC = () => {
 
   if (!isOpen) {
     return (
-      <button
+      <Button
+        variant="primary"
+        size="md"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full shadow-lg z-50"
+        className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-full shadow-lg z-50"
         title="Abrir Debug Console"
       >
         🐛 Debug
-      </button>
+      </Button>
     );
   }
 
@@ -221,29 +224,36 @@ const DebugOverlay: React.FC = () => {
             </div>
           )}
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
+          iconOnly
           onClick={() => setIsOpen(false)}
           className="text-white hover:text-gray-200"
         >
           ✕
-        </button>
+        </Button>
       </div>
       
       {/* Tab Navigation */}
       <div className="flex bg-gray-800 border-b border-gray-700">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab('metrics')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
             activeTab === 'metrics'
               ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
               : 'text-gray-400 hover:text-gray-200'
           }`}
         >
           Debug Metrics
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab('performance')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
             activeTab === 'performance'
               ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
               : 'text-gray-400 hover:text-gray-200'
@@ -253,17 +263,19 @@ const DebugOverlay: React.FC = () => {
           {alertData.hasUnacknowledgedAlerts && (
             <span className="ml-1 w-1.5 h-1.5 bg-yellow-400 rounded-full inline-block" />
           )}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab('logs')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
             activeTab === 'logs'
               ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
               : 'text-gray-400 hover:text-gray-200'
           }`}
         >
           Event Logs
-        </button>
+        </Button>
       </div>
 
       {/* Tab Content */}
@@ -329,18 +341,22 @@ const DebugOverlay: React.FC = () => {
 
             {/* Controls */}
             <div className="px-4 py-2 border-b border-gray-700 flex gap-2">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={clearLogs}
-                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold py-1 px-2 rounded"
+                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold py-1 px-2"
               >
                 {t('debug.clearLogs')}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={exportDebugData}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-2 rounded"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-2"
               >
                 {t('debug.exportData')}
-              </button>
+              </Button>
             </div>
           </>
         )}

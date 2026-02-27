@@ -1,5 +1,6 @@
 import React from 'react';
 import { FishIcon, EnterFullscreenIcon, ResetIcon } from '../ui/icons';
+import { Button } from '../ui';
 import { LanguageSelector } from '../i18n/LanguageSelector';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import packageJson from '../../../package.json';
@@ -26,20 +27,24 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onFullscreen, onReset }) =
           </div>
           <div className="flex items-center space-x-2">
             <LanguageSelector className="bg-gray-700/80 text-white rounded px-2 py-1 text-sm border border-gray-600 hover:bg-gray-600 transition-colors" />
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              icon={<ResetIcon className="w-5 h-5" />}
+              iconOnly
               onClick={onReset}
-              className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
               title={t('ui.resetToDefault')}
-            >
-              <ResetIcon className="w-5 h-5" />
-            </button>
-            <button
+              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              icon={<EnterFullscreenIcon className="w-6 h-6" />}
+              iconOnly
               onClick={onFullscreen}
-              className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition-colors"
               aria-label={t('ui.enterFullscreen')}
-            >
-              <EnterFullscreenIcon className="w-6 h-6" />
-            </button>
+              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+            />
           </div>
         </div>
       </div>

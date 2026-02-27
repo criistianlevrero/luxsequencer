@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, Input, Switch } from '../../ui';
 import type { ToggleControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -38,32 +39,16 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
             )}
           </label>
           
-          {/* Switch component */}
-          <button
-            role="switch"
-            aria-checked={value}
-            onClick={handleToggle}
-            onKeyDown={handleKeyDown}
+          <Switch
+            checked={value}
+            onChange={(checked) => {
+              if (!disabled) {
+                onChange(checked);
+              }
+            }}
             disabled={disabled}
-            className={`
-              relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900
-              ${disabled 
-                ? 'cursor-not-allowed opacity-50' 
-                : 'cursor-pointer'
-              }
-              ${value 
-                ? 'bg-cyan-600' 
-                : 'bg-gray-600'
-              }
-            `}
-          >
-            <span
-              className={`
-                inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                ${value ? 'translate-x-6' : 'translate-x-1'}
-              `}
-            />
-          </button>
+            size="md"
+          />
         </div>
         
         {spec.metadata?.description && (
@@ -89,13 +74,14 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
       <div className="space-y-3">
         <label className="flex items-center gap-3 cursor-pointer">
           <div className="relative">
-            <input
+            <Input
               type="checkbox"
               checked={value}
               onChange={handleToggle}
               onKeyDown={handleKeyDown}
               disabled={disabled}
               className="sr-only"
+              unstyled
             />
             <div
               className={`
@@ -159,27 +145,19 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
           <p className="text-sm text-gray-400">{spec.metadata.description}</p>
         )}
         
-        <button
+        <Button
+          variant={value ? 'primary' : 'secondary'}
+          size="md"
           onClick={handleToggle}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          className={`
-            px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900
-            ${disabled 
-              ? 'cursor-not-allowed opacity-50' 
-              : 'cursor-pointer'
-            }
-            ${value 
-              ? 'bg-cyan-600 text-white hover:bg-cyan-700' 
-              : 'bg-gray-600 text-gray-200 hover:bg-gray-700'
-            }
-          `}
+          className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
         >
           {value 
             ? (constraints.onLabel || 'On')
             : (constraints.offLabel || 'Off')
           }
-        </button>
+        </Button>
       </div>
     );
   }
@@ -203,13 +181,14 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
           {/* True option */}
           <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
-              <input
+              <Input
                 type="radio"
                 name={spec.id}
                 checked={value === true}
                 onChange={() => onChange(true)}
                 disabled={disabled}
                 className="sr-only"
+                unstyled
               />
               <div
                 className={`
@@ -237,13 +216,14 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
           {/* False option */}
           <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
-              <input
+              <Input
                 type="radio"
                 name={spec.id}
                 checked={value === false}
                 onChange={() => onChange(false)}
                 disabled={disabled}
                 className="sr-only"
+                unstyled
               />
               <div
                 className={`

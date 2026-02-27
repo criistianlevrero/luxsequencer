@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTextureStore } from '../../store';
+import { Button } from '../ui';
 
 // Iconos para dual screen
 export const DualScreenIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -67,21 +68,15 @@ export const DualScreenControls: React.FC<DualScreenControlsProps> = ({ classNam
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
+      icon={hasSecondaryWindow ? <DualScreenIcon className="w-5 h-5" /> : <SingleScreenIcon className="w-5 h-5" />}
+      iconOnly
       onClick={handleToggleDualScreen}
-      className={`
-        p-2 text-gray-400 hover:text-white transition-colors duration-200
-        ${hasSecondaryWindow ? 'text-cyan-400' : ''}
-        ${className || ''}
-      `}
       title={hasSecondaryWindow ? 'Cerrar pantalla secundaria' : 'Abrir pantalla secundaria'}
-    >
-      {hasSecondaryWindow ? (
-        <DualScreenIcon className="w-5 h-5" />
-      ) : (
-        <SingleScreenIcon className="w-5 h-5" />
-      )}
-    </button>
+      className={`text-gray-400 hover:text-white ${hasSecondaryWindow ? 'text-cyan-400' : ''} ${className || ''}`}
+    />
   );
 };
 

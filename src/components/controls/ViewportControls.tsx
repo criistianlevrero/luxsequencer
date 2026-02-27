@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { DesktopIcon, MobileIcon } from '../ui/icons';
+import { Button } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import DualScreenControls from '../dualscreen/DualScreenControls';
 import { useTextureStore } from '../../store';
@@ -21,22 +22,26 @@ const ViewportControls: React.FC<ViewportControlsProps> = ({ mode, onModeChange 
 
   return (
     <div className="absolute top-3 right-3 z-10 bg-gray-800/80 backdrop-blur-sm p-1 rounded-lg flex items-center space-x-1">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
+        icon={<DesktopIcon className="w-5 h-5" />}
+        iconOnly
         onClick={() => onModeChange('horizontal')}
         className={`${buttonStyle} ${mode === 'horizontal' ? activeStyle : inactiveStyle}`}
         aria-label={t('viewport.desktop')}
         title={t('viewport.desktop')}
-      >
-        <DesktopIcon className="w-5 h-5" />
-      </button>
-      <button
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        icon={<MobileIcon className="w-5 h-5" />}
+        iconOnly
         onClick={() => onModeChange('vertical')}
         className={`${buttonStyle} ${mode === 'vertical' ? activeStyle : inactiveStyle}`}
         aria-label={t('viewport.mobile')}
         title={t('viewport.mobile')}
-      >
-        <MobileIcon className="w-5 h-5" />
-      </button>
+      />
       
       <div className="border-l border-gray-600 h-6 mx-1"></div>
       

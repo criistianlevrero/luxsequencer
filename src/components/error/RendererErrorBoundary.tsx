@@ -1,5 +1,6 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import type { RendererDefinition } from '../renderers/types';
+import { Button } from '../ui';
 
 interface RendererErrorBoundaryProps {
   children: ReactNode;
@@ -40,12 +41,14 @@ export class RendererErrorBoundary extends Component<RendererErrorBoundaryProps,
           <div className="text-center p-4">
             <h2 className="text-lg font-bold mb-2">Renderer Error</h2>
             <p className="text-sm mb-4">The {rendererName} renderer encountered an error</p>
-            <button
-              className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded"
+            <Button
+              variant="danger"
+              size="sm"
+              className="bg-red-700 hover:bg-red-600"
               onClick={() => this.setState({ hasError: false, error: undefined })}
             >
               Retry
-            </button>
+            </Button>
           </div>
         </div>
       );

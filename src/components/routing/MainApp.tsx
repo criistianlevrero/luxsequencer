@@ -3,6 +3,7 @@ import { useTextureStore } from '../../store';
 import ControlPanel from '../controls/ControlPanel';
 import { renderers } from '../renderers';
 import { ConsoleIcon } from '../ui/icons';
+import { Button } from '../ui';
 import MidiConsole from '../midi/MidiConsole';
 import Sequencer from '../sequencer/Sequencer';
 import DebugOverlay from '../debug/DebugOverlay';
@@ -131,13 +132,15 @@ export const MainApp: React.FC = () => {
             />
             
             {!drawers.isConsoleOpen && !isFullscreen && (
-              <button
+              <Button
+                variant="primary"
+                size="icon"
+                icon={<ConsoleIcon className="w-6 h-6" />}
+                iconOnly
                 onClick={drawerActions.toggleConsole}
-                className="fixed bottom-4 right-4 z-50 w-12 h-12 bg-cyan-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-cyan-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500"
                 aria-label={t('ui.openMidiConsole')}
-              >
-                <ConsoleIcon className="w-6 h-6" />
-              </button>
+                className="fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full shadow-lg hover:bg-cyan-700"
+              />
             )}
             
             {/* Debug Overlay - Only visible when VITE_DEBUG_MODE=true */}

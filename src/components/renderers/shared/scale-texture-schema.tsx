@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
+import { Input } from '../../ui';
 import { t } from '../../../i18n';
 import type { AccordionItem, GradientColor } from '../../../types';
 import { getNestedProperty } from '../../../utils/settingsMigration';
@@ -47,12 +48,13 @@ const BorderColorPicker: React.FC = () => {
                     {borderColor}
                 </span>
             </div>
-            <input
+            <Input
                 id="borderColor"
                 type="color"
                 value={borderColor}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentSetting('renderer.scales.scaleBorderColor', e.target.value)}
                 className="w-full h-10 p-1 bg-gray-700 border-2 border-gray-600 rounded-lg cursor-pointer"
+                unstyled
             />
         </div>
     );

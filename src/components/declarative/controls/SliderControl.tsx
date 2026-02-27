@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { Button, Input } from '../../ui';
 import type { SliderControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -70,7 +71,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
       {/* Slider container with detents */}
       <div className="relative">
-        <input
+        <Input
           ref={sliderRef}
           type="range"
           min={constraints.min}
@@ -97,6 +98,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
                   #374151 ${percentage}%, #374151 100%)`
               : `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${percentage}%, #374151 ${percentage}%, #374151 100%)`
           }}
+          unstyled
         />
 
         {/* Center mark for bipolar sliders */}
@@ -127,7 +129,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
       {/* Value input for precise control */}
       <div className="flex items-center gap-2">
-        <input
+        <Input
           type="number"
           value={value}
           onChange={(e) => {
@@ -140,22 +142,24 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           max={constraints.max}
           step={constraints.step}
           disabled={disabled}
-          className="w-20 px-2 py-1 text-sm bg-gray-800 border border-gray-600 rounded text-gray-200 focus:border-cyan-500 focus:outline-none"
+          className="w-20"
         />
         
         {/* Reset to default if it exists */}
         {spec.metadata?.presets?.find(p => p.name.toLowerCase() === 'default') && (
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               const defaultPreset = spec.metadata!.presets!.find(p => p.name.toLowerCase() === 'default');
               if (defaultPreset) onChange(defaultPreset.value);
             }}
             disabled={disabled}
-            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors disabled:opacity-50"
+            className="px-2"
             title="Reset to default"
           >
             ↻
-          </button>
+          </Button>
         )}
       </div>
 
@@ -163,22 +167,24 @@ export const SliderControl: React.FC<SliderControlProps> = ({
       {spec.metadata?.presets && spec.metadata.presets.length > 0 && (
         <div className="flex gap-1 flex-wrap">
           {spec.metadata.presets.map(preset => (
-            <button
+            <Button
               key={preset.name}
+              variant="secondary"
+              size="sm"
               onClick={() => handlePresetClick(preset.value)}
               disabled={disabled}
               className={`
-                text-xs px-2 py-1 rounded transition-colors border
+                text-xs px-2 border
                 ${value === preset.value 
                   ? 'bg-cyan-600 border-cyan-500 text-white'
                   : 'bg-gray-800 border-gray-600 hover:bg-gray-700 text-gray-300'
                 }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               title={preset.description}
             >
               {preset.name}
-            </button>
+            </Button>
           ))}
         </div>
       )}

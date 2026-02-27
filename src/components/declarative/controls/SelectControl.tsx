@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Button, Input } from '../../ui';
 import type { SelectControlProps, SelectOption } from '../../../types/declarativeControls';
 
 /**
@@ -180,13 +181,15 @@ export const SelectControl: React.FC<SelectControlProps> = ({
       
       <div className="relative" ref={dropdownRef}>
         {/* Select trigger */}
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           className={`
-            w-full px-3 py-2 text-left bg-gray-700 border rounded-lg flex items-center justify-between
+            w-full text-left bg-gray-700 border rounded-lg justify-between font-normal
             ${disabled 
               ? 'border-gray-600 text-gray-500 cursor-not-allowed' 
               : 'border-gray-600 text-gray-200 hover:border-gray-500 focus:border-cyan-500 focus:outline-none'
@@ -229,7 +232,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-        </button>
+        </Button>
 
         {/* Dropdown menu */}
         {isOpen && (
@@ -237,13 +240,13 @@ export const SelectControl: React.FC<SelectControlProps> = ({
             {/* Search input */}
             {constraints.searchable && (
               <div className="p-2 border-b border-gray-600">
-                <input
+                <Input
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search options..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-gray-200 focus:border-cyan-500 focus:outline-none"
+                  className="w-full"
                 />
               </div>
             )}
@@ -252,11 +255,13 @@ export const SelectControl: React.FC<SelectControlProps> = ({
             <div className="overflow-y-auto max-h-48">
               {/* Ungrouped options */}
               {filteredOptions.ungrouped.map((option, index) => (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   key={option.value}
                   onClick={() => handleOptionSelect(option.value)}
                   className={`
-                    w-full px-3 py-2 text-left hover:bg-gray-700 flex items-center gap-2
+                    w-full text-left justify-start rounded-none font-normal hover:bg-gray-700
                     ${selectedValues.includes(option.value) ? 'bg-cyan-600 text-white' : 'text-gray-200'}
                     ${highlightedIndex === index ? 'bg-gray-600' : ''}
                   `}
@@ -289,7 +294,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
-                </button>
+                </Button>
               ))}
               
               {/* Grouped options */}
@@ -305,11 +310,13 @@ export const SelectControl: React.FC<SelectControlProps> = ({
                         .reduce((sum, [, opts]) => sum + (opts as SelectOption[]).length, 0) + groupIndex;
                     
                     return (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         key={option.value}
                         onClick={() => handleOptionSelect(option.value)}
                         className={`
-                          w-full px-6 py-2 text-left hover:bg-gray-700 flex items-center gap-2
+                          w-full text-left justify-start rounded-none font-normal pl-6 hover:bg-gray-700
                           ${selectedValues.includes(option.value) ? 'bg-cyan-600 text-white' : 'text-gray-200'}
                           ${highlightedIndex === globalIndex ? 'bg-gray-600' : ''}
                         `}
@@ -342,7 +349,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         )}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -370,14 +377,16 @@ export const SelectControl: React.FC<SelectControlProps> = ({
                 className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-600 text-white text-sm rounded"
               >
                 {option?.label || val}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleOptionSelect(val)}
                   disabled={disabled}
-                  className="hover:bg-cyan-700 rounded p-0.5"
+                  className="hover:bg-cyan-700 rounded p-0.5 h-5 w-5 min-h-0 min-w-0"
                   title="Remove"
                 >
                   ✕
-                </button>
+                </Button>
               </span>
             );
           })}

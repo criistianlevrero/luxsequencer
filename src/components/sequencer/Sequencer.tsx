@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTextureStore } from '../../store';
 import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../ui/icons';
 import PropertySequencer from './PropertySequencer';
-import { Button, CollapsibleSection, Select, SequencerCell } from '../ui';
+import { Button, CollapsibleSection, Input, Select, SequencerCell, SliderInput } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 
@@ -167,14 +167,14 @@ const Sequencer: React.FC = () => {
                             {t('project.name')}
                         </label>
                         <div className="flex gap-2">
-                            <input
+                            <Input
                                 id="new-sequence-name"
                                 type="text"
                                 value={newSequenceName}
                                 onChange={(e) => setNewSequenceName(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSaveNewSequence()}
                                 placeholder={t('project.defaultName')}
-                                className="flex-1 bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                className="flex-1"
                                 autoFocus
                             />
                             <Button
@@ -206,13 +206,13 @@ const Sequencer: React.FC = () => {
                             {t('project.name')}
                         </label>
                         <div className="flex gap-2">
-                            <input
+                            <Input
                                 id="rename-sequence"
                                 type="text"
                                 value={renameValue}
                                 onChange={(e) => setRenameValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleRenameSequence()}
-                                className="flex-1 bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                className="flex-1"
                                 autoFocus
                             />
                             <Button
@@ -252,23 +252,14 @@ const Sequencer: React.FC = () => {
 
                     {/* BPM Control */}
                     <div className="space-y-1.5">
-                        <div className="flex justify-between items-center">
-                            <label htmlFor="bpm" className="font-medium text-gray-300 text-xs">
-                                BPM
-                            </label>
-                            <span className="text-xs font-mono bg-gray-900/50 text-cyan-300 px-2 py-0.5 rounded-md min-w-[3rem] text-center">
-                                {bpm.toFixed(0)}
-                            </span>
-                        </div>
-                        <input
-                            id="bpm"
-                            type="range"
-                            min="30"
-                            max="240"
-                            step="1"
+                        <SliderInput
+                            label="BPM"
                             value={bpm}
+                            min={30}
+                            max={240}
+                            step={1}
                             onChange={(e) => setSequencerBpm(Number(e.target.value))}
-                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            valueFormatter={(value) => value.toFixed(0)}
                         />
                     </div>
 
@@ -296,23 +287,15 @@ const Sequencer: React.FC = () => {
                 <div className="pt-2 border-t border-gray-700">
                     <h3 className="text-xs font-medium text-gray-400 mb-2">{t('section.animation')}</h3>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-gray-400 block">
-                            {t('sequencer.interpolationSpeed')}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="range"
-                                min="0"
-                                max="8"
-                                step="0.25"
-                                value={activeSequence.interpolationSpeed}
-                                onChange={(e) => handleSequenceChange('interpolationSpeed', Number(e.target.value))}
-                                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                            />
-                            <span className="text-xs font-mono bg-gray-900/50 text-cyan-300 px-2 py-0.5 rounded min-w-[3rem] text-center">
-                                {activeSequence.interpolationSpeed === 0 ? t('common.instant') : `${activeSequence.interpolationSpeed.toFixed(2)}`}
-                            </span>
-                        </div>
+                        <SliderInput
+                            label={t('sequencer.interpolationSpeed')}
+                            value={activeSequence.interpolationSpeed}
+                            min={0}
+                            max={8}
+                            step={0.25}
+                            onChange={(e) => handleSequenceChange('interpolationSpeed', Number(e.target.value))}
+                            valueFormatter={(value) => (value === 0 ? t('common.instant') : value.toFixed(2))}
+                        />
                     </div>
                 </div>
             </div>

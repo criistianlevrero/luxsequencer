@@ -9,4 +9,8 @@ export { SequencerCell } from './SequencerCell';
 export type { CellVariant } from './SequencerCell';
 export { default as SliderInput } from './SliderInput';
 export type { SliderInputProps } from './SliderInput';
+export { Input } from './Input';
+export type { InputProps } from './Input';
+export { Textarea } from './Textarea';
+export type { TextareaProps } from './Textarea';
 
