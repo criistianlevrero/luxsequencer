@@ -1,4 +1,5 @@
 import React from 'react';
+import { Slider } from './Slider';
 
 export interface SliderInputProps {
   label: string;
@@ -23,15 +24,13 @@ const SliderInput: React.FC<SliderInputProps> = ({ label, value, onChange, min, 
           {displayValue}
         </span>
       </div>
-      <input
+      <Slider
         id={label}
-        type="range"
         min={min}
         max={max}
         step={step}
         value={value}
         onChange={onChange}
-        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
       />
     </div>
   );

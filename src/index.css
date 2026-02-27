@@ -79,6 +79,12 @@
     cursor: pointer;
   }
 
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: #374151;
+    height: 0.5rem;
+    border-radius: 0.5rem;
+  }
+
   input[type="range"]::-webkit-slider-track {
     background: #374151;
     height: 0.5rem;

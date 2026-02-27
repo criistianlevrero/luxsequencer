@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, Input, Slider } from '../../ui';
 import type { SliderControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -71,9 +71,8 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
       {/* Slider container with detents */}
       <div className="relative">
-        <Input
+        <Slider
           ref={sliderRef}
-          type="range"
           min={constraints.min}
           max={constraints.max}
           step={constraints.step}
