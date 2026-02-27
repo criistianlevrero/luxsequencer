@@ -322,16 +322,16 @@ const ConcentricWebGLRenderer: React.FC<{ className?: string }> = ({ className }
       const state = useTextureStore.getState();
       const backgroundGradientColors = 
         (getNestedProperty(state.currentSettings, 'common.backgroundGradientColors') as any[]) ?? [];
-      const repetitionSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.repetitionSpeed') as number) ?? 0.5;
-      const growthSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.growthSpeed') as number) ?? 0.5;
-      const initialSize = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.initialSize') as number) ?? 10;
-      const gradientColors = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.gradientColors') as any[]) ?? [];
-      const sidesValue = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.sides') as number) ?? 6;
+      const repetitionSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric.repetitionSpeed') as number) ?? 0.5;
+      const growthSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric.growthSpeed') as number) ?? 0.5;
+      const initialSize = (getNestedProperty(state.currentSettings, 'renderer.concentric.initialSize') as number) ?? 10;
+      const gradientColors = (getNestedProperty(state.currentSettings, 'renderer.concentric.gradientColors') as any[]) ?? [];
+      const sidesValue = (getNestedProperty(state.currentSettings, 'renderer.concentric.sides') as number) ?? 6;
       const sides = Math.max(3, Math.min(12, Math.round(sidesValue)));
-      const rotationSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.rotationSpeed') as number) ?? 0;
-      const strokeWidthValue = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.strokeWidth') as number) ?? 2;
+      const rotationSpeed = (getNestedProperty(state.currentSettings, 'renderer.concentric.rotationSpeed') as number) ?? 0;
+      const strokeWidthValue = (getNestedProperty(state.currentSettings, 'renderer.concentric.strokeWidth') as number) ?? 2;
       const strokeWidth = Math.max(0.5, Math.min(10, strokeWidthValue));
-      const fillMode = (getNestedProperty(state.currentSettings, 'renderer.concentric-webgl.fillMode') as string) ?? 'stroke';
+      const fillMode = (getNestedProperty(state.currentSettings, 'renderer.concentric.fillMode') as string) ?? 'stroke';
 
       // Calculate display dimensions
       const displayWidth = canvas.clientWidth;
