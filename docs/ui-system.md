@@ -173,6 +173,10 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 - ✅ Estados disabled por opción
 - ✅ Portal rendering (z-index seguro)
 
+#### Configuración de Portal
+- `usePortal` (default: `true`): Renderiza `Listbox.Options` en `document.body` para evitar clipping y conflictos de `z-index`.
+- `usePortal={false}`: Mantiene el render inline (comportamiento local) cuando se necesite por layout específico.
+
 #### Fallback Nativo
 Cuando se usan `children`, fallback a `<select>` HTML nativo para máxima compatibilidad.
 
@@ -201,6 +205,21 @@ Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
 - ✅ `defaultOpen` prop
 - ✅ ARIA `aria-expanded`
 - ✅ Hover states
+
+### 5. SequencerCell Component
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/SequencerCell.tsx`](../src/components/ui/SequencerCell.tsx)
+
+#### Variants
+- `pattern`: Celda para patrón con borde y estados activos
+- `step`: Celda para pasos del secuenciador con tamaño fijo
+- `keyframe`: Celda para automatización por keyframes
+
+#### Features
+- ✅ Estados `active`, `selected` y `disabled`
+- ✅ Estilos por variante y estado
+- ✅ Focus ring para navegación por teclado
+- ✅ API simple basada en `onClick` y `children`
 
 ---
 
