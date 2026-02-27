@@ -80,10 +80,6 @@ export class RendererHotReloadManager {
    */
   updateConfig(config: Partial<HotReloadConfig>): void {
     this.config = { ...this.config, ...config };
-    
-    if (env.debug.validation) {
-      console.log('[HOT RELOAD] Configuration updated:', this.config);
-    }
   }
 
   /**
@@ -97,10 +93,6 @@ export class RendererHotReloadManager {
    * Initialize hot reload system with enhanced state management
    */
   private initializeHotReload() {
-    if (env.debug.validation) {
-      console.log('[HOT RELOAD] Initializing enhanced hot reload system');
-    }
-
     // Listen for Vite HMR updates
     if (import.meta.hot) {
       import.meta.hot.on('renderer-update', (data) => {
@@ -114,8 +106,6 @@ export class RendererHotReloadManager {
       import.meta.hot.on('renderer-error', (data) => {
         this.handleRendererError(data.rendererId, data.error);
       });
-      
-      console.log('[HOT RELOAD] Enhanced HMR listeners initialized');
     }
 
     // Start change monitoring
@@ -126,9 +116,6 @@ export class RendererHotReloadManager {
    * Start monitoring for renderer changes
    */
   private startChangeMonitoring() {
-    if (env.debug.validation) {
-      console.log('[HOT RELOAD] Starting change monitoring');
-    }
     // In development, changes will be handled by HMR
     // This is a placeholder for potential file watching implementation
   }
@@ -195,10 +182,6 @@ export class RendererHotReloadManager {
    */
   private async processChange(change: RendererHotReloadChange): Promise<void> {
     const { rendererId, changeType } = change;
-    
-    if (env.debug.validation) {
-      console.log(`[HOT RELOAD] Processing ${changeType} change for renderer:`, rendererId);
-    }
 
     this.state.isReloading = true;
     this.state.pendingChanges.set(rendererId, change);
@@ -237,10 +220,6 @@ export class RendererHotReloadManager {
       this.state.reloadCount++;
       this.state.lastReloadTime = Date.now();
 
-      if (env.debug.validation) {
-        console.log(`[HOT RELOAD] Successfully applied ${changeType} change for renderer:`, rendererId);
-      }
-
     } catch (error) {
       console.error(`[HOT RELOAD] Error processing change for renderer ${rendererId}:`, error);
       
@@ -271,10 +250,6 @@ export class RendererHotReloadManager {
             settings: rendererSettings,
             timestamp: Date.now()
           });
-          
-          if (env.debug.validation) {
-            console.log(`[HOT RELOAD] Preserved state for renderer:`, rendererId);
-          }
         }
       }
     } catch (error) {
@@ -392,16 +367,11 @@ export class RendererHotReloadManager {
       if (compatibility.isCompatible) {
         // Restore compatible settings
         await this.restoreSettings(rendererId, preserved.settings);
-        
-        if (env.debug.validation) {
-          console.log(`[HOT RELOAD] Restored preserved state for renderer:`, rendererId);
-        }
       } else {
         // Migrate settings if possible
         const migrated = this.migrateSettings(preserved.settings, change);
         if (migrated) {
           await this.restoreSettings(rendererId, migrated);
-          console.log(`[HOT RELOAD] Migrated and restored state for renderer:`, rendererId);
         } else {
           console.warn(`[HOT RELOAD] Could not restore state for renderer ${rendererId}: incompatible schema changes`);
         }
@@ -486,10 +456,9 @@ export class RendererHotReloadManager {
    */
   private async restoreSettings(rendererId: string, settings: any): Promise<void> {
     // This would integrate with the Zustand store to restore settings
-    // For now, we'll just log the action
-    if (env.debug.validation) {
-      console.log(`[HOT RELOAD] Would restore settings for ${rendererId}:`, settings);
-    }
+    // Placeholder until store integration is implemented
+    void rendererId;
+    void settings;
   }
 
   /**
@@ -539,9 +508,6 @@ export class RendererHotReloadManager {
    */
   public clearPreservedState(): void {
     this.state.preservedState.clear();
-    if (env.debug.validation) {
-      console.log('[HOT RELOAD] Cleared all preserved state');
-    }
   }
 
   /**

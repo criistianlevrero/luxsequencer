@@ -2,7 +2,7 @@ import React, { useRef, useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import ControlPanel from '../controls/ControlPanel';
 import { renderers } from '../renderers';
-import { ConsoleIcon } from '../shared/icons';
+import { ConsoleIcon } from '../ui/icons';
 import MidiConsole from '../midi/MidiConsole';
 import Sequencer from '../sequencer/Sequencer';
 import DebugOverlay from '../debug/DebugOverlay';

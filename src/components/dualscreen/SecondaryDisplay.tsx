@@ -31,11 +31,6 @@ export const SecondaryDisplay: React.FC = () => {
     // Inicializar timer
     cursorTimer = setTimeout(hideCursor, 3000);
     
-    // Mensaje para entrar en fullscreen manualmente
-    if (import.meta.env.DEV) {
-      console.log('💡 Para pantalla completa, presiona F11 o haz clic derecho > Pantalla completa');
-    }
-    
     // Cleanup
     return () => {
       document.removeEventListener('mousemove', showCursor);

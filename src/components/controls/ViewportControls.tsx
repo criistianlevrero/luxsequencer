@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DesktopIcon, MobileIcon } from '../shared/icons';
+import { DesktopIcon, MobileIcon } from '../ui/icons';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import DualScreenControls from '../dualscreen/DualScreenControls';
 import { useTextureStore } from '../../store';

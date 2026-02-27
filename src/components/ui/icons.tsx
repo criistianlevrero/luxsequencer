@@ -1,6 +1,5 @@
 import React from 'react';
 
-// SVG imports using vite-plugin-svgr
 import FishSvg from '../../assets/icons/fish.svg?react';
 import PlusSvg from '../../assets/icons/plus.svg?react';
 import TrashSvg from '../../assets/icons/trash.svg?react';
@@ -25,7 +24,6 @@ import CopySvg from '../../assets/icons/copy.svg?react';
 import CheckSvg from '../../assets/icons/check.svg?react';
 import ChevronUpDownSvg from '../../assets/icons/chevron-up-down.svg?react';
 
-// Wrapper components to maintain backward compatibility
 export const FishIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <FishSvg {...props} />
 );
@@ -118,7 +116,6 @@ export const ChevronUpDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props
   <ChevronUpDownSvg {...props} />
 );
 
-// Reset/Refresh icon (inline SVG)
 export const ResetIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
     viewBox="0 0 24 24"

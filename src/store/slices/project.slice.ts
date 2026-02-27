@@ -20,8 +20,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             
             // Migration logic for older versions
             if (!project.version || projectVersion === '1.0.0') {
-                console.log('[PROJECT] Migrating from v1.0.0 to v2.1.0');
-                
                 // Migrate interpolationSpeed from ms to steps (rough conversion)
                 project.sequences.forEach(seq => {
                     if (seq.interpolationSpeed > 10) {
@@ -33,13 +31,10 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                 });
                 
                 project.version = currentVersion;
-                console.log('[PROJECT] Migration v1.0.0 -> v2.1.0 complete');
             }
             
             // Migration from v2.0.0 to v2.1.0 (hybrid renderer system)
             if (projectVersion === '2.0.0') {
-                console.log('[PROJECT] Migrating from v2.0.0 to v2.1.0 (hybrid renderer system)');
-                
                 project.sequences.forEach(seq => {
                     // Check if it's old structure
                     if ((seq as any).patterns && (seq as any).sequencer) {
@@ -68,7 +63,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                 });
                 
                 project.version = currentVersion;
-                console.log('[PROJECT] Migration v2.0.0 -> v2.1.0 complete');
             }
         }
         
@@ -121,9 +115,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                     currentSettings: correctedSettings
                 });
             } else {
-                if (config.debug.validation) {
-                    console.log('[PROJECT] Settings validation passed');
-                }
                 set({
                     project,
                     textureRotation: 0,
@@ -296,7 +287,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
               
               if (settings) {
                   if (isLegacyControlSettings(settings)) {
-                      console.log('[PROJECT] Migrating imported legacy settings to new structure');
                       migratedSettings = migrateLegacySettings(settings);
                   } else {
                       migratedSettings = settings;
@@ -341,7 +331,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             
             if (defaultSettings) {
                 if (isLegacyControlSettings(defaultSettings)) {
-                    console.log('[PROJECT] Migrating default project legacy settings to new structure');
                     migratedDefaultSettings = migrateLegacySettings(defaultSettings);
                 } else {
                     migratedDefaultSettings = defaultSettings;
@@ -356,8 +345,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                 selectedPatternId: null,
                 sequencerCurrentStep: 0,
             });
-            
-            console.log('Project reset to default configuration.');
             alert('Proyecto reseteado a configuración por defecto.');
         } catch (error) {
             console.error('Failed to reset to default:', error);
@@ -374,8 +361,6 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
 
         // Si ya estamos en el renderer solicitado, no hacer nada
         if (activeSequence.activeRenderer === rendererId) return;
-
-        console.log(`[PROJECT] Changing renderer from ${activeSequence.activeRenderer} to ${rendererId}`);
 
         const newProject = produce(project, draft => {
             const sequence = draft.sequences[activeSequenceIndex];
@@ -447,7 +432,5 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             sequencerCurrentStep: 0,
             sequencerStartTime: null
         });
-
-        console.log(`[PROJECT] Renderer changed to ${rendererId}. Active patterns: ${newActivePatterns.length}`);
     },
 });

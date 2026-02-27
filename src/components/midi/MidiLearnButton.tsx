@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { MidiIcon } from '../shared/icons';
-import { Button } from '../shared/Button';
+import { MidiIcon } from '../ui/icons';
+import { Button } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 
 interface MidiLearnButtonProps {

@@ -59,7 +59,7 @@ export const Switch: React.FC<SwitchProps> = ({
           `}
         />
       </HeadlessSwitch>
-      
+
       {(label || description) && (
         <div className="ml-3">
           {label && (

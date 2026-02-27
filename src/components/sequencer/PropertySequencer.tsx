@@ -2,9 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import { renderers } from '../renderers';
-import { PlusIcon } from '../shared/icons';
-import { Button } from '../shared/Button';
-import { Select } from '../shared/Select';
+import { PlusIcon } from '../ui/icons';
+import { Button, Select } from '../ui';
 import PropertyTrackLane from './PropertyTrackLane';
 import type { ControlSettings, ControlSection } from '../../types';
 

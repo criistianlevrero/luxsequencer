@@ -28,22 +28,21 @@ export const Select: React.FC<SelectProps> = ({
   onChange,
   options,
   children,
-  placeholder = "Seleccionar...",
+  placeholder = 'Seleccionar...',
   disabled = false,
   className = '',
   size = 'md',
   fullWidth = false,
   id,
 }) => {
-  // Si se proporcionan options, usamos Headless UI Listbox
   if (options) {
     const selectedOption = options.find(opt => opt.value === value);
-    
+
     const sizeClasses = {
       sm: 'px-3 py-1.5 text-sm',
       md: 'px-3 py-2 text-sm',
     };
-    
+
     const buttonClasses = `
       relative w-full cursor-default rounded-lg bg-gray-700 border border-gray-600 
       ${sizeClasses[size]} text-left text-gray-200 
@@ -92,7 +91,7 @@ export const Select: React.FC<SelectProps> = ({
                       ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
-                    {({ selected, active: _active }) => (
+                    {({ selected }) => (
                       <>
                         <div className="flex items-center">
                           {option.icon && (
@@ -102,13 +101,13 @@ export const Select: React.FC<SelectProps> = ({
                             {option.label}
                           </span>
                         </div>
-                        
+
                         {option.description && (
                           <span className="text-xs text-gray-400 ml-6">
                             {option.description}
                           </span>
                         )}
-                        
+
                         {selected && (
                           <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-cyan-400">
                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
@@ -126,16 +125,15 @@ export const Select: React.FC<SelectProps> = ({
     );
   }
 
-  // Fallback al select HTML nativo cuando se usan children
   const baseClasses = 'bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors';
-  
+
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-3 py-2 text-sm',
   };
-  
+
   const widthClasses = fullWidth ? 'w-full' : '';
-  
+
   const finalClasses = `${baseClasses} ${sizeClasses[size]} ${widthClasses} ${className}`.trim();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

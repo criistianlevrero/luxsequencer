@@ -3,8 +3,7 @@ import React from 'react';
 import { useTextureStore } from '../../../store';
 import { renderers } from '../index';
 import MidiLearnButton from '../../midi/MidiLearnButton';
-import SliderInput from '../../controls/SliderInput';
-import CollapsibleSection from '../../shared/CollapsibleSection';
+import { CollapsibleSection, SliderInput } from '../../ui';
 // FIX: Import `AccordionItem`, `ControlSection` and `SliderControlConfig` from the root `types.ts` file.
 import type { AccordionItem, ControlSection, SeparatorSection, SliderControlConfig, ControlSettings as _ControlSettings } from '../../../types';
 import { getNestedProperty, toLegacySettings as _toLegacySettings, mapPropertyIdToPath } from '../../../utils/settingsMigration';

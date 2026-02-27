@@ -66,17 +66,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         
         const patternIdToLoad = sequencer.steps[nextStep];
         
-        // DEBUG: Log sequencer tick
-        if (env.debug.sequencer) {
-            console.log('[SEQUENCER] Tick', {
-                timestamp: Date.now(),
-                step: nextStep,
-                patternIdToLoad,
-                currentPatternId: selectedPatternId,
-                willLoadPattern: patternIdToLoad && patternIdToLoad !== selectedPatternId,
-            });
-        }
-        
         // --- 1. Load base pattern if it changes (animate only differences) ---
         if (patternIdToLoad && patternIdToLoad !== selectedPatternId) {
             const newPattern = activeSequence.activePatterns.find(p => p.id === patternIdToLoad);
@@ -94,17 +83,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
                 
                 // Find changed paths using hierarchical comparison
                 const changedPaths = findChangedPaths(normalizedBaseSettings, normalizedNewPattern);
-                
-                if (env.debug.sequencer) {
-                    console.log('[SEQUENCER] Pattern change - animating hierarchical differences', {
-                        timestamp: Date.now(),
-                        fromPattern: selectedPatternId,
-                        toPattern: patternIdToLoad,
-                        changedPaths: changedPaths.length,
-                        paths: changedPaths,
-                        interpolationSteps,
-                    });
-                }
                 
                 // Request property changes using hierarchical paths
                 changedPaths.forEach(path => {
@@ -233,11 +211,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
                     debugInfo.interpolatedValue = interpolatedValue;
                 }
 
-                // Log telemetry data
-                if (env.debug.propertySequencer) {
-                    console.log('[PROPERTY_SEQ_INTERPOLATION]', debugInfo);
-                }
-
                 if (sliderConfigs && sliderConfigs[track.property]) {
                     // Apply value immediately - smoothness comes from high-frequency updates
                     // (calculated on every sequencer tick)
@@ -252,63 +225,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
                 }
             });
             
-            // DEBUG: Log property automation results
-            if (env.debug.propertySequencer) {
-                const automatedProps = propertyTracks.map(track => {
-                    const sortedKeyframes = [...track.keyframes].sort((a, b) => a.step - b.step);
-                    if (sortedKeyframes.length === 0) return null;
-                    
-                    let interpolatedValue: number;
-                    
-                    if (sortedKeyframes.length === 1) {
-                        interpolatedValue = sortedKeyframes[0].value;
-                    } else {
-                        // Find previous keyframe (at or before current step)
-                        const prevIndex = sortedKeyframes.findIndex(k => k.step > nextStep);
-                        let prevKeyframe: Keyframe;
-                        let nextKeyframe: Keyframe;
-                        
-                        if (prevIndex === 0) {
-                            prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                            nextKeyframe = sortedKeyframes[0];
-                        } else if (prevIndex === -1) {
-                            prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                            nextKeyframe = sortedKeyframes[0];
-                        } else {
-                            prevKeyframe = sortedKeyframes[prevIndex - 1];
-                            nextKeyframe = sortedKeyframes[prevIndex];
-                        }
-                        
-                        let stepDiff: number;
-                        let progress: number;
-                        
-                        if (nextKeyframe.step > prevKeyframe.step) {
-                            stepDiff = nextKeyframe.step - prevKeyframe.step;
-                            progress = nextStep - prevKeyframe.step;
-                        } else {
-                            stepDiff = (numSteps - prevKeyframe.step) + nextKeyframe.step;
-                            progress = nextStep > prevKeyframe.step 
-                                ? nextStep - prevKeyframe.step 
-                                : (numSteps - prevKeyframe.step) + nextStep;
-                        }
-                        
-                        const t = Math.max(0, Math.min(1, progress / stepDiff));
-                        interpolatedValue = lerp(prevKeyframe.value, nextKeyframe.value, t);
-                    }
-                    
-                    return {
-                        property: track.property,
-                        value: interpolatedValue,
-                    };
-                }).filter(Boolean);
-                
-                console.log('[PROPERTY_SEQ] Automation applied', {
-                    timestamp: Date.now(),
-                    step: nextStep,
-                    tracksCount: propertyTracks.length,
-                    automatedProps,
-                });
-            }
         }
         
         // Calculate next tick using precise timing
@@ -321,18 +237,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             const idealNextTime = sequencerStartTime + (absoluteStep * stepDuration);
             const now = Date.now();
             const delay = Math.max(0, idealNextTime - now);
-            
-            if (env.debug.sequencer) {
-                console.log('[SEQUENCER] Timing', {
-                    now,
-                    nextStep,
-                    loopCount: sequencerLoopCount,
-                    absoluteStep,
-                    idealNextTime,
-                    delay,
-                    drift: now - (sequencerStartTime + ((absoluteStep - 1) * stepDuration)),
-                });
-            }
             
             const timeoutId = window.setTimeout(get()._tickSequencer, delay);
             set({ sequencerTimeoutId: timeoutId });
@@ -664,19 +568,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
                 );
             }
         });
-
-        // Log telemetry periodically (every ~30 frames = 2 times per second at 60fps)
-        if (env.debug.propertySequencer && Math.floor(fractionalStep * 30) % 30 === 0) {
-            console.log('[PROPERTY_SEQ_RAF]', {
-                timestamp: now,
-                timeElapsed,
-                fractionalStep: fractionalStep.toFixed(3),
-                integerStep: Math.floor(fractionalStep),
-                numSteps,
-                bpm,
-                tracks: debugTelemetry,
-            });
-        }
 
         // Continue RAF loop
         const rafId = requestAnimationFrame(() => get()._updatePropertySequencer());

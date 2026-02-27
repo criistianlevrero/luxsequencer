@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
-import { CloseIcon } from '../shared/icons';
+import { CloseIcon } from '../ui/icons';
 import type { MidiLogEntry } from '../../types';
 
 interface MidiConsoleProps {

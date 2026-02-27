@@ -485,10 +485,6 @@ export class ErrorRecoveryManager {
     strategies.forEach(strategy => {
       this.strategies.set(strategy.id, strategy);
     });
-
-    if (env.debug.validation) {
-      console.log('[RECOVERY] Initialized recovery strategies:', Array.from(this.strategies.keys()));
-    }
   }
 
   /**
@@ -509,10 +505,6 @@ export class ErrorRecoveryManager {
         warnings: ['Recovery system is disabled'],
         details: 'Recovery disabled in configuration'
       };
-    }
-
-    if (this.config.logRecoveries) {
-      console.log('[RECOVERY] Attempting recovery for error:', error);
     }
 
     // Get applicable strategies sorted by priority
@@ -539,10 +531,6 @@ export class ErrorRecoveryManager {
             result,
             timestamp: Date.now()
           });
-
-          if (this.config.logRecoveries) {
-            console.log(`[RECOVERY] Successfully recovered using strategy: ${strategy.name}`);
-          }
 
           return result;
         }

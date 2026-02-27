@@ -48,7 +48,6 @@ export const createDualScreenSlice: StateCreator<
         
         if (type === 'STATE_UPDATE') {
           // Aplicar cambios sin disparar broadcast para evitar bucles
-          console.log('Applying state update with keys:', Object.keys(payload));
           set(payload, false);
         } else if (type === 'SECONDARY_WINDOW_CLOSED' && !isSecondary) {
           // La ventana secundaria se cerró, actualizar estado

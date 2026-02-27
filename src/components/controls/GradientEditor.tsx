@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { PlusIcon, TrashIcon } from '../shared/icons';
-import { Switch } from '../shared/Switch';
+import { PlusIcon, TrashIcon } from '../ui/icons';
+import { Switch } from '../ui';
 import type { GradientColor } from '../../types';
 
 interface GradientEditorProps {

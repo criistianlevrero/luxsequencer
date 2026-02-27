@@ -101,15 +101,6 @@ export const createValidationSlice: StateCreator<
         validationStats: newStats
       });
 
-      if (env.debug.validation) {
-        console.log('[VALIDATION SLICE] Validation completed:', {
-          valid: validation.valid,
-          errors: validation.errors.length,
-          warnings: validation.warnings.length,
-          time: validationTime
-        });
-      }
-
       return validation;
     } catch (error) {
       const errorResult: ValidationResult = {
@@ -148,10 +139,6 @@ export const createValidationSlice: StateCreator<
     set({
       propertyValidations: newPropertyValidations
     });
-
-    if (env.debug.validation) {
-      console.log(`[VALIDATION SLICE] Property validation for ${property}:`, validation);
-    }
 
     return validation;
   },

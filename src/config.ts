@@ -95,14 +95,7 @@ export const getMode = (): string => {
  */
 export const logEnvConfig = (): void => {
   if (isDevelopment()) {
-    console.log('🔧 Environment Configuration:', {
-      mode: getMode(),
-      debugMode: env.debugMode,
-      devMode: env.devMode,
-      maxFps: env.maxFps,
-      midiAutoConnect: env.midiAutoConnect,
-      hasGeminiApiKey: !!env.geminiApiKey,
-    });
+    return;
   }
 };
 

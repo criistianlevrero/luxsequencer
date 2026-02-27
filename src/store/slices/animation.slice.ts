@@ -18,22 +18,7 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
         if (existingAnimation) {
             // Check priority: only replace if new source has higher or equal priority
             if (source < existingAnimation.request.source) {
-                if (env.debug.animation) {
-                    console.log('[ANIMATION] Request ignored - lower priority', {
-                        property,
-                        existingSource: existingAnimation.request.source,
-                        newSource: source,
-                    });
-                }
                 return; // Ignore lower priority requests
-            }
-            
-            if (env.debug.animation) {
-                console.log('[ANIMATION] Canceling existing animation', {
-                    property,
-                    oldSource: existingAnimation.request.source,
-                    newSource: source,
-                });
             }
         }
         
@@ -48,15 +33,6 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
                 activeAnimations: newAnimations,
                 currentSettings: newSettings
             });
-            
-            if (env.debug.animation) {
-                console.log('[ANIMATION] Immediate change', {
-                    property,
-                    from: startValue,
-                    to,
-                    source,
-                });
-            }
             
             return;
         }
@@ -117,20 +93,6 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
             }
         } else {
             set({ activeAnimations: newAnimations });
-        }
-        
-        if (env.debug.animation) {
-            console.log('[ANIMATION] Animation started', {
-                property,
-                from: startValue,
-                to,
-                steps,
-                totalFrames,
-                framesPerStep,
-                source,
-                bpm,
-                isGradient,
-            });
         }
         
         // Start RAF loop if not already running
@@ -203,14 +165,6 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
             // Remove animation if complete
             if (progress >= 1) {
                 newAnimations.delete(property);
-                
-                if (env.debug.animation) {
-                    console.log('[ANIMATION] Animation completed', {
-                        property,
-                        finalValue: newValue,
-                        source: animation.request.source,
-                    });
-                }
             }
         });
         
@@ -243,10 +197,6 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
     
     cancelAllAnimations: () => {
         set({ activeAnimations: new Map() });
-        
-        if (env.debug.animation) {
-            console.log('[ANIMATION] All animations canceled');
-        }
     },
     
     cancelAnimationForProperty: (property) => {
@@ -254,9 +204,5 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
         const newAnimations = new Map(activeAnimations);
         newAnimations.delete(property);
         set({ activeAnimations: newAnimations });
-        
-        if (env.debug.animation) {
-            console.log('[ANIMATION] Animation canceled for property', { property });
-        }
     },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon, ResetIcon } from '../shared/icons';
+import { ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon, ResetIcon } from '../ui/icons';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { DrawerStates, DrawerActions } from '../../hooks/useDrawerStates';
 

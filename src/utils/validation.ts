@@ -11,7 +11,6 @@ import type {
 } from '../types';
 import type { RendererDefinition } from '../components/renderers/types';
 import { getNestedProperty } from './settingsMigration';
-import { env } from '../config';
 
 // Import Phase 1.2 validation components
 import type { 
@@ -63,15 +62,6 @@ export const validateRendererSettings = (
   }
 
   const valid = errors.length === 0;
-  
-  if (env.debug.validation) {
-    console.log(`[VALIDATION] ${renderer.id}:`, {
-      valid,
-      errors: errors.length,
-      warnings: warnings.length,
-      settings: property => getNestedProperty(settings, property)
-    });
-  }
 
   return { valid, errors, warnings };
 };
@@ -344,15 +334,6 @@ export const validateSettingsWithSchema = (
   }
   
   const validationTime = Date.now() - startTime;
-  
-  if (env.debug.validation) {
-    console.log(`[ENHANCED_VALIDATION]`, {
-      isValid: errors.length === 0,
-      errors: errors.length,
-      warnings: warnings.length,
-      validationTime
-    });
-  }
   
   return {
     valid: errors.length === 0,

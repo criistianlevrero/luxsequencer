@@ -69,9 +69,6 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
                 const correctedSettings = migratedSettings; // Use original settings if validation fails
                 set({ currentSettings: correctedSettings });
             } else {
-                if (config.debug.validation) {
-                    console.log(`[UI] Settings validation passed for renderer ${renderer}`);
-                }
                 set({ currentSettings: migratedSettings });
             }
         } else {
@@ -81,8 +78,6 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
     },
     
     setLocale: (locale) => {
-        console.log('Store setLocale called with:', locale);
-        
         // Update i18n system first
         setI18nLocale(locale);
         
@@ -91,8 +86,6 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
         
         // Update store state
         set({ currentLocale: locale });
-        
-        console.log('Locale updated to:', locale);
     },
 });
 

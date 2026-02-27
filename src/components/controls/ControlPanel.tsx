@@ -1,12 +1,11 @@
 import React, { useRef } from 'react';
 import { useTextureStore } from '../../store';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
-import { TrashIcon, DownloadIcon, UploadIcon } from '../shared/icons';
+import { TrashIcon, DownloadIcon, UploadIcon } from '../ui/icons';
 import { renderers } from '../renderers';
 import MidiLearnButton from '../midi/MidiLearnButton';
-import CollapsibleSection from '../shared/CollapsibleSection';
 import RendererControls from '../renderers/shared/RendererControls';
-import { Select } from '../shared/Select';
+import { CollapsibleSection, Select } from '../ui';
 
 const ControlPanel: React.FC = () => {
   const { t } = useTranslation();

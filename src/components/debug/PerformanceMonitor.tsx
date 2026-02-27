@@ -8,9 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
-import Button from '../shared/Button';
-import { Switch } from '../shared/Switch';
-import CollapsibleSection from '../shared/CollapsibleSection';
+import { Button, Switch, CollapsibleSection } from '../ui';
 import { 
   ConsoleIcon,
   SettingsIcon,
@@ -18,7 +16,7 @@ import {
   CloseIcon,
   ChevronDownIcon,
   FishIcon
-} from '../shared/icons';
+} from '../ui/icons';
 
 interface PerformanceMonitorProps {
   className?: string;

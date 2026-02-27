@@ -1,5 +1,5 @@
 import React from 'react';
-import { FishIcon, EnterFullscreenIcon, ResetIcon } from '../shared/icons';
+import { FishIcon, EnterFullscreenIcon, ResetIcon } from '../ui/icons';
 import { LanguageSelector } from '../i18n/LanguageSelector';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import packageJson from '../../../package.json';

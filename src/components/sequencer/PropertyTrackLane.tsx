@@ -2,10 +2,8 @@
 import React, { useMemo, useState } from 'react';
 import { useTextureStore } from '../../store';
 import { renderers } from '../renderers';
-import { TrashIcon } from '../shared/icons';
-import { Button } from '../shared/Button';
-import { SequencerCell } from '../shared/SequencerCell';
-import SliderInput from '../controls/SliderInput';
+import { TrashIcon } from '../ui/icons';
+import { Button, SequencerCell, SliderInput } from '../ui';
 // FIX: SliderControlConfig will be available from ../types after the type definitions are moved.
 import type { PropertyTrack, SliderControlConfig } from '../../types';
 

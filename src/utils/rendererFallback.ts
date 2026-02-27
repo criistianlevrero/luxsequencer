@@ -30,13 +30,6 @@ export class RendererFallbackManager {
     
     // Concentric renderer has no fallback (it's the most basic)
     this.setFallbackChain('concentric', []);
-    
-    if (env.debug.validation) {
-      console.log('[FALLBACK] Initialized default fallback chains:', {
-        webgl: this.fallbackChain.get('webgl'),
-        concentric: this.fallbackChain.get('concentric')
-      });
-    }
   }
 
   /**
@@ -53,10 +46,6 @@ export class RendererFallbackManager {
     });
 
     this.fallbackChain.set(rendererId, validFallbacks);
-    
-    if (env.debug.validation) {
-      console.log(`[FALLBACK] Set fallback chain for '${rendererId}':`, validFallbacks);
-    }
   }
 
   /**
@@ -70,9 +59,6 @@ export class RendererFallbackManager {
       if (!this.disabledRenderers.has(fallbackId)) {
         const fallbackRenderer = renderers[fallbackId];
         if (fallbackRenderer) {
-          if (env.debug.validation) {
-            console.log(`[FALLBACK] Using fallback '${fallbackId}' for '${rendererId}'`);
-          }
           return fallbackRenderer;
         }
       }
@@ -112,11 +98,7 @@ export class RendererFallbackManager {
    */
   enableRenderer(rendererId: string) {
     const wasDisabled = this.disabledRenderers.delete(rendererId);
-    
-    if (wasDisabled && env.debug.validation) {
-      console.log(`[FALLBACK] Re-enabled renderer '${rendererId}'`);
-    }
-    
+
     return wasDisabled;
   }
 
@@ -218,10 +200,7 @@ export class RendererFallbackManager {
     });
 
     const results = await Promise.all(testPromises);
-    
-    if (env.debug.validation) {
-      console.log('[FALLBACK] Renderer test results:', results);
-    }
+
   }
 }
 

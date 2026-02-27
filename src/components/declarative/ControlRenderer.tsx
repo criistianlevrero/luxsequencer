@@ -360,9 +360,6 @@ export const DeclarativeControlPanel: React.FC<{
   // Wrap onSettingChange to apply property path mapping
   const handleSettingChange = (property: string, value: any) => {
     const storePath = mapControlIdToStorePath(property);
-    if (import.meta.env.DEV) {
-      console.log(`[DeclarativeControlPanel] Mapping control '${property}' to store path '${storePath}' with value:`, value);
-    }
     onSettingChange(storePath, value);
   };
   
@@ -370,9 +367,6 @@ export const DeclarativeControlPanel: React.FC<{
   const rendererSpec: RendererControlSpec = useMemo(() => {
     // Check if spec exists and is valid
     if (!spec) {
-      if (import.meta.env.DEV) {
-        console.warn(`[DeclarativeControlPanel] Spec is undefined for renderer: ${rendererId}`);
-      }
       return { standard: [], custom: [] };
     }
     
@@ -381,14 +375,8 @@ export const DeclarativeControlPanel: React.FC<{
       return adaptDeclarativeSchemaToSpec(spec as DeclarativeControlSchema);
     } else if (typeof spec === 'object' && 'standard' in spec) {
       // It's already a RendererControlSpec
-      if (import.meta.env.DEV) {
-        console.log(`[DeclarativeControlPanel] Using existing RendererControlSpec for renderer: ${rendererId}`);
-      }
       return spec as RendererControlSpec;
     } else {
-      if (import.meta.env.DEV) {
-        console.warn(`[DeclarativeControlPanel] Invalid spec format for renderer: ${rendererId}`, spec);
-      }
       return { standard: [], custom: [] };
     }
   }, [spec, rendererId]);

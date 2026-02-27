@@ -65,7 +65,7 @@ export const SequencerCell: React.FC<SequencerCellProps> = ({
   children,
 }) => {
   const stateStyles = getStateStyles(variant, active, selected, disabled);
-  
+
   return (
     <button
       type="button"

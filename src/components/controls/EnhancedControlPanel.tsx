@@ -7,7 +7,7 @@ import React, { useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { renderers } from '../renderers';
-import CollapsibleSection from '../shared/CollapsibleSection';
+import { CollapsibleSection } from '../ui';
 import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
 import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/scales/scales-declarative-schema';
 import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';

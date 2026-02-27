@@ -132,26 +132,8 @@ export const createSettingsSlice: StateCreator<StoreState, [], [], SettingsActio
         // Get interpolation settings
         const interpolationSteps = activeSequence.interpolationSpeed;
 
-        // DEBUG: Log pattern load start
-        if (env.debug.animation) {
-            console.log('[ANIMATION] Pattern load start (UI)', {
-                timestamp: Date.now(),
-                patternId: id,
-                patternName: pattern.name,
-                interpolationSteps,
-            });
-        }
-
         // Compare settings and find changed properties
         const changedPaths = findChangedPaths(currentSettings, normalizedPatternSettings);
-
-        if (env.debug.animation) {
-            console.log('[ANIMATION] Changed paths (UI)', {
-                patternId: id,
-                changedPathsCount: changedPaths.length,
-                changedPaths,
-            });
-        }
 
         // Request property changes for each changed property
         // Use UI priority since this is called from user interaction

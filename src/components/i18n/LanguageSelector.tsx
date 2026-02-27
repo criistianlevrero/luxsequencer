@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from '../../i18n/hooks/useTranslation'
 import type { LocaleCode } from '../../i18n/types'
-import { Select } from '../shared/Select'
+import { Select } from '../ui'
 
 export const LanguageSelector: React.FC<{ className?: string }> = ({ className }) => {
   const { locale, setLocale } = useTranslation()

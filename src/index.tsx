@@ -26,13 +26,10 @@ const startApp = async () => {
     (window as any).__DEBUG_SEQUENCER = false;
     (window as any).enableDebug = () => {
       (window as any).__DEBUG_SEQUENCER = true;
-      console.log('🐛 Debug mode enabled. Sequencer logs will appear in console.');
     };
     (window as any).disableDebug = () => {
       (window as any).__DEBUG_SEQUENCER = false;
-      console.log('🐛 Debug mode disabled.');
     };
-    console.log('💡 Debug helpers available: window.enableDebug() / window.disableDebug()');
   }
 
   // 0. Fetch the default project data from the JSON file (served from /public).
@@ -64,7 +61,6 @@ const startApp = async () => {
         initialProject = savedProject;
         // Always start with the sequencer stopped when loading a session.
         initialProject.globalSettings.isSequencerPlaying = false;
-        console.log("Project loaded from localStorage.");
       } else {
         console.warn("localStorage data is invalid, loading default project.");
       }
@@ -78,7 +74,6 @@ const startApp = async () => {
   // 2. If not loaded from localStorage, use the fetched default project
   if (!initialProject && defaultProjectData) {
     initialProject = defaultProjectData;
-    console.log("Default project loaded from file.");
   }
   
   // 3. Render the application with the loaded project

@@ -41,8 +41,9 @@ Documentación completa del sistema de interfaz de usuario de LuxSequencer, incl
 ### Estructura de Directorios
 ```
 src/components/
-├── shared/           # Componentes reutilizables base
-├── controls/         # Controles de configuración
+├── ui/               # Primitivas visuales (punto único de import)
+├── controls/         # Composición de negocio para panel de controles
+├── shared/           # Legacy/compatibilidad temporal (en deprecación gradual)
 ├── renderers/        # Sistema de renderizado modular
 ├── sequencer/        # Interfaz del secuenciador
 ├── midi/            # Controles MIDI
@@ -65,7 +66,7 @@ src/components/
 ## Sistema de Iconos
 
 ### Implementación Actual
-**Archivo**: [`src/components/shared/icons.tsx`](../src/components/shared/icons.tsx)  
+**Archivo**: [`src/components/ui/icons.tsx`](../src/components/ui/icons.tsx)  
 **Tecnología**: SVGs locales + vite-plugin-svgr
 
 ### Iconos Disponibles (23 iconos)
@@ -130,8 +131,11 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 ## Componentes Base
 
+> Import recomendado para primitivas: `src/components/ui/index.ts`
+
 ### 1. Button Component
-**Archivo**: [`src/components/shared/Button.tsx`](../src/components/shared/Button.tsx)
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/Button.tsx`](../src/components/ui/Button.tsx)
 
 #### Variants
 - `primary`: Cyan, acciones principales
@@ -153,7 +157,8 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 - ✅ Transiciones suaves
 
 ### 2. Select Component (Headless UI)
-**Archivo**: [`src/components/shared/Select.tsx`](../src/components/shared/Select.tsx)
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/Select.tsx`](../src/components/ui/Select.tsx)
 
 #### Dual API
 - **Options API**: Para casos simples con array de objetos
@@ -172,7 +177,8 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 Cuando se usan `children`, fallback a `<select>` HTML nativo para máxima compatibilidad.
 
 ### 3. Switch Component (Headless UI)
-**Archivo**: [`src/components/shared/Switch.tsx`](../src/components/shared/Switch.tsx)
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/Switch.tsx`](../src/components/ui/Switch.tsx)
 
 #### Features
 - ✅ Animaciones de transición suaves
@@ -186,7 +192,8 @@ Cuando se usan `children`, fallback a `<select>` HTML nativo para máxima compat
 Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
 
 ### 4. CollapsibleSection Component
-**Archivo**: [`src/components/shared/CollapsibleSection.tsx`](../src/components/shared/CollapsibleSection.tsx)
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/CollapsibleSection.tsx`](../src/components/ui/CollapsibleSection.tsx)
 
 #### Features
 - ✅ Estado expandido/colapsado
@@ -200,7 +207,9 @@ Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
 ## Componentes Avanzados
 
 ### 1. SliderInput
-**Archivo**: [`src/components/controls/SliderInput.tsx`](../src/components/controls/SliderInput.tsx)
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
+**Implementación actual**: [`src/components/ui/SliderInput.tsx`](../src/components/ui/SliderInput.tsx)  
+**Compatibilidad legacy**: [`src/components/controls/SliderInput.tsx`](../src/components/controls/SliderInput.tsx)
 
 #### Features
 - ✅ Label y valor mostrado simultáneamente

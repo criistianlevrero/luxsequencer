@@ -1,12 +1,9 @@
 
 import React, { useState } from 'react';
 import { useTextureStore } from '../../store';
-import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../shared/icons';
-import CollapsibleSection from '../shared/CollapsibleSection';
+import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../ui/icons';
 import PropertySequencer from './PropertySequencer';
-import { Button } from '../shared/Button';
-import { Select } from '../shared/Select';
-import { SequencerCell } from '../shared/SequencerCell';
+import { Button, CollapsibleSection, Select, SequencerCell } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 

@@ -30,10 +30,6 @@ export class RendererHotReloadManager {
    * Initialize hot reload system in development
    */
   private initializeHotReload() {
-    if (env.debug.validation) {
-      console.log('[HOT RELOAD] Initializing hot reload system');
-    }
-
     // Listen for Vite HMR updates
     if (import.meta.hot) {
       import.meta.hot.on('renderer-update', (data) => {
@@ -43,8 +39,6 @@ export class RendererHotReloadManager {
       import.meta.hot.on('renderer-error', (data) => {
         this.handleRendererError(data.rendererId, data.error);
       });
-      
-      console.log('[HOT RELOAD] HMR listeners initialized');
     }
 
     // Disable polling by default to prevent constant reloading messages
@@ -90,10 +84,6 @@ export class RendererHotReloadManager {
    * Handle renderer update from HMR or polling
    */
   private handleRendererUpdate(rendererId: string) {
-    if (env.debug.validation) {
-      console.log(`[HOT RELOAD] Renderer '${rendererId}' updated`);
-    }
-
     // Re-validate the updated renderer
     this.validateRenderer(rendererId);
 
@@ -130,20 +120,12 @@ export class RendererHotReloadManager {
    * Attempt to recover a failed renderer
    */
   private async attemptRecovery(rendererId: string) {
-    if (env.debug.validation) {
-      console.log(`[HOT RELOAD] Attempting recovery for '${rendererId}'`);
-    }
-
     const fallbackManager = getFallbackManager();
     const testResult = await fallbackManager.testRenderer(rendererId);
 
     if (testResult.success) {
       fallbackManager.enableRenderer(rendererId);
       this.handleRendererUpdate(rendererId);
-      
-      if (env.debug.validation) {
-        console.log(`[HOT RELOAD] Successfully recovered '${rendererId}'`);
-      }
     } else {
       if (env.debug.validation) {
         console.warn(`[HOT RELOAD] Recovery failed for '${rendererId}':`, testResult.error);
