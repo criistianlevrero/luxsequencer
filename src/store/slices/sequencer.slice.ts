@@ -5,7 +5,6 @@ import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe, Slid
 import { ControlSource } from '../../types';
 import { lerp } from '../utils/helpers';
 import { renderers } from '../../components/renderers';
-import { env } from '../../config';
 import { mapPropertyIdToPath as _mapPropertyIdToPath, normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
 
 export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerActions> = (set, get) => ({

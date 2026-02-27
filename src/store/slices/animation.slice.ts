@@ -2,7 +2,6 @@ import type { StateCreator } from 'zustand';
 import type { StoreState, AnimationActions } from '../types';
 import type { ControlSettings as _ControlSettings, ControlSource as _ControlSource, AnimationRequest, ActiveAnimation } from '../../types';
 import { lerp } from '../utils/helpers';
-import { env } from '../../config';
 import { getNestedProperty, setNestedProperty } from '../../utils/settingsMigration';
 
 export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationActions> = (set, get) => ({

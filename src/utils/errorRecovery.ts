@@ -11,7 +11,6 @@ import type { ValidationUtils as _ValidationUtils } from '../types/validation';
 import { validationUtils, validateSettingsWithSchema as _validateSettingsWithSchema } from './validation';
 import { normalizeSettings as _normalizeSettings, createInitialSettings, getNestedProperty, setNestedProperty } from './settingsMigration';
 import { getFallbackManager } from './rendererFallback';
-import { env } from '../config';
 
 // ===== RECOVERY TYPES =====
 

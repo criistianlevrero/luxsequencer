@@ -3,7 +3,7 @@ import type { DeclarativeControlSchema, ControlSettings, ValidationResult } from
 import { renderers } from '../components/renderers';
 import { validateRendererSettings as _validateRendererSettings, validateSettingsWithSchema } from './validation';
 import { getFallbackManager } from './rendererFallback';
-import { env, isDevelopment } from '../config';
+import { isDevelopment } from '../config';
 
 /**
  * Hot reload state and change tracking
@@ -181,7 +181,7 @@ export class RendererHotReloadManager {
    * Process a renderer change with full state management
    */
   private async processChange(change: RendererHotReloadChange): Promise<void> {
-    const { rendererId, changeType } = change;
+    const { rendererId, changeType: _changeType } = change;
 
     this.state.isReloading = true;
     this.state.pendingChanges.set(rendererId, change);

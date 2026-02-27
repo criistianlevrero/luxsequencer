@@ -333,7 +333,7 @@ export const validateSettingsWithSchema = (
     })));
   }
   
-  const validationTime = Date.now() - startTime;
+  const _validationTime = Date.now() - startTime;
   
   return {
     valid: errors.length === 0,

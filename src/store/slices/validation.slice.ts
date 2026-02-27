@@ -10,7 +10,6 @@ import type {
 } from '../../types';
 import { validateRendererSettings } from '../../utils/validation';
 import { renderers } from '../../components/renderers';
-import { env } from '../../config';
 
 // ===== SIMPLIFIED VALIDATION STATE =====
 

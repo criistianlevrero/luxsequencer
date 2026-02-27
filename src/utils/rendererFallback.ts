@@ -199,7 +199,7 @@ export class RendererFallbackManager {
       return { rendererId, ...result };
     });
 
-    const results = await Promise.all(testPromises);
+    const _results = await Promise.all(testPromises);
 
   }
 }

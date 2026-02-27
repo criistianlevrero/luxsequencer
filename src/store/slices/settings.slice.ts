@@ -3,7 +3,6 @@ import type { StateCreator } from 'zustand';
 import type { StoreState, SettingsActions } from '../types';
 import type { ControlSettings, AnyControlSettings as _AnyControlSettings, Pattern } from '../../types';
 import { ControlSource, isNewControlSettings as _isNewControlSettings } from '../../types';
-import { env } from '../../config';
 import { 
     getNestedProperty, 
     setNestedProperty as _setNestedProperty, 
