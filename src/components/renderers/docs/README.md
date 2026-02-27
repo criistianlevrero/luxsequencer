@@ -8,6 +8,28 @@ This guide describes how to build and register renderers in LuxSequencer. It tar
 - Reuse shared helpers and control schemas.
 - Keep renderers isolated and predictable.
 
+## Available Renderers
+
+LuxSequencer currently includes 3 built-in renderers:
+
+### 1. WebGL (webgl)
+- **Path**: `src/components/renderers/webgl/`
+- **Description**: Scale texture renderer with fragment shaders
+- **Uses**: Shared scale texture schema, complex WebGL shaders
+- **Settings prefix**: `renderer.webgl.*`
+
+### 2. Concentric (concentric)
+- **Path**: `src/components/renderers/concentric/`
+- **Description**: Hexagonal concentric patterns with WebGL2
+- **Uses**: Modular shader system, polygon generation
+- **Settings prefix**: `renderer.concentric.*`
+
+### 3. DVD Screensaver (dvd-screensaver)
+- **Path**: `src/components/renderers/dvd-screensaver/`
+- **Description**: Bouncing assets (text/SVG) with glitch effects
+- **Uses**: Dynamic texture generation, collision system
+- **Settings prefix**: `renderer.dvd-screensaver.*`
+
 ## Key Concepts
 
 ### RendererDefinition
@@ -41,32 +63,30 @@ Create a dedicated folder under `src/components/renderers/`:
 
 ```
 src/components/renderers/<your-renderer>/
-  YourRenderer.tsx
-  your-renderer-schema.ts
-  index.ts
+  YourRenderer.tsx          # Main renderer component (PascalCase)
+  your-renderer-schema.ts   # Legacy accordion schema
+  your-renderer-declarative-schema.ts  # Declarative schema (optional)
+  index.ts                  # Exports RendererDefinition
+  README.md                 # Optional: detailed implementation docs
 ```
 
-Recommended file roles:
-
-- `YourRenderer.tsx`: renderer component.
-- `your-renderer-schema.ts`: controls and defaults.
-- `index.ts`: exports `RendererDefinition`.
-
-## Renderer Registration
-
-Register your renderer in:
-
-- `src/components/renderers/index.ts`
+**Naming Conventions:**
+- **Component files**: `PascalCaseRenderer.tsx` (e.g., `WebglRenderer.tsx`, `ConcentricRenderer.tsx`) 
+- **Schema files**: `kebab-case-schema.ts`
+- **No technology suffixes**: Avoid `WebGLRenderer` unless WebGL is core to the name
+- **Consistent casing**: Use standard PascalCase, avoid mixed acronyms like `DVDRenderer`
 
 Example (use the renderer `id` as the key to keep mapping stable):
 
 ```ts
 import { yourRenderer } from './your-renderer';
+import { dvdScreensaverRenderer } from './dvd-screensaver';
 
 export const renderers: Record<string, RendererDefinition> = {
   [webglRenderer.id]: webglRenderer,
   [concentricRenderer.id]: concentricRenderer,
-  [yourRenderer.id]: yourRenderer
+  [dvdScreensaverRenderer.id]: dvdScreensaverRenderer,
+  [dvdScreensaverRenderer.id]: dvdScreensaverRenderer,
 };
 ```
 
@@ -163,14 +183,17 @@ setCurrentSetting('renderer.your.size', 42);
 
 ## Shared Helpers
 
-Use the existing helpers instead of re-implementing:
+Use existing helpers instead of re-implementing:
 
-- `getNestedProperty` in `src/utils/settingsMigration.ts`
-- `mapPropertyIdToPath` in `src/utils/settingsMigration.ts`
-- `getScaleTextureSchema` in `src/components/renderers/shared/scale-texture-schema.ts`
+- `getNestedProperty` and `setNestedProperty` in `src/utils/settingsMigration.ts`
+- `mapPropertyIdToPath` in `src/utils/settingsMigration.ts`  
 - `GradientEditor` in `src/components/controls/GradientEditor.tsx`
+- Shared components in `src/components/renderers/shared/`
 
-If you need gradients, follow the shared editor pattern used in the scale texture schema.
+**Important**: When creating shared components that use JSX:
+- Use `.tsx` extension (not `.ts`) to enable proper JSX parsing
+- Avoid `React.createElement` in favor of JSX syntax
+- Components should be properly typed as `React.FC<Props>`
 
 ## Validation
 
@@ -242,9 +265,13 @@ If the renderer introduces new settings paths, add defaults to:
 
 ## Checklist for New Renderers
 
-- [ ] Create folder under `src/components/renderers/`.
-- [ ] Implement renderer component.
-- [ ] Implement control schema (legacy and/or declarative).
-- [ ] Register in `src/components/renderers/index.ts`.
-- [ ] Add defaults and validation if needed.
-- [ ] Test switching between renderers and saved projects.
+- [ ] Create folder under `src/components/renderers/` with consistent naming
+- [ ] Implement renderer component as `YourRenderer.tsx` (PascalCase)
+- [ ] Implement control schema (legacy required, declarative optional)
+- [ ] Register in `src/components/renderers/index.ts` using renderer ID as key
+- [ ] Add defaults and validation if needed
+- [ ] Use `.tsx` extension for files containing JSX components
+- [ ] Follow WebGL implementation pattern for consistent rendering
+- [ ] Test switching between renderers and saved projects
+- [ ] Verify defaults are synchronized between both `default-project.json` files
+- [ ] Run type-check to ensure no TypeScript errors

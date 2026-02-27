@@ -176,7 +176,7 @@ export enum ControlSource {
 export type InterpolationType = 'linear'; // Prepared for future expansion
 
 export interface AnimationRequest {
-  property: string;  // More flexible property path (e.g., "common.animationSpeed" or "renderer.webgl.scaleSize")
+  property: string;  // More flexible property path (e.g., "common.animationSpeed" or "renderer.scales.scaleSize")
   from: any;
   to: any;
   steps: number;              // 0 = immediate, >0 = animated

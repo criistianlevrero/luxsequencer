@@ -21,7 +21,7 @@ export const migrateLegacySettings = (legacySettings: LegacyControlSettings): Co
     backgroundGradientColors: legacySettings.backgroundGradientColors,
   };
 
-  const webglSettings: WebGLSettings = {
+  const scalesSettings: WebGLSettings = {
     scaleSize: legacySettings.scaleSize,
     scaleSpacing: legacySettings.scaleSpacing,
     verticalOverlap: legacySettings.verticalOverlap,
@@ -48,21 +48,23 @@ export const migrateLegacySettings = (legacySettings: LegacyControlSettings): Co
   };
 
   const rendererSettings: RendererSettings = {
-    webgl: webglSettings,
+    scales: scalesSettings,
     concentric: concentricSettings,
   };
 
-  return {
+  const migratedSettings: ControlSettings = {
     common: commonSettings,
     renderer: rendererSettings,
   };
+
+  return migratedSettings;
 };
 
 /**
  * Converts new hierarchical settings back to legacy flat structure for backward compatibility
  */
 export const toLegacySettings = (newSettings: ControlSettings): LegacyControlSettings => {
-  const webglSettings = newSettings.renderer.webgl as WebGLSettings;
+  const scalesSettings = newSettings.renderer.scales as WebGLSettings;
   const concentricSettings = newSettings.renderer.concentric as ConcentricSettings;
 
   return {
@@ -71,19 +73,19 @@ export const toLegacySettings = (newSettings: ControlSettings): LegacyControlSet
     animationDirection: newSettings.common.animationDirection,
     backgroundGradientColors: newSettings.common.backgroundGradientColors,
 
-    // WebGL settings
-    scaleSize: webglSettings?.scaleSize ?? 150,
-    scaleSpacing: webglSettings?.scaleSpacing ?? 0,
-    verticalOverlap: webglSettings?.verticalOverlap ?? 0,
-    horizontalOffset: webglSettings?.horizontalOffset ?? 0.5,
-    shapeMorph: webglSettings?.shapeMorph ?? 0,
-    textureRotation: webglSettings?.textureRotation ?? 0,
-    textureRotationSpeed: webglSettings?.textureRotationSpeed ?? 0,
-    scaleBorderColor: webglSettings?.scaleBorderColor ?? '#000000',
-    scaleBorderWidth: webglSettings?.scaleBorderWidth ?? 0,
-    gradientColors: webglSettings?.gradientColors ?? [],
-    centerOffset: webglSettings?.centerOffset ?? { x: 0, y: 0 },
-    scaleRange: webglSettings?.scaleRange ?? { min: 1.0, max: 1.0 },
+    // Scales settings (was WebGL)
+    scaleSize: scalesSettings?.scaleSize ?? 150,
+    scaleSpacing: scalesSettings?.scaleSpacing ?? 0,
+    verticalOverlap: scalesSettings?.verticalOverlap ?? 0,
+    horizontalOffset: scalesSettings?.horizontalOffset ?? 0.5,
+    shapeMorph: scalesSettings?.shapeMorph ?? 0,
+    textureRotation: scalesSettings?.textureRotation ?? 0,
+    textureRotationSpeed: scalesSettings?.textureRotationSpeed ?? 0,
+    scaleBorderColor: scalesSettings?.scaleBorderColor ?? '#000000',
+    scaleBorderWidth: scalesSettings?.scaleBorderWidth ?? 0,
+    gradientColors: scalesSettings?.gradientColors ?? [],
+    centerOffset: scalesSettings?.centerOffset ?? { x: 0, y: 0 },
+    scaleRange: scalesSettings?.scaleRange ?? { min: 1.0, max: 1.0 },
 
     // Concentric settings
     concentric_repetitionSpeed: concentricSettings?.repetitionSpeed,
@@ -139,7 +141,7 @@ export const setRendererSettings = (
  * Maps legacy property IDs to hierarchical property paths
  * This maintains compatibility with existing control schemas
  */
-export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string = 'webgl'): string => {
+export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string = 'scales'): string => {
   // Common properties (shared across renderers)
   const commonProperties: Record<string, string> = {
     'animationSpeed': 'common.animationSpeed',
@@ -147,18 +149,18 @@ export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string =
     'backgroundGradientColors': 'common.backgroundGradientColors',
   };
 
-  // WebGL renderer properties
-  const webglProperties: Record<string, string> = {
-    'scaleSize': 'renderer.webgl.scaleSize',
-    'scaleSpacing': 'renderer.webgl.scaleSpacing',
-    'verticalOverlap': 'renderer.webgl.verticalOverlap',
-    'horizontalOffset': 'renderer.webgl.horizontalOffset',
-    'shapeMorph': 'renderer.webgl.shapeMorph',
-    'textureRotation': 'renderer.webgl.textureRotation',
-    'textureRotationSpeed': 'renderer.webgl.textureRotationSpeed',
-    'scaleBorderColor': 'renderer.webgl.scaleBorderColor',
-    'scaleBorderWidth': 'renderer.webgl.scaleBorderWidth',
-    'gradientColors': 'renderer.webgl.gradientColors',
+  // Scales renderer properties
+  const scalesProperties = {
+    'scaleSize': 'renderer.scales.scaleSize',
+    'scaleSpacing': 'renderer.scales.scaleSpacing',
+    'verticalOverlap': 'renderer.scales.verticalOverlap',
+    'horizontalOffset': 'renderer.scales.horizontalOffset',
+    'shapeMorph': 'renderer.scales.shapeMorph',
+    'textureRotation': 'renderer.scales.textureRotation',
+    'textureRotationSpeed': 'renderer.scales.textureRotationSpeed',
+    'scaleBorderColor': 'renderer.scales.scaleBorderColor',
+    'scaleBorderWidth': 'renderer.scales.scaleBorderWidth',
+    'gradientColors': 'renderer.scales.gradientColors',
   };
 
   // Concentric renderer properties
@@ -178,8 +180,8 @@ export const mapPropertyIdToPath = (propertyId: string, activeRenderer: string =
     return commonProperties[propertyId];
   }
   
-  if (webglProperties[propertyId]) {
-    return webglProperties[propertyId];
+  if (scalesProperties[propertyId]) {
+    return scalesProperties[propertyId];
   }
   
   if (concentricProperties[propertyId]) {
@@ -257,7 +259,7 @@ export const findChangedPaths = (
 
 /**
  * Gets a nested property value using a dot-notation path
- * e.g., "common.animationSpeed" or "renderer.webgl.scaleSize"
+ * e.g., "common.animationSpeed" or "renderer.scales.scaleSize"
  */
 export const getNestedProperty = (settings: ControlSettings | undefined, propertyPath: string): unknown => {
   if (!settings) return undefined;
@@ -272,7 +274,7 @@ export const getNestedProperty = (settings: ControlSettings | undefined, propert
 
 /**
  * Sets a nested property value using a dot-notation path
- * e.g., "common.animationSpeed" or "renderer.webgl.scaleSize"
+ * e.g., "common.animationSpeed" or "renderer.scales.scaleSize"
  */
 export const setNestedProperty = (
   settings: ControlSettings, 
@@ -305,7 +307,7 @@ export const setNestedProperty = (
  */
 export const createDefaultRendererSettings = (rendererId: string): WebGLSettings | ConcentricSettings | DvdScreensaverSettings | Record<string, unknown> => {
   switch (rendererId) {
-    case 'webgl':
+    case 'scales':
       return {
         scaleSize: 150,
         scaleSpacing: 0,
@@ -392,7 +394,7 @@ export const createInitialSettings = (): ControlSettings => {
   };
 
   const renderer: RendererSettings = {
-    webgl: createDefaultRendererSettings('webgl'),
+    scales: createDefaultRendererSettings('scales'),
     concentric: createDefaultRendererSettings('concentric'),
     'dvd-screensaver': createDefaultRendererSettings('dvd-screensaver'),
   };
@@ -419,11 +421,11 @@ export const ensureRendererSettings = (
 // ========== COMPATIBILITY ADAPTERS FOR EXISTING RENDERERS ==========
 
 /**
- * WebGL Renderer Compatibility Adapter
- * Provides backward compatibility interface for the WebGL renderer
+ * Scales Renderer Compatibility Adapter
+ * Provides backward compatibility interface for the Scales renderer
  */
-export const getWebGLCompatibleSettings = (settings: ControlSettings) => {
-  const webglSettings = getRendererSettings<WebGLSettings>(settings, 'webgl') || createDefaultRendererSettings('webgl') as WebGLSettings;
+export const getScalesCompatibleSettings = (settings: ControlSettings) => {
+  const scalesSettings = getRendererSettings<WebGLSettings>(settings, 'scales') || createDefaultRendererSettings('scales') as WebGLSettings;
   const commonSettings = settings.common || {
     animationSpeed: 1,
     animationDirection: 90,
@@ -431,19 +433,19 @@ export const getWebGLCompatibleSettings = (settings: ControlSettings) => {
   };
   
   return {
-    // WebGL specific settings
-    scaleSize: webglSettings.scaleSize,
-    scaleSpacing: webglSettings.scaleSpacing,
-    verticalOverlap: webglSettings.verticalOverlap,
-    horizontalOffset: webglSettings.horizontalOffset,
-    shapeMorph: webglSettings.shapeMorph,
-    textureRotation: webglSettings.textureRotation,
-    textureRotationSpeed: webglSettings.textureRotationSpeed,
-    scaleBorderColor: webglSettings.scaleBorderColor,
-    scaleBorderWidth: webglSettings.scaleBorderWidth,
-    gradientColors: webglSettings.gradientColors,
-    centerOffset: webglSettings.centerOffset,
-    scaleRange: webglSettings.scaleRange,
+    // Scales specific settings
+    scaleSize: scalesSettings.scaleSize,
+    scaleSpacing: scalesSettings.scaleSpacing,
+    verticalOverlap: scalesSettings.verticalOverlap,
+    horizontalOffset: scalesSettings.horizontalOffset,
+    shapeMorph: scalesSettings.shapeMorph,
+    textureRotation: scalesSettings.textureRotation,
+    textureRotationSpeed: scalesSettings.textureRotationSpeed,
+    scaleBorderColor: scalesSettings.scaleBorderColor,
+    scaleBorderWidth: scalesSettings.scaleBorderWidth,
+    gradientColors: scalesSettings.gradientColors,
+    centerOffset: scalesSettings.centerOffset,
+    scaleRange: scalesSettings.scaleRange,
     
     // Common settings
     animationSpeed: commonSettings.animationSpeed,
@@ -487,8 +489,8 @@ export const getConcentricCompatibleSettings = (settings: ControlSettings) => {
  */
 export const getCompatibleSettings = (settings: ControlSettings, rendererId: string) => {
   switch (rendererId) {
-    case 'webgl':
-      return getWebGLCompatibleSettings(settings);
+    case 'scales':
+      return getScalesCompatibleSettings(settings);
     case 'concentric':
       return getConcentricCompatibleSettings(settings);
     default:
@@ -498,10 +500,10 @@ export const getCompatibleSettings = (settings: ControlSettings, rendererId: str
 };
 
 /**
- * Hook version for React components - WebGL
+ * Hook version for React components - Scales
  */
-export const useWebGLCompatibleSettings = (settings: ControlSettings) => {
-  return React.useMemo(() => getWebGLCompatibleSettings(settings), [settings]);
+export const useScalesCompatibleSettings = (settings: ControlSettings) => {
+  return React.useMemo(() => getScalesCompatibleSettings(settings), [settings]);
 };
 
 /**

@@ -44,7 +44,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
                     // Check if it's old structure
                     if ((seq as any).patterns && (seq as any).sequencer) {
                         const oldSeq = seq as any;
-                        const currentRenderer = project.globalSettings.renderer || 'webgl';
+                        const currentRenderer = project.globalSettings.renderer || 'scales';
                         
                         // Migrate to new hybrid structure
                         seq.activePatterns = oldSeq.patterns || [];
@@ -75,7 +75,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         // Ensure all sequences have the hybrid structure
         project.sequences.forEach(seq => {
             if (!seq.activeRenderer) {
-                seq.activeRenderer = project.globalSettings.renderer || 'webgl';
+                seq.activeRenderer = project.globalSettings.renderer || 'scales';
             }
             if (!seq.activePatterns) {
                 seq.activePatterns = [];
@@ -90,12 +90,13 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         
         // Get initial settings and migrate if necessary
         const patternSettings = project.sequences[0].activePatterns[0]?.settings;
-        const currentRenderer = project.globalSettings.renderer || 'webgl';
+        const currentRenderer = project.globalSettings.renderer || 'scales';
         let migratedSettings;
         
         if (patternSettings) {
-            if (isLegacyControlSettings(patternSettings)) {
-                console.log('[PROJECT] Migrating legacy pattern settings to new structure');
+            const isLegacy = isLegacyControlSettings(patternSettings);
+            
+            if (isLegacy) {
                 migratedSettings = migrateLegacySettings(patternSettings);
             } else {
                 migratedSettings = patternSettings;
@@ -141,7 +142,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         // Start texture rotation animation loop
         const animateRotation = () => {
             const settings = get().currentSettings;
-            const speed = settings.renderer?.webgl?.textureRotationSpeed || 0;
+            const speed = settings.renderer?.scales?.textureRotationSpeed || 0;
             if (speed !== 0) {
                 set(state => ({ textureRotation: (state.textureRotation + speed * 0.5) % 360 }));
             }
@@ -183,7 +184,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         if (!project) return;
 
         const activeSequence = project.sequences[get().activeSequenceIndex];
-        const currentRenderer = project.globalSettings.renderer || 'webgl';
+        const currentRenderer = project.globalSettings.renderer || 'scales';
         
         const newSequence: Sequence = {
             id: `seq_${Date.now()}`,

@@ -1,62 +1,60 @@
-
 import React from 'react';
 import { useTextureStore } from '../../../store';
 import GradientEditor from '../../controls/GradientEditor';
 import { t } from '../../../i18n';
-// FIX: Import `AccordionItem` from the root `types.ts` file.
 import type { AccordionItem, GradientColor } from '../../../types';
 import { getNestedProperty } from '../../../utils/settingsMigration';
 
-// FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the scale gradient editor
-// FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const ScaleGradientEditor: React.FC = () => {
-    const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.webgl.gradientColors') as GradientColor[]) || []);
+    const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.scales.gradientColors') as GradientColor[]) || []);
     const { setCurrentSetting } = useTextureStore.getState();
-    return React.createElement(GradientEditor, {
-        title: t('controls.scaleGradient'),
-        colors: colors,
-        onColorsChange: (newColors) => setCurrentSetting('renderer.webgl.gradientColors', newColors),
-        minColors: 2,
-    });
+    return (
+        <GradientEditor
+            title={t('controls.scaleGradient')}
+            colors={colors}
+            onColorsChange={(newColors) => setCurrentSetting('renderer.scales.gradientColors', newColors)}
+            minColors={2}
+        />
+    );
 };
 
-// FIX: Correctly defined as a functional component returning JSX.
 // Custom component for the background gradient editor
-// FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const BackgroundGradientEditor: React.FC = () => {
     const colors = useTextureStore(state => (getNestedProperty(state.currentSettings, 'common.backgroundGradientColors') as GradientColor[]) || []);
     const { setCurrentSetting } = useTextureStore.getState();
-    return React.createElement(GradientEditor, {
-        title: t('controls.backgroundGradient'),
-        colors: colors,
-        onColorsChange: (newColors) => setCurrentSetting('common.backgroundGradientColors', newColors),
-        minColors: 1,
-    });
+    return (
+        <GradientEditor
+            title={t('controls.backgroundGradient')}
+            colors={colors}
+            onColorsChange={(newColors) => setCurrentSetting('common.backgroundGradientColors', newColors)}
+            minColors={1}
+        />
+    );
 };
 
-// FIX: Correctly defined as a functional component returning JSX.
 // Custom component for border color picker
-// FIX: Converted to React.createElement to avoid JSX parsing issues in .ts files.
 const BorderColorPicker: React.FC = () => {
-    const borderColor = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.webgl.scaleBorderColor') as string) || '#000000');
+    const borderColor = useTextureStore(state => (getNestedProperty(state.currentSettings, 'renderer.scales.scaleBorderColor') as string) || '#000000');
     const { setCurrentSetting } = useTextureStore.getState();
-    return React.createElement('div', { className: "space-y-3" },
-        React.createElement('div', { className: "flex justify-between items-center" },
-            React.createElement('label', { htmlFor: "borderColor", className: "font-medium text-gray-300" },
-                t('controls.borderColor')
-            ),
-            React.createElement('span', { className: "text-sm font-mono bg-gray-700 text-cyan-300 px-2 py-1 rounded uppercase" },
-                borderColor
-            )
-        ),
-        React.createElement('input', {
-            id: "borderColor",
-            type: "color",
-            value: borderColor,
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) => setCurrentSetting('renderer.webgl.scaleBorderColor', e.target.value),
-            className: "w-full h-10 p-1 bg-gray-700 border-2 border-gray-600 rounded-lg cursor-pointer"
-        })
+    return (
+        <div className="space-y-3">
+            <div className="flex justify-between items-center">
+                <label htmlFor="borderColor" className="font-medium text-gray-300">
+                    {t('controls.borderColor')}
+                </label>
+                <span className="text-sm font-mono bg-gray-700 text-cyan-300 px-2 py-1 rounded uppercase">
+                    {borderColor}
+                </span>
+            </div>
+            <input
+                id="borderColor"
+                type="color"
+                value={borderColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentSetting('renderer.scales.scaleBorderColor', e.target.value)}
+                className="w-full h-10 p-1 bg-gray-700 border-2 border-gray-600 rounded-lg cursor-pointer"
+            />
+        </div>
     );
 };
 
@@ -73,11 +71,11 @@ export const getScaleTextureSchema = (): AccordionItem[] => [
         title: t('section.scale'),
         defaultOpen: true,
         controls: [
-            { type: 'slider', id: 'renderer.webgl.scaleSize', label: t('controls.scaleSize'), min: 45, max: 400, step: 1, formatter: (v) => `${v}px` },
-            { type: 'slider', id: 'renderer.webgl.scaleSpacing', label: t('controls.horizontalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'renderer.webgl.verticalOverlap', label: t('controls.verticalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'renderer.webgl.horizontalOffset', label: t('controls.horizontalOffset'), min: 0, max: 1, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
-            { type: 'slider', id: 'renderer.webgl.shapeMorph', label: t('controls.shapeForm'), min: 0, max: 1, step: 0.01, formatter: (v) => {
+            { type: 'slider', id: 'renderer.scales.scaleSize', label: t('controls.scaleSize'), min: 45, max: 400, step: 1, formatter: (v) => `${v}px` },
+            { type: 'slider', id: 'renderer.scales.scaleSpacing', label: t('controls.horizontalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'renderer.scales.verticalOverlap', label: t('controls.verticalSpacing'), min: -0.4, max: 2.0, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'renderer.scales.horizontalOffset', label: t('controls.horizontalOffset'), min: 0, max: 1, step: 0.01, formatter: (v) => `${(v * 100).toFixed(0)}%` },
+            { type: 'slider', id: 'renderer.scales.shapeMorph', label: t('controls.shapeForm'), min: 0, max: 1, step: 0.01, formatter: (v) => {
                 if (v < 0.05) return t('shape.circle');
                 if (v > 0.45 && v < 0.55) return t('shape.diamond');
                 if (v > 0.95) return t('shape.star');
@@ -92,7 +90,7 @@ export const getScaleTextureSchema = (): AccordionItem[] => [
         title: t('section.border'),
         controls: [
             { type: 'custom', id: 'borderColor', component: BorderColorPicker },
-            { type: 'slider', id: 'renderer.webgl.scaleBorderWidth', label: t('controls.borderSize'), min: 0, max: 10, step: 0.1, formatter: (v) => `${v.toFixed(1)}px` },
+            { type: 'slider', id: 'renderer.scales.scaleBorderWidth', label: t('controls.borderSize'), min: 0, max: 10, step: 0.1, formatter: (v) => `${v.toFixed(1)}px` },
         ]
     },
     
@@ -102,7 +100,7 @@ export const getScaleTextureSchema = (): AccordionItem[] => [
         controls: [
             { 
                 type: 'slider',
-                id: 'renderer.webgl.textureRotationSpeed', 
+                id: 'renderer.scales.textureRotationSpeed', 
                 label: t('controls.rotationSpeed'), 
                 min: -5, 
                 max: 5, 

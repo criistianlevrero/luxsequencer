@@ -13,7 +13,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
   standard: [
     // === Scale Configuration ===
     {
-      id: 'renderer.webgl.scaleSize',
+      id: 'renderer.scales.scaleSize',
       type: 'slider',
       category: 'Scale',
       label: 'Scale Size',
@@ -38,7 +38,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.scaleSpacing',
+      id: 'renderer.scales.scaleSpacing',
       type: 'slider',
       category: 'Scale',
       label: 'Horizontal Spacing',
@@ -65,7 +65,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.verticalOverlap',
+      id: 'renderer.scales.verticalOverlap',
       type: 'slider',
       category: 'Scale',
       label: 'Vertical Spacing',
@@ -84,7 +84,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.horizontalOffset',
+      id: 'renderer.scales.horizontalOffset',
       type: 'slider',
       category: 'Scale',
       label: 'Horizontal Offset',
@@ -102,7 +102,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.shapeMorph',
+      id: 'renderer.scales.shapeMorph',
       type: 'slider',
       category: 'Scale',
       label: 'Shape Form',
@@ -135,7 +135,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Border Configuration ===
     {
-      id: 'renderer.webgl.scaleBorderColor',
+      id: 'renderer.scales.scaleBorderColor',
       type: 'color',
       category: 'Border',
       label: 'Border Color',
@@ -160,7 +160,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.scaleBorderWidth',
+      id: 'renderer.scales.scaleBorderWidth',
       type: 'slider',
       category: 'Border',
       label: 'Border Size',
@@ -177,7 +177,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
         tooltip: 'Width of the border around each scale',
         dependencies: [
           {
-            property: 'renderer.webgl.scaleBorderColor',
+            property: 'renderer.scales.scaleBorderColor',
             condition: DependencyConditions.notEquals('#000000'),
             effect: 'enable'
           }
@@ -187,7 +187,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Advanced Border (conditional) ===
     {
-      id: 'renderer.webgl.borderGlow',
+      id: 'renderer.scales.borderGlow',
       type: 'toggle',
       category: 'Border',
       label: 'Border Glow',
@@ -202,7 +202,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
         tooltip: 'Add a glowing effect to borders',
         dependencies: [
           {
-            property: 'renderer.webgl.scaleBorderWidth',
+            property: 'renderer.scales.scaleBorderWidth',
             condition: DependencyConditions.greaterThan(0),
             effect: 'show'
           }
@@ -211,7 +211,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     },
     
     {
-      id: 'renderer.webgl.borderGlowIntensity',
+      id: 'renderer.scales.borderGlowIntensity',
       type: 'slider',
       category: 'Border',
       label: 'Glow Intensity',
@@ -227,7 +227,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
         tooltip: 'Intensity of the border glow effect',
         dependencies: [
           {
-            property: 'renderer.webgl.borderGlow',
+            property: 'renderer.scales.borderGlow',
             condition: DependencyConditions.isTrue,
             effect: 'show'
           }
@@ -237,7 +237,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Rotation ===
     {
-      id: 'renderer.webgl.textureRotationSpeed',
+      id: 'renderer.scales.textureRotationSpeed',
       type: 'slider',
       category: 'Transform',
       label: 'Rotation Speed',
@@ -269,7 +269,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Scale Gradient ===
     {
-      id: 'renderer.webgl.gradientColors',
+      id: 'renderer.scales.gradientColors',
       type: 'gradient',
       category: 'Colors',
       label: 'Scale Gradient',
@@ -389,7 +389,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Performance Mode (conditional advanced settings) ===
     {
-      id: 'renderer.webgl.performanceMode',
+      id: 'renderer.scales.performanceMode',
       type: 'select',
       category: 'Advanced',
       label: 'Performance Mode',
@@ -410,7 +410,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Advanced Texture Settings (only show in performance mode) ===
     {
-      id: 'renderer.webgl.textureResolution',
+      id: 'renderer.scales.textureResolution',
       type: 'select',
       category: 'Advanced',
       label: 'Texture Resolution',
@@ -428,7 +428,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
         tooltip: 'Resolution of internal textures',
         dependencies: [
           {
-            property: 'renderer.webgl.performanceMode',
+            property: 'renderer.scales.performanceMode',
             condition: DependencyConditions.equals('performance'),
             effect: 'show'
           }
@@ -438,7 +438,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Vector2D Example ===
     {
-      id: 'renderer.webgl.centerOffset',
+      id: 'renderer.scales.centerOffset',
       type: 'vector2d',
       category: 'Transform',
       label: 'Center Offset',
@@ -459,7 +459,7 @@ export const webglRendererControlSpec: RendererControlSpec = {
     
     // === Range Example ===
     {
-      id: 'renderer.webgl.scaleRange',
+      id: 'renderer.scales.scaleRange',
       type: 'range',
       category: 'Scale',
       label: 'Scale Size Range',

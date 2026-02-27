@@ -97,7 +97,7 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
         const isGradient = property.includes('gradientColors');
         
         if (isGradient && Array.isArray(startValue)) {
-            if (property.includes('renderer.webgl.gradientColors') || property === 'renderer.webgl.gradientColors') {
+            if (property.includes('renderer.scales.gradientColors') || property === 'renderer.scales.gradientColors') {
                 set({ 
                     activeAnimations: newAnimations,
                     previousGradient: startValue,
@@ -180,7 +180,7 @@ export const createAnimationSlice: StateCreator<StoreState, [], [], AnimationAct
                         
                         // Update previous gradient and transition progress on first frame
                         if (animation.currentFrame === 1) {
-                            if (property.includes('renderer.webgl.gradientColors')) {
+                            if (property.includes('renderer.scales.gradientColors')) {
                                 set({ previousGradient: from });
                             } else if (property.includes('backgroundGradientColors')) {
                                 set({ previousBackgroundGradient: from });

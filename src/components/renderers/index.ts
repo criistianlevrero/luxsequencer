@@ -1,6 +1,6 @@
 
 
-import { webglRenderer } from './webgl';
+import { webglRenderer } from './scales';
 import { concentricRenderer } from './concentric';
 import { dvdScreensaverRenderer } from './dvd-screensaver';
 import type { RendererDefinition } from './types';

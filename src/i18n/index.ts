@@ -28,8 +28,8 @@ const flatToNested = (flat: Record<string, string>): Record<string, unknown> => 
 }
 
 // Convert flat translations to nested structure for rosetta
-const nestedEn = flatToNested(translations.en as Record<string, string>)
-const nestedEs = flatToNested(translations.es as Record<string, string>)
+const nestedEn = flatToNested(translations.en as unknown as Record<string, string>)
+const nestedEs = flatToNested(translations.es as unknown as Record<string, string>)
 
 // Add translations to rosetta
 r.set('en', nestedEn);

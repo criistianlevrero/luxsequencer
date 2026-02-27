@@ -315,6 +315,7 @@ export interface DeclarativeControlSchema {
       id: string;
       label: string;
       description?: string;
+      constraints?: ControlConstraints;
       min?: number;
       max?: number;
       step?: number;

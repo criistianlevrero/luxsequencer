@@ -9,7 +9,7 @@ import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { renderers } from '../renderers';
 import CollapsibleSection from '../shared/CollapsibleSection';
 import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
-import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/webgl/webgl-declarative-schema';
+import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/scales/scales-declarative-schema';
 import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';
 import type { ControlSection } from '../../types';
 
