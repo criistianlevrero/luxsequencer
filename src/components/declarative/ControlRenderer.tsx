@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import type {
   RendererControlSpec,
   StandardControlSpec,
@@ -21,7 +21,7 @@ import { SelectControl } from './controls/SelectControl';
 import { ToggleControl } from './controls/ToggleControl';
 import { RangeControl } from './controls/RangeControl';
 import { TextControl } from './controls/TextControl';
-import { Button } from '../ui';
+import { CollapsibleSection } from '../ui';
 
 /**
  * Adapter function to convert DeclarativeControlSchema to RendererControlSpec
@@ -399,7 +399,7 @@ export const DeclarativeControlPanel: React.FC<{
   return (
     <div className={`declarative-control-panel space-y-4 ${className}`}>
       {orderedSections.map(section => (
-        <ControlSection
+        <CollapsibleSection
           key={section.title}
           title={section.title}
           defaultOpen={section.defaultOpen}
@@ -411,40 +411,8 @@ export const DeclarativeControlPanel: React.FC<{
               </div>
             ))}
           </div>
-        </ControlSection>
+        </CollapsibleSection>
       ))}
-    </div>
-  );
-};
-
-/**
- * Control section wrapper component
- */
-const ControlSection: React.FC<{
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}> = ({ title, defaultOpen = false, children }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
-  return (
-    <div className="control-section">
-      <Button
-        variant="secondary"
-        size="md"
-        className="w-full justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-t-lg text-left text-gray-200"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>{title}</span>
-        <span className={`transform transition-transform ${isOpen ? 'rotate-90' : ''}`}>
-          ▶
-        </span>
-      </Button>
-      {isOpen && (
-        <div className="p-4 bg-gray-900 rounded-b-lg border-t border-gray-700">
-          {children}
-        </div>
-      )}
     </div>
   );
 };

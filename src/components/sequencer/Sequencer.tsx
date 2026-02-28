@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTextureStore } from '../../store';
 import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../ui/icons';
 import PropertySequencer from './PropertySequencer';
-import { Button, CollapsibleSection, Input, Select, SequencerCell, SliderInput } from '../ui';
+import { Button, CollapsibleSection, EmptyState, Input, Select, SequencerCell, SliderInput } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 
@@ -348,10 +348,12 @@ const Sequencer: React.FC = () => {
                     </div>
                     
                     {activePatterns.length === 0 && (
-                        <div className="text-center py-8 text-gray-500 text-sm">
-                            <div className="mb-2">🎵</div>
-                            <div>{t('sequencer.saveCurrentPattern')}</div>
-                        </div>
+                        <EmptyState
+                            icon="🎵"
+                            heading={t('sequencer.patterns')}
+                            description={t('sequencer.saveCurrentPattern')}
+                            className="py-8 text-gray-500"
+                        />
                     )}
                 </div>
             </CollapsibleSection>

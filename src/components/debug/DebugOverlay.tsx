@@ -3,7 +3,7 @@ import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { useTextureStore } from '../../store';
 import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
 import { PerformanceMonitor } from './PerformanceMonitor';
-import { Button } from '../ui';
+import { Button, PanelHeader, StatTile, Tabs } from '../ui';
 
 interface DebugMetrics {
   sequencerTicks: number;
@@ -212,71 +212,47 @@ const DebugOverlay: React.FC = () => {
   return (
     <div className="fixed bottom-4 right-4 w-96 max-h-[80vh] bg-gray-900/95 backdrop-blur-sm border-2 border-purple-500 rounded-lg shadow-2xl z-50 flex flex-col">
       {/* Header with Performance Alert Indicator */}
-      <div className="bg-purple-600 px-4 py-2 flex justify-between items-center rounded-t-lg">
-        <div className="flex items-center space-x-2">
-          <h3 className="font-bold text-white">🐛 {t('debug.console')}</h3>
-          {alertData.hasUnacknowledgedAlerts && (
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-              <span className="text-xs text-yellow-200">
-                {alertData.unacknowledgedAlerts.length}
-              </span>
-            </div>
-          )}
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          iconOnly
-          onClick={() => setIsOpen(false)}
-          className="text-white hover:text-gray-200"
-        >
-          ✕
-        </Button>
-      </div>
+      <PanelHeader
+        className="bg-purple-600 px-4 py-2 rounded-t-lg"
+        heading={`🐛 ${t('debug.console')}`}
+        titleClassName="font-bold text-white"
+        indicator={alertData.hasUnacknowledgedAlerts ? (
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+            <span className="text-xs text-yellow-200">
+              {alertData.unacknowledgedAlerts.length}
+            </span>
+          </div>
+        ) : undefined}
+        actions={(
+          <Button
+            variant="ghost"
+            size="icon"
+            iconOnly
+            onClick={() => setIsOpen(false)}
+            className="text-white hover:text-gray-200"
+          >
+            ✕
+          </Button>
+        )}
+      />
       
       {/* Tab Navigation */}
-      <div className="flex bg-gray-800 border-b border-gray-700">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setActiveTab('metrics')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
-            activeTab === 'metrics'
-              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          Debug Metrics
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setActiveTab('performance')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
-            activeTab === 'performance'
-              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          Performance
-          {alertData.hasUnacknowledgedAlerts && (
-            <span className="ml-1 w-1.5 h-1.5 bg-yellow-400 rounded-full inline-block" />
-          )}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setActiveTab('logs')}
-          className={`flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-none ${
-            activeTab === 'logs'
-              ? 'bg-gray-700 text-cyan-400 border-b-2 border-cyan-400'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          Event Logs
-        </Button>
-      </div>
+      <Tabs
+        activeValue={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'metrics' | 'performance' | 'logs')}
+        items={[
+          { value: 'metrics', label: 'Debug Metrics' },
+          {
+            value: 'performance',
+            label: 'Performance',
+            trailing: alertData.hasUnacknowledgedAlerts
+              ? <span className="ml-1 w-1.5 h-1.5 bg-yellow-400 rounded-full inline-block" />
+              : undefined,
+          },
+          { value: 'logs', label: 'Event Logs' },
+        ]}
+      />
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto">
@@ -286,32 +262,12 @@ const DebugOverlay: React.FC = () => {
             <div className="p-4 border-b border-gray-700 bg-gray-800/50">
               <h4 className="font-semibold text-cyan-400 mb-2">{t('debug.metrics')}</h4>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">FPS</div>
-                  <div className="text-white font-mono font-bold">{metrics.fps}</div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.rafCalls')}</div>
-                  <div className="text-white font-mono font-bold">{metrics.rafCalls}</div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.sequencerTicks')}</div>
-                  <div className="text-white font-mono font-bold">{metrics.sequencerTicks}</div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.settingsUpdates')}</div>
-                  <div className="text-white font-mono font-bold">{metrics.settingsUpdates}</div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.currentStep')}</div>
-                  <div className="text-white font-mono font-bold">{metrics.sequencerStep}</div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.animationActive')}</div>
-                  <div className={`font-mono font-bold ${metrics.animationFrameActive ? 'text-green-400' : 'text-red-400'}`}>
-                    {metrics.animationFrameActive ? 'YES' : 'NO'}
-                  </div>
-                </div>
+                <StatTile className="bg-gray-700/50" label="FPS" value={<span className="text-white font-mono font-bold">{metrics.fps}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.rafCalls')} value={<span className="text-white font-mono font-bold">{metrics.rafCalls}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.sequencerTicks')} value={<span className="text-white font-mono font-bold">{metrics.sequencerTicks}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.settingsUpdates')} value={<span className="text-white font-mono font-bold">{metrics.settingsUpdates}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.currentStep')} value={<span className="text-white font-mono font-bold">{metrics.sequencerStep}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.animationActive')} value={<span className={`font-mono font-bold ${metrics.animationFrameActive ? 'text-green-400' : 'text-red-400'}`}>{metrics.animationFrameActive ? 'YES' : 'NO'}</span>} />
                 <div className="bg-gray-700/50 p-2 rounded col-span-2">
                   <div className="text-gray-400">{t('debug.transitionProgress')}</div>
                   <div className="text-white font-mono font-bold">{(metrics.transitionProgress * 100).toFixed(1)}%</div>
@@ -322,16 +278,8 @@ const DebugOverlay: React.FC = () => {
                     />
                   </div>
                 </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.activeAnimations')}</div>
-                  <div className="text-cyan-300 font-mono font-bold">
-                    {storeState.activeAnimations.size}
-                  </div>
-                </div>
-                <div className="bg-gray-700/50 p-2 rounded">
-                  <div className="text-gray-400">{t('debug.interpolationSpeed')}</div>
-                  <div className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} {t('debug.steps')}</div>
-                </div>
+                <StatTile className="bg-gray-700/50" label={t('debug.activeAnimations')} value={<span className="text-cyan-300 font-mono font-bold">{storeState.activeAnimations.size}</span>} />
+                <StatTile className="bg-gray-700/50" label={t('debug.interpolationSpeed')} value={<span className="text-white font-mono font-bold">{storeState.interpolationSpeed || 0} {t('debug.steps')}</span>} />
                 <div className="bg-gray-700/50 p-2 rounded col-span-2">
                   <div className="text-gray-400">{t('debug.settingsHash')}</div>
                   <div className="text-cyan-300 font-mono text-xs truncate">{metrics.settingsHash}</div>

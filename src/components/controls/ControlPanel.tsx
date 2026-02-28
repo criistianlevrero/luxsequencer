@@ -5,7 +5,7 @@ import { TrashIcon, DownloadIcon, UploadIcon } from '../ui/icons';
 import { renderers } from '../renderers';
 import MidiLearnButton from '../midi/MidiLearnButton';
 import RendererControls from '../renderers/shared/RendererControls';
-import { Button, CollapsibleSection, Input, Select } from '../ui';
+import { Alert, Button, CollapsibleSection, Input, Select } from '../ui';
 
 const ControlPanel: React.FC = () => {
   const { t } = useTranslation();
@@ -184,26 +184,31 @@ const ControlPanel: React.FC = () => {
                         {t('midi.configurationDescription')}
                     </p>
                     {midiConnectionError ? (
-                        <div className="mb-4 bg-red-900/60 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative text-sm" role="alert">
-                            <strong className="font-bold block mb-2">{t('midi.connectionError')}</strong>
+                        <Alert
+                            variant="error"
+                            className="mb-4"
+                            heading={t('midi.connectionError')}
+                            actions={(
+                                <>
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={connectMidi}
+                                    >
+                                        {t('midi.retry')}
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={clearMidiError}
+                                    >
+                                        {t('common.close')}
+                                    </Button>
+                                </>
+                            )}
+                        >
                             <p className="mt-1">{midiConnectionError}</p>
-                             <div className="mt-4 flex items-center space-x-3">
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    onClick={connectMidi}
-                                >
-                                    {t('midi.retry')}
-                                </Button>
-                                 <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={clearMidiError}
-                                >
-                                    {t('common.close')}
-                                </Button>
-                            </div>
-                        </div>
+                        </Alert>
                     ) : midiDevices.length > 0 ? (
                         <div className="space-y-3">
                              <label htmlFor="midiDevice" className="font-medium text-gray-300">{t('midi.inputDevice')}</label>

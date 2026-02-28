@@ -1,6 +1,6 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import type { RendererDefinition } from '../renderers/types';
-import { Button } from '../ui';
+import { Alert, Button } from '../ui';
 
 interface RendererErrorBoundaryProps {
   children: ReactNode;
@@ -37,19 +37,23 @@ export class RendererErrorBoundary extends Component<RendererErrorBoundaryProps,
     if (this.state.hasError) {
       const rendererName = this.props.renderer?.name || 'Unknown';
       return (
-        <div className="flex items-center justify-center h-full bg-red-900 text-red-200">
-          <div className="text-center p-4">
-            <h2 className="text-lg font-bold mb-2">Renderer Error</h2>
-            <p className="text-sm mb-4">The {rendererName} renderer encountered an error</p>
-            <Button
-              variant="danger"
-              size="sm"
-              className="bg-red-700 hover:bg-red-600"
-              onClick={() => this.setState({ hasError: false, error: undefined })}
-            >
-              Retry
-            </Button>
-          </div>
+        <div className="flex items-center justify-center h-full p-4">
+          <Alert
+            variant="error"
+            heading="Renderer Error"
+            className="w-full max-w-lg text-center"
+            actions={(
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => this.setState({ hasError: false, error: undefined })}
+              >
+                Retry
+              </Button>
+            )}
+          >
+            <p>The {rendererName} renderer encountered an error</p>
+          </Alert>
         </div>
       );
     }
@@ -57,11 +61,14 @@ export class RendererErrorBoundary extends Component<RendererErrorBoundaryProps,
     // Handle missing renderer
     if (!this.props.renderer) {
       return (
-        <div className="flex items-center justify-center h-full bg-yellow-900 text-yellow-200">
-          <div className="text-center p-4">
-            <h2 className="text-lg font-bold mb-2">No Renderer</h2>
-            <p className="text-sm">No renderer is currently selected or available</p>
-          </div>
+        <div className="flex items-center justify-center h-full p-4">
+          <Alert
+            variant="warning"
+            heading="No Renderer"
+            className="w-full max-w-lg text-center"
+          >
+            <p>No renderer is currently selected or available</p>
+          </Alert>
         </div>
       );
     }

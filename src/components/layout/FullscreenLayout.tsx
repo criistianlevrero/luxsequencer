@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon, ResetIcon } from '../ui/icons';
-import { Button } from '../ui';
+import { Button, Sheet } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { DrawerStates, DrawerActions } from '../../hooks/useDrawerStates';
 
@@ -40,66 +40,58 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
         <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
-            size="icon"
+            size="circle"
             icon={drawers.isDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SettingsIcon className="w-6 h-6" />}
             iconOnly
             onClick={drawerActions.toggleDrawer}
             aria-label={drawers.isDrawerOpen ? t('ui.closeControls') : t('ui.openControls')}
-            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
           <Button
             variant="ghost"
-            size="icon"
+            size="circle"
             icon={drawers.isSequencerDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SequencerIcon className="w-6 h-6" />}
             iconOnly
             onClick={drawerActions.toggleSequencerDrawer}
             aria-label={drawers.isSequencerDrawerOpen ? t('ui.closeSequencer') : t('ui.openSequencer')}
-            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
         </div>
         <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
-            size="icon"
+            size="circle"
             icon={<ResetIcon className="w-6 h-6" />}
             iconOnly
             onClick={onReset}
             title={t('ui.resetToDefault')}
-            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
           <Button
             variant="ghost"
-            size="icon"
+            size="circle"
             icon={<ExitFullscreenIcon className="w-6 h-6" />}
             iconOnly
             onClick={onFullscreen}
             aria-label={t('ui.exitFullscreen')}
-            className="rounded-full p-3 bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
+            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
         </div>
       </div>
        
       {/* Left Control Drawer */}
-      <div
-        className={`fixed top-0 left-0 h-full bg-gray-800/90 backdrop-blur-sm border-r border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out z-40 w-full max-w-md ${
-          drawers.isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
+      <Sheet side="left" open={drawers.isDrawerOpen} className="w-full max-w-md">
         <div className="p-4 overflow-y-auto h-full text-gray-200">
           {controlPanel}
         </div>
-      </div>
+      </Sheet>
 
       {/* Bottom Sequencer Drawer */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out z-40 ${
-          drawers.isSequencerDrawerOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
-      >
+      <Sheet side="bottom" open={drawers.isSequencerDrawerOpen}>
         <div className="p-4 text-gray-200 container mx-auto">
           {sequencerPanel}
         </div>
-      </div>
+      </Sheet>
     </div>
   );
 };

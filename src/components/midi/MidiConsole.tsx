@@ -2,7 +2,7 @@
 import React from 'react';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { CloseIcon } from '../ui/icons';
-import { Button } from '../ui';
+import { Button, Sheet } from '../ui';
 import type { MidiLogEntry } from '../../types';
 
 interface MidiConsoleProps {
@@ -16,10 +16,9 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
   const { t } = useTranslation();
   
   return (
-    <div
-      className={`fixed bottom-0 left-0 right-0 z-40 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 shadow-2xl transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-y-0' : 'translate-y-full'
-      }`}
+    <Sheet
+      side="bottom"
+      open={isOpen}
       style={{ maxHeight: '40vh' }}
       aria-hidden={!isOpen}
     >
@@ -38,12 +37,12 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
             </Button>
             <Button
               variant="ghost"
-              size="icon"
+              size="circle"
               icon={<CloseIcon className="w-5 h-5" />}
               iconOnly
               onClick={onClose}
               aria-label={t('ui.closeConsole')}
-              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
           </div>
         </header>
@@ -65,7 +64,7 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
           )}
         </div>
       </div>
-    </div>
+    </Sheet>
   );
 };
 

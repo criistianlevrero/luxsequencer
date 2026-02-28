@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiDisabledState, uiFieldBase, uiFocusRing } from './tokens';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   inputSize?: 'sm' | 'md';
@@ -16,7 +17,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   className = '',
   ...props
 }, ref) => {
-  const baseStyles = 'w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed';
+  const baseStyles = `${uiFieldBase} ${uiFocusRing} focus:border-cyan-500 ${uiDisabledState}`;
 
   const finalClassName = unstyled
     ? className

@@ -134,12 +134,12 @@ export const MainApp: React.FC = () => {
             {!drawers.isConsoleOpen && !isFullscreen && (
               <Button
                 variant="primary"
-                size="icon"
+                size="fab"
                 icon={<ConsoleIcon className="w-6 h-6" />}
                 iconOnly
                 onClick={drawerActions.toggleConsole}
                 aria-label={t('ui.openMidiConsole')}
-                className="fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full shadow-lg hover:bg-cyan-700"
+                className="fixed bottom-4 right-4 z-50 hover:bg-cyan-700"
               />
             )}
             

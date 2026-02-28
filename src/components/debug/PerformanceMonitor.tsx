@@ -8,7 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
-import { Button, Switch, CollapsibleSection } from '../ui';
+import { Alert, Button, Card, CollapsibleSection, PanelHeader, StatTile, Switch } from '../ui';
 import { 
   ConsoleIcon,
   SettingsIcon,
@@ -132,43 +132,41 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <ConsoleIcon className="w-6 h-6 text-cyan-400" />
-          <h3 className="text-lg font-medium text-white">Performance Monitor</h3>
-          {isMonitoring && (
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          )}
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <SettingsIcon className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetMetrics}
-          >
-            <ChevronDownIcon className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={isMonitoring ? "secondary" : "primary"}
-            size="sm"
-            onClick={isMonitoring ? stopMonitoring : startMonitoring}
-          >
-            {isMonitoring ? 'Stop' : 'Start'} Monitoring
-          </Button>
-        </div>
-      </div>
+      <PanelHeader
+        heading="Performance Monitor"
+        icon={<ConsoleIcon className="w-6 h-6 text-cyan-400" />}
+        titleClassName="text-lg font-medium text-white"
+        indicator={isMonitoring ? <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /> : undefined}
+        actions={(
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+            >
+              <SettingsIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetMetrics}
+            >
+              <ChevronDownIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={isMonitoring ? "secondary" : "primary"}
+              size="sm"
+              onClick={isMonitoring ? stopMonitoring : startMonitoring}
+            >
+              {isMonitoring ? 'Stop' : 'Start'} Monitoring
+            </Button>
+          </>
+        )}
+      />
       
       {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-600">
+        <Card className="border-gray-600">
           <h4 className="text-sm font-medium text-gray-200 mb-3">Monitoring Settings</h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -193,12 +191,12 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               />
             </div>
           </div>
-        </div>
+        </Card>
       )}
       
       {/* Performance Score */}
       {metrics && (
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-600">
+        <Card className="border-gray-600">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-200">Performance Score</h4>
             <span className={`text-2xl font-bold ${getScoreColor(performanceScore)}`}>
@@ -228,7 +226,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               ))}
             </div>
           )}
-        </div>
+        </Card>
       )}
       
       {/* Alerts Section */}
@@ -239,36 +237,32 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         >
           <div className="space-y-2">
             {alertData.alerts.slice(0, 5).map((alert) => (
-              <div
+              <Alert
                 key={alert.id}
-                className={`p-3 rounded-md border-l-4 ${
-                  alert.type === 'critical'
-                    ? 'bg-red-900/20 border-red-400'
-                    : 'bg-yellow-900/20 border-yellow-400'
-                } ${alert.acknowledged ? 'opacity-50' : ''}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                variant={alert.type === 'critical' ? 'error' : 'warning'}
+                heading={
+                  <span className="flex items-center space-x-2">
                     <CheckIcon 
                       className={`w-4 h-4 ${
                         alert.type === 'critical' ? 'text-red-400' : 'text-yellow-400'
                       }`} 
                     />
-                    <span className="text-sm text-gray-200">{alert.message}</span>
-                  </div>
-                  
-                  {!alert.acknowledged && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => alertData.acknowledgeAlert(alert.id)}
-                      className="text-xs"
-                    >
-                      Acknowledge
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    <span>{alert.message}</span>
+                  </span>
+                }
+                className={alert.acknowledged ? 'opacity-50' : ''}
+                actions={!alert.acknowledged ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => alertData.acknowledgeAlert(alert.id)}
+                    className="text-xs"
+                  >
+                    Acknowledge
+                  </Button>
+                ) : undefined}
+              >
+              </Alert>
             ))}
             
             {alertData.alerts.length > 5 && (
@@ -294,65 +288,49 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         <CollapsibleSection title="Current Metrics" defaultOpen>
           <div className="grid grid-cols-2 gap-4">
             {/* FPS */}
-            <div className="bg-gray-750 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">FPS</span>
-                <span className={`text-lg font-medium ${
-                  metrics.fps >= 45 ? 'text-green-400' :
-                  metrics.fps >= 30 ? 'text-yellow-400' : 'text-red-400'
-                }`}>
-                  {metrics.fps.toFixed(1)}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Avg: {metrics.avgFrameTime.toFixed(1)}ms
-              </div>
-            </div>
+            <StatTile
+              className="bg-gray-700/50"
+              label="FPS"
+              value={metrics.fps.toFixed(1)}
+              subtitle={`Avg: ${metrics.avgFrameTime.toFixed(1)}ms`}
+              valueClassName={
+                metrics.fps >= 45 ? 'text-green-400' :
+                metrics.fps >= 30 ? 'text-yellow-400' : 'text-red-400'
+              }
+            />
             
             {/* Memory */}
-            <div className="bg-gray-750 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Memory</span>
-                <span className={`text-lg font-medium ${
-                  metrics.memoryUsage.percentageUsed < 70 ? 'text-green-400' :
-                  metrics.memoryUsage.percentageUsed < 85 ? 'text-yellow-400' : 'text-red-400'
-                }`}>
-                  {metrics.memoryUsage.percentageUsed.toFixed(0)}%
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {formatBytes(metrics.memoryUsage.usedJSHeapSize)}
-              </div>
-            </div>
+            <StatTile
+              className="bg-gray-700/50"
+              label="Memory"
+              value={`${metrics.memoryUsage.percentageUsed.toFixed(0)}%`}
+              subtitle={formatBytes(metrics.memoryUsage.usedJSHeapSize)}
+              valueClassName={
+                metrics.memoryUsage.percentageUsed < 70 ? 'text-green-400' :
+                metrics.memoryUsage.percentageUsed < 85 ? 'text-yellow-400' : 'text-red-400'
+              }
+            />
             
             {/* Render Time */}
-            <div className="bg-gray-750 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Render</span>
-                <span className={`text-lg font-medium ${
-                  metrics.renderTime.current < 12 ? 'text-green-400' :
-                  metrics.renderTime.current < 20 ? 'text-yellow-400' : 'text-red-400'
-                }`}>
-                  {metrics.renderTime.current.toFixed(1)}ms
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Avg: {metrics.renderTime.average.toFixed(1)}ms
-              </div>
-            </div>
+            <StatTile
+              className="bg-gray-700/50"
+              label="Render"
+              value={`${metrics.renderTime.current.toFixed(1)}ms`}
+              subtitle={`Avg: ${metrics.renderTime.average.toFixed(1)}ms`}
+              valueClassName={
+                metrics.renderTime.current < 12 ? 'text-green-400' :
+                metrics.renderTime.current < 20 ? 'text-yellow-400' : 'text-red-400'
+              }
+            />
             
             {/* Session Duration */}
-            <div className="bg-gray-750 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Session</span>
-                <span className="text-lg font-medium text-gray-200">
-                  {formatDuration(sessionStats.sessionDuration)}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {sessionStats.totalFrames} frames
-              </div>
-            </div>
+            <StatTile
+              className="bg-gray-700/50"
+              label="Session"
+              value={formatDuration(sessionStats.sessionDuration)}
+              subtitle={`${sessionStats.totalFrames} frames`}
+              valueClassName="text-gray-200"
+            />
           </div>
         </CollapsibleSection>
       )}
@@ -369,7 +347,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         <CollapsibleSection title="Renderer Profiling">
           <div className="space-y-2">
             {Object.entries(rendererProfile).map(([rendererId, profile]) => (
-              <div key={rendererId} className="bg-gray-750 rounded-lg p-3">
+              <div key={rendererId} className="bg-gray-700/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-200 capitalize">
                     {rendererId} Renderer
@@ -402,7 +380,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       {/* WebGL Metrics */}
       {metrics?.webgl && (
         <CollapsibleSection title="WebGL Metrics">
-          <div className="bg-gray-750 rounded-lg p-3">
+          <div className="bg-gray-700/50 rounded-lg p-3">
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-gray-400">Renderer: </span>
@@ -455,7 +433,7 @@ const PerformanceCharts: React.FC<{
     }).join(' ');
     
     return (
-      <div className="bg-gray-750 rounded-lg p-3">
+      <div className="bg-gray-700/50 rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-400">
             {data === history.fps ? 'FPS' : data === history.memory ? 'Memory' : 'Render Time'}

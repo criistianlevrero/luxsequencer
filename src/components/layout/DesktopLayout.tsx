@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppHeader } from './AppHeader';
+import { Card } from '../ui';
 
 interface DesktopLayoutProps {
   onFullscreen: () => void;
@@ -22,21 +23,21 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
 
       <main className="flex-grow container mx-auto p-3 md:p-4">
         <div className="grid gap-4 items-start grid-cols-1 lg:grid-cols-3">
-          <div className="lg:col-span-1 bg-gray-800 p-4 rounded-xl shadow-2xl border border-gray-700">
+          <Card className="lg:col-span-1">
             {controlPanel}
-          </div>
+          </Card>
           
           <div className="lg:col-span-2 flex flex-col gap-4">
             {viewportSection}
-            <div className="bg-gray-800 p-4 rounded-xl shadow-2xl border border-gray-700">
+            <Card>
               {sequencerPanel}
-            </div>
+            </Card>
           </div>
         </div>
       </main>
 
       <footer className="text-center py-2 text-gray-500 text-xs">
-        <p>Creado con React, Tailwind CSS y Gemini</p>
+        <p>Creado con TypeScript, React, Zustand, Headless UI, Tailwind CSS, Daisy IU y Vite</p>
       </footer>
     </div>
   );

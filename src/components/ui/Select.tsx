@@ -20,6 +20,7 @@ export interface SelectProps {
   disabled?: boolean;
   className?: string;
   size?: 'sm' | 'md';
+  variant?: 'default' | 'header';
   fullWidth?: boolean;
   id?: string;
   usePortal?: boolean;
@@ -151,6 +152,7 @@ export const Select: React.FC<SelectProps> = ({
   disabled = false,
   className = '',
   size = 'md',
+  variant = 'default',
   fullWidth = false,
   id,
   usePortal = true,
@@ -165,9 +167,15 @@ export const Select: React.FC<SelectProps> = ({
       md: 'px-3 py-2 text-sm',
     };
 
+    const variantClasses = {
+      default: 'bg-gray-700 border border-gray-600 text-gray-200',
+      header: 'bg-gray-700/80 border border-gray-600 text-white hover:bg-gray-600',
+    };
+
     const buttonClasses = `
-      relative w-full cursor-default rounded-lg bg-gray-700 border border-gray-600 
-      ${sizeClasses[size]} text-left text-gray-200 
+      relative w-full cursor-default rounded-lg
+      ${sizeClasses[size]} text-left
+      ${variantClasses[variant]}
       focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       ${fullWidth ? 'w-full' : ''}
@@ -209,16 +217,21 @@ export const Select: React.FC<SelectProps> = ({
     );
   }
 
-  const baseClasses = 'bg-gray-700 border border-gray-600 text-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors';
+  const baseClasses = 'rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors';
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-3 py-2 text-sm',
   };
 
+  const variantClasses = {
+    default: 'bg-gray-700 border border-gray-600 text-gray-200',
+    header: 'bg-gray-700/80 border border-gray-600 text-white hover:bg-gray-600',
+  };
+
   const widthClasses = fullWidth ? 'w-full' : '';
 
-  const finalClasses = `${baseClasses} ${sizeClasses[size]} ${widthClasses} ${className}`.trim();
+  const finalClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClasses} ${className}`.trim();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onChange(e.target.value);

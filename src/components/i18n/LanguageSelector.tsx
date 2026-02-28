@@ -3,7 +3,7 @@ import { useTranslation } from '../../i18n/hooks/useTranslation'
 import type { LocaleCode } from '../../i18n/types'
 import { Select } from '../ui'
 
-export const LanguageSelector: React.FC<{ className?: string }> = ({ className }) => {
+export const LanguageSelector: React.FC<{ className?: string; variant?: 'default' | 'header' }> = ({ className, variant = 'default' }) => {
   const { locale, setLocale } = useTranslation()
 
   const options = [
@@ -26,6 +26,7 @@ export const LanguageSelector: React.FC<{ className?: string }> = ({ className }
       value={locale}
       onChange={(value) => setLocale(value as LocaleCode)}
       options={options}
+      variant={variant}
       className={className}
       size="sm"
     />

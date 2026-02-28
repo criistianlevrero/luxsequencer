@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import { renderers } from '../renderers';
 import { PlusIcon } from '../ui/icons';
-import { Button, Select } from '../ui';
+import { Button, EmptyState, Select } from '../ui';
 import PropertyTrackLane from './PropertyTrackLane';
 import type { ControlSettings, ControlSection } from '../../types';
 
@@ -104,10 +104,12 @@ const PropertySequencer: React.FC = () => {
             {/* Track lanes */}
             <div className="space-y-3">
                 {propertyTracks.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                        <div className="mb-2">🎹</div>
-                        <div>Añade una pista para empezar a automatizar propiedades.</div>
-                    </div>
+                    <EmptyState
+                        icon="🎹"
+                        heading="Property Sequencer"
+                        description="Añade una pista para empezar a automatizar propiedades."
+                        className="py-8 text-gray-500"
+                    />
                 ) : (
                     propertyTracks.map(track => (
                         <PropertyTrackLane key={track.id} track={track} />

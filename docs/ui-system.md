@@ -16,18 +16,27 @@ Documentación completa del sistema de interfaz de usuario de LuxSequencer, incl
 - [Accesibilidad](#accesibilidad)
 - [Patrones de Diseño](#patrones-de-diseño)
 - [Mejoras Futuras](#mejoras-futuras)
+- [Historial de Refactor UI](#historial-de-refactor-ui)
+
+---
+
+## Historial de Refactor UI
+
+- Plan de refactor archivado: [docs/archive/ui-refactor-2026-02.md](./archive/ui-refactor-2026-02.md)
+- Este documento (`ui-system.md`) se mantiene como referencia activa del sistema UI actual.
 
 ---
 
 ## Stack Tecnológico
 
 ### Core
-- **React 19.2.0**: UI framework con concurrent features
+- **React 19.2.0**: framework de UI con funcionalidades concurrentes
 - **TypeScript**: Tipado estático completo
-- **Tailwind CSS**: Utility-first CSS framework
+- **Tailwind CSS**: framework CSS utility-first
+- **DaisyUI 5.x**: Primitivas semánticas y tematización sobre Tailwind
 - **Headless UI 2.2.9**: Componentes UI headless con accesibilidad completa
-- **Vite**: Build tool y dev server
-- **Zustand**: State management
+- **Vite**: herramienta de build y servidor de desarrollo
+- **Zustand**: gestión de estado
 
 ### Herramientas de Desarrollo
 - **vite-plugin-svgr**: SVG como componentes React
@@ -43,21 +52,22 @@ Documentación completa del sistema de interfaz de usuario de LuxSequencer, incl
 src/components/
 ├── ui/               # Primitivas visuales (punto único de import)
 ├── controls/         # Composición de negocio para panel de controles
-├── shared/           # Legacy/compatibilidad temporal (en deprecación gradual)
+├── declarative/      # Motor declarativo de controles y adaptadores
+├── layout/           # Shells y layouts principales
+├── routing/          # Composición de la app principal
 ├── renderers/        # Sistema de renderizado modular
 ├── sequencer/        # Interfaz del secuenciador
-├── midi/            # Controles MIDI
-├── debug/           # Herramientas de desarrollo
-├── dualscreen/      # Sistema de doble pantalla
-├── i18n/            # Componentes de internacionalización
-├── recording/       # Sistema de grabación (placeholder)
-└── filters/         # Filtros de audio/video (futuro)
+├── midi/             # Controles MIDI
+├── debug/            # Herramientas de desarrollo
+├── dualscreen/       # Sistema de doble pantalla
+├── error/            # Error boundaries y fallbacks
+└── i18n/             # Componentes de internacionalización
 ```
 
 ### Principios Arquitectónicos
 1. **Separación de responsabilidades**: Cada directorio tiene un propósito específico
 2. **Composición sobre herencia**: Componentes pequeños y combinables
-3. **Props drilling mínimo**: Uso de contexto y state management centralizado
+3. **Props drilling mínimo**: Uso de contexto y gestión de estado centralizada
 4. **Tipado estricto**: Interfaces TypeScript para todos los props
 5. **Accesibilidad first**: ARIA, navegación por teclado, screen readers
 
@@ -148,12 +158,14 @@ export const IconName: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 - `md`: Tamaño estándar (px-4 py-2) 
 - `lg`: Botones grandes (px-6 py-3)
 - `icon`: Solo icono (p-2)
+- `circle`: Icon button circular (overlay/header)
+- `fab`: Floating action button
 
-#### Features
+#### Características
 - ✅ Iconos con `icon` prop
 - ✅ Modo `iconOnly` para botones de icono
 - ✅ Estados disabled
-- ✅ Focus ring para accesibilidad
+- ✅ Anillo de foco para accesibilidad
 - ✅ Transiciones suaves
 
 #### Criterios de uso de `unstyled`
@@ -181,33 +193,37 @@ Regla práctica del proyecto:
 - **Options API**: Para casos simples con array de objetos
 - **Children API**: Para casos complejos con JSX personalizado
 
-#### Features Headless UI
-- ✅ Animaciones fluidas con Transition
+#### Características Headless UI
+- ✅ Animaciones fluidas con `Transition`
 - ✅ Navegación por teclado completa
-- ✅ Búsqueda por typing
+- ✅ Búsqueda incremental por escritura
 - ✅ Iconos en opciones
 - ✅ Descripciones en opciones
 - ✅ Estados disabled por opción
-- ✅ Portal rendering (z-index seguro)
+- ✅ Render en portal (`z-index` seguro)
+
+#### Variantes visuales
+- `default`: Select estándar para paneles y formularios
+- `header`: Select compacto para header/topbar
 
 #### Configuración de Portal
 - `usePortal` (default: `true`): Renderiza `Listbox.Options` en `document.body` para evitar clipping y conflictos de `z-index`.
 - `usePortal={false}`: Mantiene el render inline (comportamiento local) cuando se necesite por layout específico.
 
-#### Fallback Nativo
-Cuando se usan `children`, fallback a `<select>` HTML nativo para máxima compatibilidad.
+#### Fallback nativo
+Cuando se usan `children`, se utiliza `<select>` HTML nativo para máxima compatibilidad.
 
 ### 3. Switch Component (Headless UI)
 **Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
 **Implementación actual**: [`src/components/ui/Switch.tsx`](../src/components/ui/Switch.tsx)
 
-#### Features
+#### Características
 - ✅ Animaciones de transición suaves
 - ✅ Dos tamaños: `sm` y `md`
 - ✅ Labels y descripciones opcionales
 - ✅ Estados disabled
 - ✅ Colores dinámicos (cyan activo, gray inactivo)
-- ✅ Focus ring para accesibilidad
+- ✅ Anillo de foco para accesibilidad
 
 #### Implementación Actual
 Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
@@ -216,27 +232,46 @@ Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
 **Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
 **Implementación actual**: [`src/components/ui/CollapsibleSection.tsx`](../src/components/ui/CollapsibleSection.tsx)
 
-#### Features
+#### Características
 - ✅ Estado expandido/colapsado
 - ✅ Animación de rotación de chevron
 - ✅ `defaultOpen` prop
 - ✅ ARIA `aria-expanded`
-- ✅ Hover states
+- ✅ Estados hover
 
 ### 5. SequencerCell Component
 **Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
 **Implementación actual**: [`src/components/ui/SequencerCell.tsx`](../src/components/ui/SequencerCell.tsx)
 
-#### Variants
+#### Variantes
 - `pattern`: Celda para patrón con borde y estados activos
 - `step`: Celda para pasos del secuenciador con tamaño fijo
 - `keyframe`: Celda para automatización por keyframes
 
-#### Features
+#### Características
 - ✅ Estados `active`, `selected` y `disabled`
 - ✅ Estilos por variante y estado
-- ✅ Focus ring para navegación por teclado
+- ✅ Anillo de foco para navegación por teclado
 - ✅ API simple basada en `onClick` y `children`
+
+### 6. Primitivas de layout y feedback
+**Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)
+
+#### Superficies y contenedores
+- `Card`: Superficie base para paneles y bloques de contenido
+- `Sheet`: Drawer/sheet reutilizable (`left`, `right`, `top`, `bottom`)
+
+#### Estados y mensajes
+- `Alert`: Mensajes `info/success/warning/error` con acciones opcionales
+- `EmptyState`: Estado vacío reutilizable con icono/título/descripcion
+- `ErrorState`: Estado de error reutilizable para fallbacks de UI
+
+#### Encabezados y métricas
+- `PanelHeader`: Encabezado estandarizado para overlays y paneles
+- `StatTile`: Métricas compactas (label/valor/subtítulo)
+
+#### Navegación
+- `Tabs`: Navegación por pestañas basada en primitivas del sistema
 
 ---
 
@@ -245,36 +280,36 @@ Reemplaza botones toggle en **GradientEditor** para hardstops de colores.
 ### 1. SliderInput
 **Importar desde**: [`src/components/ui/index.ts`](../src/components/ui/index.ts)  
 **Implementación actual**: [`src/components/ui/SliderInput.tsx`](../src/components/ui/SliderInput.tsx)  
-**Compatibilidad legacy**: [`src/components/controls/SliderInput.tsx`](../src/components/controls/SliderInput.tsx)
+**Compatibilidad heredada**: [`src/components/controls/SliderInput.tsx`](../src/components/controls/SliderInput.tsx)
 
-#### Features
+#### Características
 - ✅ Label y valor mostrado simultáneamente
-- ✅ Formatter personalizable para unidades
-- ✅ Valor destacado en badge cyan
-- ✅ Estilo nativo de range slider
-- ✅ IDs semánticos para labels
+- ✅ Formateador personalizable para unidades
+- ✅ Valor destacado en insignia cyan
+- ✅ Slider base estandarizado con clase DaisyUI `range`
+- ✅ IDs semánticos para etiquetas
 
 ### 2. GradientEditor
 **Archivo**: [`src/components/controls/GradientEditor.tsx`](../src/components/controls/GradientEditor.tsx)
 
-#### Features Avanzadas
-- ✅ Color picker nativo del browser
+#### Características Avanzadas
+- ✅ Selector de color nativo del navegador
 - ✅ Switch para hardstops (implementado con Headless UI)
-- ✅ Drag & drop para reordenar colores
+- ✅ Arrastrar y soltar para reordenar colores
 - ✅ Previsualización en tiempo real
 - ✅ Validación de colores mínimos
 - ✅ Generación automática de CSS gradients
 
-#### Implementación Hardstops
-Usa el nuevo `Switch` component para better UX vs. botones toggle.
+#### Implementación de hardstops
+Usa la primitiva `Switch` para mejorar la UX frente a botones toggle.
 
 ### 3. MidiLearnButton
 **Archivo**: [`src/components/midi/MidiLearnButton.tsx`](../src/components/midi/MidiLearnButton.tsx)
 
-#### Estados Visuales
-- **Not mapped**: Gray, disponible para mapeo
-- **Learning**: Orange con pulse animation
-- **Mapped**: Cyan, MIDI asignado
+#### Estados visuales
+- **Sin mapear**: gris, disponible para mapeo
+- **Aprendiendo**: naranja con animación de pulso
+- **Mapeado**: cyan, MIDI asignado
 
 ### 4. RendererControls
 **Archivo**: [`src/components/renderers/shared/RendererControls.tsx`](../src/components/renderers/shared/RendererControls.tsx)
@@ -288,6 +323,16 @@ Usa el nuevo `Switch` component para better UX vs. botones toggle.
 ---
 
 ## Sistema de Estilos
+
+### Theming (Tailwind + DaisyUI)
+- Tema activo: `luxdark` definido en `src/index.css`
+- Tokens semánticos de color/shape unificados en DaisyUI theme
+- Fondo y color base del `body` derivados de variables del tema
+
+### Regla de estilos globales
+- No aplicar hacks globales para controles de formulario (`select`, `range`, etc.).
+- Los estilos de formularios deben vivir en primitivas de `src/components/ui`.
+- `src/index.css` se reserva para base/theme/utilidades globales mínimas.
 
 ### Color Palette
 - **Primary**: Cyan (500-700) - Acciones principales, estados activos
@@ -600,7 +645,7 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 
 ## Mejoras Futuras
 
-### Componentes Headless UI Pendientes
+### Componentes Headless UI potenciales
 
 #### 1. Dialog/Modal System
 ```typescript
@@ -636,9 +681,10 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 </Menu>
 ```
 
-#### 4. Tab System
+#### 4. Tab System avanzado (opcional)
 ```typescript
-// Para organizar control panels
+// Nota: ya existe la primitiva `Tabs` en `src/components/ui/Tabs.tsx`.
+// Esta opción aplica solo si se requiere migrar a Tab.Group de Headless UI.
 <Tab.Group>
   <Tab.List>
     <Tab>Renderer</Tab>
@@ -751,9 +797,11 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 
 ### ✅ Implementado y Estable
 - **23 iconos** optimizados con vite-plugin-svgr
-- **Button system** completo con 4 variants y 4 sizes
+- **Button system** completo con 4 variants y 6 sizes (`sm/md/lg/icon/circle/fab`)
 - **Select component** dual API con Headless UI
 - **Switch component** para toggles modernos  
+- **Primitivas de layout/feedback**: `Card`, `Sheet`, `Alert`, `EmptyState`, `ErrorState`, `PanelHeader`, `StatTile`, `Tabs`
+- **Tema DaisyUI (`luxdark`)** integrado y activo
 - **Sistema de eventos de teclado** con hook centralizado
 - **6 atajos de teclado** implementados (F11, Escape, Ctrl+1/2/`, Space)
 - **Navegación por teclado** completa en componentes Headless UI
@@ -762,9 +810,9 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 - **Accesibilidad** level AA
 
 ### 🚧 En Desarrollo
-- Migration completa a Headless UI components
-- Advanced gesture support
-- Performance optimizations
+- Consolidación incremental de flows con primitives en `ui/`
+- Soporte de gestos avanzados
+- Optimización de performance en overlays/debug
 
 ### 📋 Roadmap
 - Design system consolidation
@@ -775,6 +823,6 @@ className="focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
 
 ---
 
-**Fecha de actualización**: Enero 13, 2026  
-**Versión del sistema**: v2.0.0  
+**Fecha de actualización**: Febrero 28, 2026  
+**Versión del sistema**: v2.1.0  
 **Mantenedores**: AI Development Team

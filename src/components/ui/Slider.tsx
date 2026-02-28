@@ -1,4 +1,5 @@
 import React from 'react';
+import { uiDisabledState, uiFocusRing } from './tokens';
 
 export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
   unstyled?: boolean;
@@ -9,7 +10,7 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(({
   className = '',
   ...props
 }, ref) => {
-  const baseStyles = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 disabled:opacity-60 disabled:cursor-not-allowed';
+  const baseStyles = `range range-primary w-full ${uiFocusRing} ${uiDisabledState}`;
 
   const finalClassName = unstyled
     ? className

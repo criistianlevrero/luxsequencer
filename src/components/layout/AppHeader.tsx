@@ -26,24 +26,24 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onFullscreen, onReset }) =
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <LanguageSelector className="bg-gray-700/80 text-white rounded px-2 py-1 text-sm border border-gray-600 hover:bg-gray-600 transition-colors" />
+            <LanguageSelector variant="header" className="min-w-[9rem]" />
             <Button
               variant="ghost"
-              size="icon"
+              size="circle"
               icon={<ResetIcon className="w-5 h-5" />}
               iconOnly
               onClick={onReset}
               title={t('ui.resetToDefault')}
-              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
             <Button
               variant="ghost"
-              size="icon"
+              size="circle"
               icon={<EnterFullscreenIcon className="w-6 h-6" />}
               iconOnly
               onClick={onFullscreen}
               aria-label={t('ui.enterFullscreen')}
-              className="rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"
+              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
           </div>
         </div>

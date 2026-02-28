@@ -300,7 +300,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
               {/* Grouped options */}
               {Object.entries(filteredOptions.grouped).map(([groupName, options]) => (
                 <div key={groupName}>
-                  <div className="px-3 py-1 text-sm font-medium text-gray-400 bg-gray-750 border-b border-gray-600">
+                  <div className="px-3 py-1 text-sm font-medium text-gray-400 bg-gray-700/50 border-b border-gray-600">
                     {groupName}
                   </div>
                   {(options as SelectOption[]).map((option, groupIndex) => {
