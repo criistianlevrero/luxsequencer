@@ -3,9 +3,9 @@ import type { StateCreator } from 'zustand';
 import type { StoreState, SequencerActions } from '../types';
 import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
 import { ControlSource } from '../../types';
-import { lerp } from '../utils/helpers';
 import { renderers } from '../../components/renderers';
-import { mapPropertyIdToPath as _mapPropertyIdToPath, normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
+import { normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
+import { interpolateTrackValue } from '../utils/propertyInterpolation';
 
 export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerActions> = (set, get) => ({
     setIsSequencerPlaying: (isPlaying) => {
@@ -106,126 +106,6 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             }
         }
 
-        // --- 2. Apply property automation using requestPropertyChange ---
-        const { propertyTracks } = sequencer;
-        if (propertyTracks && propertyTracks.length > 0) {
-            const rendererId = project.globalSettings.renderer;
-            const renderer = renderers[rendererId];
-            if (!renderer || !renderer.controlSchema) {
-                return;
-            }
-            
-            // Get the control schema - it might be a function or an array
-            const controlSchema = typeof renderer.controlSchema === 'function' 
-                ? renderer.controlSchema() 
-                : renderer.controlSchema;
-            
-            const sliderConfigs = controlSchema
-                .filter((item): item is ControlSection => !('type' in item))
-                .flatMap(section => section.controls)
-                .filter(c => c.type === 'slider')
-                .reduce((acc, c: any) => {
-                    acc[c.id] = c;
-                    return acc;
-                }, {} as { [key: string]: any });
-
-            // Calculate fractional step for smooth interpolation
-            // This allows sub-step precision based on time elapsed since last tick
-            const stepDuration = (60 / sequencer.bpm) * 1000 / 4; // milliseconds per step
-            const { sequencerStartTime } = get();
-            const now = Date.now();
-            const timeElapsed = sequencerStartTime ? now - sequencerStartTime : 0;
-            const fractionalStep = (timeElapsed / stepDuration) % numSteps;
-
-            propertyTracks.forEach(track => {
-                const sortedKeyframes = [...track.keyframes].sort((a, b) => a.step - b.step);
-                if (sortedKeyframes.length === 0) return;
-
-                // Find the two keyframes to interpolate between (with loop support)
-                let prevKeyframe: Keyframe;
-                let nextKeyframe: Keyframe;
-                let interpolatedValue: number;
-                let debugInfo: any = {
-                    property: track.property,
-                    currentStep: nextStep,
-                    fractionalStep,
-                    numSteps,
-                    keyframesCount: sortedKeyframes.length,
-                    keyframes: sortedKeyframes.map(k => ({ step: k.step, value: k.value })),
-                };
-                
-                if (sortedKeyframes.length === 1) {
-                    // Single keyframe: use its value
-                    interpolatedValue = sortedKeyframes[0].value;
-                    debugInfo.mode = 'single-keyframe';
-                    debugInfo.value = interpolatedValue;
-                } else {
-                    // Find keyframes to interpolate between with proper wrap-around handling
-                    let nextIndex = sortedKeyframes.findIndex(k => k.step > fractionalStep);
-                    debugInfo.nextIndex = nextIndex;
-                    
-                    if (nextIndex === -1) {
-                        // fractionalStep is after all keyframes: wrap to first keyframe
-                        prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                        nextKeyframe = sortedKeyframes[0];
-                        debugInfo.mode = 'wrap-after-last';
-                    } else if (nextIndex === 0) {
-                        // fractionalStep is before first keyframe: wrap from last keyframe
-                        prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                        nextKeyframe = sortedKeyframes[0];
-                        debugInfo.mode = 'wrap-before-first';
-                    } else {
-                        // Normal case: between two keyframes
-                        prevKeyframe = sortedKeyframes[nextIndex - 1];
-                        nextKeyframe = sortedKeyframes[nextIndex];
-                        debugInfo.mode = 'normal';
-                    }
-                    
-                    // Calculate interpolation progress using fractional step
-                    let stepDiff: number;
-                    let progress: number;
-                    
-                    if (nextKeyframe.step > prevKeyframe.step) {
-                        // Normal case: next is after prev
-                        stepDiff = nextKeyframe.step - prevKeyframe.step;
-                        progress = fractionalStep - prevKeyframe.step;
-                        debugInfo.wrapAround = false;
-                    } else {
-                        // Wrap-around case: next is before prev (loop)
-                        stepDiff = (numSteps - prevKeyframe.step) + nextKeyframe.step;
-                        progress = fractionalStep > prevKeyframe.step 
-                            ? fractionalStep - prevKeyframe.step 
-                            : (numSteps - prevKeyframe.step) + fractionalStep;
-                        debugInfo.wrapAround = true;
-                    }
-                    
-                    const t = Math.max(0, Math.min(1, progress / stepDiff));
-                    interpolatedValue = lerp(prevKeyframe.value, nextKeyframe.value, t);
-                    
-                    debugInfo.prevKeyframe = { step: prevKeyframe.step, value: prevKeyframe.value };
-                    debugInfo.nextKeyframe = { step: nextKeyframe.step, value: nextKeyframe.value };
-                    debugInfo.stepDiff = stepDiff;
-                    debugInfo.progress = progress;
-                    debugInfo.t = t;
-                    debugInfo.interpolatedValue = interpolatedValue;
-                }
-
-                if (sliderConfigs && sliderConfigs[track.property]) {
-                    // Apply value immediately - smoothness comes from high-frequency updates
-                    // (calculated on every sequencer tick)
-                    requestPropertyChange(
-                        track.property,
-                        currentSettings[track.property],
-                        interpolatedValue,
-                        0, // Immediate - no animation needed
-                        ControlSource.PropertySequencer,
-                        'linear'
-                    );
-                }
-            });
-            
-        }
-        
         // Calculate next tick using precise timing
         const { sequencerStartTime, sequencerLoopCount } = get();
         const stepDuration = (60 / sequencer.bpm) * 1000 / 4;
@@ -233,7 +113,7 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         if (sequencerStartTime) {
             // Calculate the absolute step number (including all loops)
             const absoluteStep = (sequencerLoopCount * numSteps) + nextStep;
-            const idealNextTime = sequencerStartTime + (absoluteStep * stepDuration);
+            const idealNextTime = sequencerStartTime + ((absoluteStep + 1) * stepDuration);
             const now = Date.now();
             const delay = Math.max(0, idealNextTime - now);
             
@@ -428,7 +308,7 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
     },
 
     _updatePropertySequencer: () => {
-        const { project, activeSequenceIndex, requestPropertyChange, currentSettings, sequencerStartTime } = get();
+        const { project, activeSequenceIndex, requestPropertyChange, sequencerStartTime } = get();
         
         if (!project || !project.globalSettings.isSequencerPlaying || !sequencerStartTime) {
             return;
@@ -459,12 +339,11 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         const timeElapsed = now - sequencerStartTime;
         const fractionalStep = (timeElapsed / stepDuration) % numSteps;
 
-        // Debug telemetry
-        const debugTelemetry: any[] = [];
-
         const rendererId = activeSequence.activeRenderer;
         const renderer = renderers[rendererId];
         if (!renderer || !renderer.controlSchema) {
+            const rafId = requestAnimationFrame(() => get()._updatePropertySequencer());
+            set({ propertySequencerRafId: rafId });
             return;
         }
         
@@ -484,82 +363,22 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
 
         // Update each property track
         propertyTracks.forEach(track => {
-            const sortedKeyframes = [...track.keyframes].sort((a, b) => a.step - b.step);
-            if (sortedKeyframes.length === 0) return;
-
-            let interpolatedValue: number;
-            const trackDebug: any = {
-                property: track.property,
+            const interpolatedValue = interpolateTrackValue({
+                keyframes: track.keyframes,
                 fractionalStep,
-                keyframes: sortedKeyframes.map(k => ({ step: k.step, value: k.value })),
-            };
+                numSteps,
+            });
 
-            if (sortedKeyframes.length === 1) {
-                interpolatedValue = sortedKeyframes[0].value;
-                trackDebug.mode = 'single';
-                trackDebug.value = interpolatedValue;
-            } else {
-                // Find keyframes to interpolate between
-                let prevKeyframe: Keyframe;
-                let nextKeyframe: Keyframe;
-                
-                // Find the index of first keyframe AFTER current fractionalStep
-                let nextIndex = sortedKeyframes.findIndex(k => k.step > fractionalStep);
-                
-                if (nextIndex === -1) {
-                    // fractionalStep is after all keyframes: wrap to first keyframe
-                    prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                    nextKeyframe = sortedKeyframes[0];
-                    trackDebug.mode = 'wrap-after-last';
-                    trackDebug.nextIndexFound = nextIndex;
-                } else if (nextIndex === 0) {
-                    // fractionalStep is before first keyframe: wrap from last keyframe
-                    prevKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-                    nextKeyframe = sortedKeyframes[0];
-                    trackDebug.mode = 'wrap-before-first';
-                    trackDebug.nextIndexFound = nextIndex;
-                } else {
-                    // Normal case: between two keyframes
-                    prevKeyframe = sortedKeyframes[nextIndex - 1];
-                    nextKeyframe = sortedKeyframes[nextIndex];
-                    trackDebug.mode = 'normal';
-                    trackDebug.nextIndexFound = nextIndex;
-                }
-
-                // Calculate interpolation
-                let stepDiff: number;
-                let progress: number;
-
-                if (nextKeyframe.step > prevKeyframe.step) {
-                    stepDiff = nextKeyframe.step - prevKeyframe.step;
-                    progress = fractionalStep - prevKeyframe.step;
-                    trackDebug.wrapAround = false;
-                } else {
-                    stepDiff = (numSteps - prevKeyframe.step) + nextKeyframe.step;
-                    progress = fractionalStep > prevKeyframe.step
-                        ? fractionalStep - prevKeyframe.step
-                        : (numSteps - prevKeyframe.step) + fractionalStep;
-                    trackDebug.wrapAround = true;
-                }
-
-                const t = Math.max(0, Math.min(1, progress / stepDiff));
-                interpolatedValue = lerp(prevKeyframe.value, nextKeyframe.value, t);
-                
-                trackDebug.prevKeyframe = { step: prevKeyframe.step, value: prevKeyframe.value };
-                trackDebug.nextKeyframe = { step: nextKeyframe.step, value: nextKeyframe.value };
-                trackDebug.stepDiff = stepDiff;
-                trackDebug.progress = progress;
-                trackDebug.t = t;
-                trackDebug.interpolatedValue = interpolatedValue;
+            if (interpolatedValue === null) {
+                return;
             }
-
-            debugTelemetry.push(trackDebug);
 
             // Apply the interpolated value immediately
             if (sliderConfigs && sliderConfigs[track.property]) {
+                const currentValue = getNestedProperty(get().currentSettings, track.property);
                 requestPropertyChange(
                     track.property,
-                    currentSettings[track.property],
+                    currentValue,
                     interpolatedValue,
                     0, // Immediate - smoothness comes from RAF frequency
                     ControlSource.PropertySequencer,

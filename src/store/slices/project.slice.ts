@@ -9,6 +9,8 @@ import { validateRendererSettings } from '../../utils/validation';
 import { renderers } from '../../components/renderers';
 import { config } from '../../config';
 
+let textureRotationRafId: number | null = null;
+
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions> = (set, get) => ({
     initializeProject: (project) => {
         // Validate project version
@@ -130,20 +132,31 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             });
         }
         
-        // Start texture rotation animation loop
+        // Start texture rotation animation loop (single active RAF)
+        if (textureRotationRafId !== null) {
+            cancelAnimationFrame(textureRotationRafId);
+            textureRotationRafId = null;
+        }
+
         const animateRotation = () => {
             const settings = get().currentSettings;
             const speed = settings.renderer?.scales?.textureRotationSpeed || 0;
             if (speed !== 0) {
                 set(state => ({ textureRotation: (state.textureRotation + speed * 0.5) % 360 }));
             }
-            requestAnimationFrame(animateRotation);
+            textureRotationRafId = requestAnimationFrame(animateRotation);
         };
-        animateRotation();
+        textureRotationRafId = requestAnimationFrame(animateRotation);
 
-        // Start sequencer if it's set to play
+        // Start sequencer loops if it's set to play
         if (project.globalSettings.isSequencerPlaying) {
+            set({
+                sequencerCurrentStep: -1,
+                sequencerStartTime: Date.now(),
+                sequencerLoopCount: 0,
+            });
             get()._tickSequencer();
+            get()._updatePropertySequencer();
         }
     },
 
