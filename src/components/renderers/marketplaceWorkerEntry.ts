@@ -27,3 +27,21 @@ export const resolveExternalCoreRendererWorkerEntry = (
     return `${MARKETPLACE_PROXY_PREFIX}/src/renderers/${rendererId}/${workerFileName}`;
   }
 };
+
+export const resolveExternalCoreRendererModuleEntry = (
+  rendererId: string,
+  moduleFileName: string,
+): string => {
+  try {
+    const baseUrl = ensureTrailingSlash(env.marketplaceCoreRenderersBaseUrl);
+    const resolved = new URL(`${rendererId}/${moduleFileName}`, baseUrl);
+
+    if (typeof window !== 'undefined' && resolved.origin !== window.location.origin) {
+      return toSameOriginProxyUrl(resolved);
+    }
+
+    return resolved.toString();
+  } catch {
+    return `${MARKETPLACE_PROXY_PREFIX}/src/renderers/${rendererId}/${moduleFileName}`;
+  }
+};
