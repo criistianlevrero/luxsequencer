@@ -4,6 +4,7 @@ import {
   resolveCommunityPublicKey,
 } from '../../../graphics-pipeline';
 import type { RendererPackageManifest, RendererWorkerRequirements } from '../types';
+import { buildMarketplaceToolKey, validateMarketplaceIdentity } from './toolIdentity';
 
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
@@ -85,8 +86,13 @@ export const validateRendererSdkContract = ({
     return `Manifest schema no soportado para ${rendererId}: ${packageManifest.schemaVersion}`;
   }
 
-  if (!packageManifest.packageName || !packageManifest.packageVersion) {
-    return `Manifest inválido para ${rendererId}: packageName/packageVersion requeridos`;
+  if (!packageManifest.packageVersion) {
+    return `Manifest inválido para ${rendererId}: packageVersion requerido`;
+  }
+
+  const identityError = validateMarketplaceIdentity(rendererId, packageManifest);
+  if (identityError) {
+    return identityError;
   }
 
   if (!isSemver(packageManifest.sdk?.minWorkerProtocolVersion)) {
@@ -94,7 +100,7 @@ export const validateRendererSdkContract = ({
   }
 
   if (isSemverLess(runtimeProtocolVersion, packageManifest.sdk.minWorkerProtocolVersion)) {
-    return `SDK/protocolo incompatible para ${packageManifest.packageName ?? rendererId}: runtime=${runtimeProtocolVersion}, mínimo requerido=${packageManifest.sdk.minWorkerProtocolVersion}`;
+    return `SDK/protocolo incompatible para ${buildMarketplaceToolKey(packageManifest)}: runtime=${runtimeProtocolVersion}, mínimo requerido=${packageManifest.sdk.minWorkerProtocolVersion}`;
   }
 
   if (packageManifest.source === 'community') {

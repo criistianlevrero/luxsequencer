@@ -11,8 +11,15 @@ export const concentricRenderer: RendererDefinition = {
   workerEntry: new URL('./workers/concentric.worker.ts', import.meta.url),
   packageManifest: {
     schemaVersion: '1.0.0',
-    packageName: 'luxsequencer/renderer-concentric',
+    publisherId: 'luxsequencer',
+    repositoryId: 'core-renderers',
+    packageId: 'builtin-renderers',
     packageVersion: '0.6.0-beta',
+    tool: {
+      kind: 'renderer',
+      id: 'concentric',
+      versionMajor: 1,
+    },
     source: 'builtin',
     sdk: {
       minWorkerProtocolVersion: '1.0.0',

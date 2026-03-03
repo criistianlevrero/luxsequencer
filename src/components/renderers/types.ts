@@ -12,8 +12,15 @@ export interface RendererWorkerRequirements {
 
 export interface RendererPackageManifest {
   schemaVersion: '1.0.0';
-  packageName: string;
+  publisherId: string;
+  repositoryId: string;
+  packageId: string;
   packageVersion: string;
+  tool: {
+    kind: 'renderer' | 'tool';
+    id: string;
+    versionMajor: number;
+  };
   source: 'builtin' | 'community';
   sdk: {
     minWorkerProtocolVersion: string;

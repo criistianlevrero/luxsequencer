@@ -351,6 +351,13 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - ✅ Rotación automática de root keys con grace period configurable.
 - ✅ Revocación centralizada vía endpoint delta con cache/fallback.
 
+### Identidad de Marketplace (v1 beta)
+
+- Cada paquete define identidad canónica por colaborador/repo/herramienta.
+- Formato canónico: `publisherId/repositoryId:toolKind/toolId@major`.
+- `toolKind` permite compartir repo entre múltiples tipos (`renderer`, `tool`, etc.).
+- `toolId` y `versionMajor` estabilizan referencias para el marketplace y upgrades breaking.
+
 ## 13. Decisiones Arquitectónicas
 
 - El plugin nunca controla el canvas final.

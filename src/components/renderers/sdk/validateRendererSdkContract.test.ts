@@ -10,8 +10,15 @@ describe('validateRendererSdkContract', () => {
       },
       packageManifest: {
         schemaVersion: '1.0.0',
-        packageName: 'luxsequencer/renderer-builtin',
+        publisherId: 'luxsequencer',
+        repositoryId: 'core-renderers',
+        packageId: 'builtin-renderers',
         packageVersion: '0.6.0',
+        tool: {
+          kind: 'renderer',
+          id: 'builtin-renderer',
+          versionMajor: 1,
+        },
         source: 'builtin',
         sdk: {
           minWorkerProtocolVersion: '1.0.0',
@@ -28,8 +35,15 @@ describe('validateRendererSdkContract', () => {
       rendererId: 'incompatible-renderer',
       packageManifest: {
         schemaVersion: '1.0.0',
-        packageName: 'luxsequencer/renderer-incompatible',
+        publisherId: 'luxsequencer',
+        repositoryId: 'core-renderers',
+        packageId: 'builtin-renderers',
         packageVersion: '0.6.0',
+        tool: {
+          kind: 'renderer',
+          id: 'incompatible-renderer',
+          versionMajor: 1,
+        },
         source: 'builtin',
         sdk: {
           minWorkerProtocolVersion: '2.0.0',
@@ -58,8 +72,15 @@ describe('validateRendererSdkContract', () => {
       rendererId: 'community-renderer',
       packageManifest: {
         schemaVersion: '1.0.0',
-        packageName: 'community/renderer',
+        publisherId: 'communitygroup',
+        repositoryId: 'render-pack',
+        packageId: 'render-pack-core',
         packageVersion: '1.0.0',
+        tool: {
+          kind: 'renderer',
+          id: 'community-renderer',
+          versionMajor: 1,
+        },
         source: 'community',
         sdk: {
           minWorkerProtocolVersion: '1.0.0',
