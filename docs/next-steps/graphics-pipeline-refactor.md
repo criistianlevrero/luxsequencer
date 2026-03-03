@@ -2,20 +2,21 @@
 
 ## 1. Objetivo
 
-Migrar el sistema actual de renderers (que renderizan directamente al canvas final) hacia una arquitectura desacoplada con:
+Consolidar el sistema de renderers en una arquitectura desacoplada y **worker-only** con:
 
 - Renderers ejecutándose en Web Workers.
 - Cada renderer renderizando en su propio OffscreenCanvas.
 - Un compositor central en el main thread que mezcla texturas.
 - Soporte de transición suave (crossfade) entre dos renderers activos.
+- Aislamiento obligatorio de plugins/renderers comunitarios (sin acceso a DOM ni React).
 
 ## 2. Arquitectura General
 
-### Antes
+### Antes (legacy)
 
 `Renderer → Canvas final`
 
-### Después
+### Después (actual)
 
 `RendererWorker A → OffscreenCanvas A`
 
@@ -27,6 +28,14 @@ Main thread (Compositor WebGL):
 - Recibe `ImageBitmap` de B.
 - Mezcla ambas texturas.
 - Renderiza al canvas final.
+
+## 2.1 Estado actual (Marzo 2026)
+
+- Pipeline v2 activo como camino principal de render.
+- `webgl`, `concentric` y `dvd-screensaver` migrados a worker entrypoint.
+- `webgl-legacy` removido del registro.
+- `RendererDefinition` requiere `workerEntry`.
+- Sin fallback al renderer en main thread para ejecución normal.
 
 ## 3. Componentes
 
@@ -230,6 +239,11 @@ Puntos críticos:
 - Limitar a 2 workers activos máximo.
 - Terminar worker si no responde.
 
+Adicionalmente ya aplicado:
+
+- Estrategia latest-frame-wins por fuente (`A`/`B`).
+- Cierre defensivo de bitmaps reemplazados para evitar acumulación.
+
 ## 11. Cambios en Renderers Existentes
 
 Cada renderer actual debe:
@@ -240,6 +254,7 @@ Cada renderer actual debe:
 - Aceptar un `RendererContext` reducido.
 - Evitar APIs no permitidas en Worker.
 - Mantener su configuración de UI en esquema declarativo.
+- Declarar `workerEntry` obligatorio para ser cargable por el runtime.
 
 ## 11.1 Política de Controles (Declarativo Estricto)
 
@@ -301,23 +316,33 @@ Con este contrato, cualquier intento de agregar `type: 'custom'` desde un render
 - Uso permitido: solo compatibilidad temporal en renderers legacy no migrados.
 - Objetivo de retiro: eliminar este flag y el soporte legacy en la versión `v0.7.0` (Q2 2026), sujeto a completar la migración de renderers internos.
 
+Nota: esta transición aplica a controles custom legacy. La ejecución de renderers en main thread quedó fuera del camino principal.
+
 ## 12. Etapas de Refactor Recomendadas
 
-### Fase 1
+### Fase 1 — Base pipeline (completada)
 
 - Implementar compositor vacío.
 - Migrar 1 renderer a Worker.
 - Probar render simple sin transición.
 
-### Fase 2
+### Fase 2 — Transiciones y migración inicial (completada)
 
 - Implementar segundo renderer simultáneo.
 - Implementar crossfade básico.
 
-### Fase 3
+### Fase 3 — Worker-only runtime (completada)
 
 - Implementar sistema formal de lifecycle.
-- Refactor total de renderers existentes.
+- Remover ruta legacy de render en main thread.
+- Exigir `workerEntry` para renderers registrados.
+
+### Fase 4 — Endurecimiento SDK/Sandbox (siguiente)
+
+- Definir contrato estable de protocolo para renderers comunitarios (versión + capacidades).
+- Añadir validación de handshake/capabilities al cargar plugins.
+- Instrumentar métricas de backpressure, drops y health-check por worker.
+- Endurecer manejo de fallos (aislar renderer defectuoso sin romper compositor).
 
 ## 13. Decisiones Arquitectónicas
 
@@ -340,10 +365,10 @@ Con este contrato, cualquier intento de agregar `type: 'custom'` desde un render
 
 Cuando esté estable:
 
+- Formalizar Plugin SDK worker-only (protocolo, ciclo de vida, límites).
 - Separar renderers en repos externos.
-- Introducir sistema de firma.
+- Introducir sistema de firma y verificación de paquetes.
 - Introducir sistema de licencia.
-- Formalizar Plugin SDK.
 
 ## 16. Riesgos y Mitigaciones
 
@@ -394,5 +419,5 @@ Cuando esté estable:
 **Mitigación:**
 
 - Añadir feature detection al iniciar pipeline.
-- Proveer fallback al renderer en main thread cuando no haya soporte.
+- Mostrar estado no disponible y bloquear carga del renderer cuando no haya soporte mínimo.
 - Registrar capacidades detectadas en modo debug.
