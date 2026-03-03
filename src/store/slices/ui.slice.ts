@@ -5,7 +5,7 @@ import type { LocaleCode } from '../../i18n/types';
 import { setLocale as setI18nLocale, initializeI18n } from '../../i18n';
 import { validateRendererSettings } from '../../utils/validation';
 import { createInitialSettings } from '../../utils/settingsMigration';
-import { renderers } from '../../components/renderers';
+import { resolveRendererDefinition } from '../../components/renderers';
 import { config } from '../../config';
 
 // LocalStorage key for locale persistence
@@ -56,7 +56,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
         
         // Validate and migrate current settings for the new renderer
         const migratedSettings = createInitialSettings();
-        const rendererDefinition = renderers[renderer];
+        const rendererDefinition = resolveRendererDefinition(renderer);
         
         if (rendererDefinition) {
             const validationResult = validateRendererSettings(rendererDefinition, migratedSettings);

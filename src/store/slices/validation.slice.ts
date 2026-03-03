@@ -9,7 +9,7 @@ import type {
   ControlSettings, DeclarativeControlSchema as _DeclarativeControlSchema 
 } from '../../types';
 import { validateRendererSettings } from '../../utils/validation';
-import { renderers } from '../../components/renderers';
+import { resolveRendererDefinition } from '../../components/renderers';
 
 // ===== SIMPLIFIED VALIDATION STATE =====
 
@@ -77,7 +77,7 @@ export const createValidationSlice: StateCreator<
       // Get current settings and renderer info
       const settings = (state as any).currentSettings as ControlSettings;
       const activeRenderer = (state as any).project?.globalSettings?.renderer ?? 'webgl';
-      const renderer = renderers[activeRenderer];
+      const renderer = resolveRendererDefinition(activeRenderer);
 
       // Perform basic validation using existing system
       const validation = renderer?.validation 

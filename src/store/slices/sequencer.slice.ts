@@ -3,7 +3,7 @@ import type { StateCreator } from 'zustand';
 import type { StoreState, SequencerActions } from '../types';
 import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
 import { ControlSource } from '../../types';
-import { renderers } from '../../components/renderers';
+import { resolveRendererDefinition } from '../../components/renderers';
 import { normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
 import { interpolateTrackValue } from '../utils/propertyInterpolation';
 
@@ -250,7 +250,7 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             const track = sequencer?.propertyTracks?.find(t => t.id === trackId);
             if (!track || track.keyframes.some(k => k.step === step)) return;
 
-            const renderer = renderers[activeRenderer];
+            const renderer = resolveRendererDefinition(activeRenderer);
             if (!renderer || !renderer.controlSchema) {
                 return;
             }
@@ -340,7 +340,7 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         const fractionalStep = (timeElapsed / stepDuration) % numSteps;
 
         const rendererId = activeSequence.activeRenderer;
-        const renderer = renderers[rendererId];
+        const renderer = resolveRendererDefinition(rendererId);
         if (!renderer || !renderer.controlSchema) {
             const rafId = requestAnimationFrame(() => get()._updatePropertySequencer());
             set({ propertySequencerRafId: rafId });

@@ -1,7 +1,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import ControlPanel from '../controls/ControlPanel';
-import { renderers } from '../renderers';
+import { resolveRendererDefinition } from '../renderers';
 import { ConsoleIcon } from '../ui/icons';
 import { Button } from '../ui';
 import MidiConsole from '../midi/MidiConsole';
@@ -26,7 +26,7 @@ import GraphicsPipelineHost from '../renderers/pipeline/GraphicsPipelineHost';
 
 const PipelineViewportCanvas: React.FC<{ className?: string }> = ({ className }) => {
   const currentRendererId = useTextureStore((state) => state.project?.globalSettings.renderer ?? 'webgl');
-  const currentRenderer = renderers[currentRendererId];
+  const currentRenderer = resolveRendererDefinition(currentRendererId);
 
   if (!currentRenderer) {
     return <div className={className} />;
@@ -35,7 +35,7 @@ const PipelineViewportCanvas: React.FC<{ className?: string }> = ({ className })
   return (
     <GraphicsPipelineHost
       className={className}
-      rendererId={currentRendererId}
+      rendererId={currentRenderer.id}
       workerEntry={currentRenderer.workerEntry}
       workerRequirements={currentRenderer.workerRequirements}
       packageManifest={currentRenderer.packageManifest}
@@ -87,7 +87,7 @@ export const MainApp: React.FC = () => {
   const StablePipelineCanvas = useMemo(() => PipelineViewportCanvas, []);
   
   // Get current renderer with fallback handling
-  const currentRenderer = useMemo(() => renderers[rendererId], [rendererId]);
+  const currentRenderer = useMemo(() => resolveRendererDefinition(rendererId), [rendererId]);
   const CanvasComponent = useMemo<React.FC<{ className?: string }> | undefined>(() => {
     if (!currentRenderer) {
       return undefined;

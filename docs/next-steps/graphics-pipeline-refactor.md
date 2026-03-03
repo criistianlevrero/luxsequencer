@@ -357,6 +357,8 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - Formato canónico: `publisherId/repositoryId:toolKind/toolId@major`.
 - `toolKind` permite compartir repo entre múltiples tipos (`renderer`, `tool`, etc.).
 - `toolId` y `versionMajor` estabilizan referencias para el marketplace y upgrades breaking.
+- Los repositorios 3rd-party se cargan desde árbol precargado en `localStorage` (`luxsequencer.marketplace.tree.v1`).
+- La app resuelve renderers/tools por clave canónica y aplica `entitlements.allowedToolKeys` para acceso (incluyendo modelos de pago).
 
 ## 13. Decisiones Arquitectónicas
 

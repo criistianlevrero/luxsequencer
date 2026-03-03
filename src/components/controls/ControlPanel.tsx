@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import { useTextureStore } from '../../store';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { TrashIcon, DownloadIcon, UploadIcon } from '../ui/icons';
-import { renderers } from '../renderers';
+import { getSelectableRenderers, resolveRendererDefinition } from '../renderers';
+import { buildMarketplaceToolKey } from '../renderers/sdk/toolIdentity';
 import MidiLearnButton from '../midi/MidiLearnButton';
 import RendererControls from '../renderers/shared/RendererControls';
 import { Alert, Button, CollapsibleSection, Input, Select } from '../ui';
@@ -65,7 +66,9 @@ const ControlPanel: React.FC = () => {
       event.target.value = ''; 
   };
   
-  const rendererSchema = renderers[renderer]?.controlSchema;
+    const selectedRenderer = resolveRendererDefinition(renderer);
+    const rendererSchema = selectedRenderer?.controlSchema;
+    const selectableRenderers = getSelectableRenderers();
 
   return (
     <div className="divide-y divide-gray-700">
@@ -78,10 +81,10 @@ const ControlPanel: React.FC = () => {
                     id="renderer"
                     value={renderer}
                     onChange={(value) => changeRenderer(value as string)}
-                    options={Object.values(renderers).map(r => ({
-                      value: r.id,
+                                        options={selectableRenderers.map(r => ({
+                                            value: r.packageManifest?.source === 'community' ? buildMarketplaceToolKey(r.packageManifest) : r.id,
                       label: r.name,
-                      description: `Renderer: ${r.id}`
+                                            description: r.packageManifest ? `Renderer: ${buildMarketplaceToolKey(r.packageManifest)}` : `Renderer: ${r.id}`
                     }))}
                     fullWidth
                 />
@@ -92,7 +95,7 @@ const ControlPanel: React.FC = () => {
                         <div className="font-medium">{t('patterns.rendererCache')}:</div>
                         <div className="grid grid-cols-2 gap-2">
                             {Object.entries(activeSequence.rendererPatterns).map(([rendererId, patterns]) => {
-                                const rendererName = renderers[rendererId]?.name || rendererId;
+                                const rendererName = resolveRendererDefinition(rendererId)?.name || rendererId;
                                 const isActive = rendererId === activeSequence.activeRenderer;
                                 return (
                                     <div 

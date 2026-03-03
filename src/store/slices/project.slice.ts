@@ -6,7 +6,7 @@ import { isLegacyControlSettings } from '../../types';
 import { LOCAL_STORAGE_KEY } from '../utils/helpers';
 import { migrateLegacySettings, createInitialSettings as _createInitialSettings } from '../../utils/settingsMigration';
 import { validateRendererSettings } from '../../utils/validation';
-import { renderers } from '../../components/renderers';
+import { resolveRendererDefinition } from '../../components/renderers';
 import { config } from '../../config';
 
 let textureRotationRafId: number | null = null;
@@ -102,7 +102,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
         }
         
         // Validate settings for current renderer
-        const rendererDefinition = renderers[currentRenderer];
+        const rendererDefinition = resolveRendererDefinition(currentRenderer);
         if (rendererDefinition) {
             const validationResult = validateRendererSettings(rendererDefinition, migratedSettings);
             if (!validationResult.valid) {

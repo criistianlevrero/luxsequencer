@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTextureStore } from '../../store';
-import { renderers } from '../renderers';
+import { getAllRenderers, resolveRendererDefinition } from '../renderers';
 import { RendererErrorBoundary } from '../error/RendererErrorBoundary';
 
 /**
@@ -41,7 +41,7 @@ export const SecondaryDisplay: React.FC = () => {
   }, []);
 
   // Obtener el componente del renderer actual
-  const renderer = renderers[rendererId];
+  const renderer = resolveRendererDefinition(rendererId);
   
   if (!renderer) {
     return (
@@ -49,7 +49,7 @@ export const SecondaryDisplay: React.FC = () => {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">LuxSequencer</h1>
           <p className="text-xl text-gray-400">Renderer no encontrado: {rendererId}</p>
-          <p className="text-sm text-gray-500 mt-2">Available renderers: {Object.keys(renderers).join(', ')}</p>
+          <p className="text-sm text-gray-500 mt-2">Available renderers: {Object.keys(getAllRenderers()).join(', ')}</p>
         </div>
       </div>
     );
@@ -97,7 +97,7 @@ export const SecondaryDisplay: React.FC = () => {
       
       {/* Renderer container */}
       <div className={getContainerClasses()}>
-        <RendererErrorBoundary renderer={renderers[rendererId]}>
+        <RendererErrorBoundary renderer={renderer}>
           <RendererComponent className={getRendererClasses()} />
         </RendererErrorBoundary>
       </div>
