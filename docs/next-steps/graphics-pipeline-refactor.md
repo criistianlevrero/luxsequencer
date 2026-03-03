@@ -344,7 +344,8 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - ✅ Métricas de backpressure, drops y health-check por worker.
 - ✅ Política de manifest por paquete (`builtin`/`community`) con requisitos mínimos de SDK.
 - ✅ Verificación real de integridad SHA-256 de `workerEntry` para paquetes community antes de iniciar el worker.
-- ⏳ Pendiente: verificación criptográfica de firma del paquete (además del checksum).
+- ✅ Verificación criptográfica de firma del paquete community (ECDSA P-256 + SHA-256) antes de iniciar el worker.
+- ⏳ Pendiente: gestión robusta del trust store (distribución/rotación/revocación de claves públicas).
 
 ## 13. Decisiones Arquitectónicas
 
@@ -369,7 +370,7 @@ Cuando esté estable:
 
 - Formalizar Plugin SDK worker-only (protocolo, ciclo de vida, límites).
 - Separar renderers en repos externos.
-- Introducir sistema de firma y verificación de paquetes (checksum ya aplicado).
+- Endurecer sistema de firma y verificación de paquetes (trust store, rotación y revocación de claves).
 - Introducir sistema de licencia.
 
 ## 16. Riesgos y Mitigaciones

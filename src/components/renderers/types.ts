@@ -20,6 +20,11 @@ export interface RendererPackageManifest {
   };
   security?: {
     workerEntrySha256?: string;
+    workerEntrySignature?: {
+      algorithm: 'ECDSA_P256_SHA256';
+      publicKeyId: string;
+      valueBase64: string;
+    };
   };
 }
 

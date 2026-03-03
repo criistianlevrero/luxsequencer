@@ -45,6 +45,12 @@ describe('renderer declarative schemas', () => {
       expect(renderer.packageManifest).toBeTruthy();
       expect(renderer.packageManifest?.schemaVersion).toBe('1.0.0');
       expect(renderer.packageManifest?.sdk?.minWorkerProtocolVersion).toBeTruthy();
+      if (renderer.packageManifest?.source === 'community') {
+        expect(renderer.packageManifest.security?.workerEntrySha256).toBeTruthy();
+        expect(renderer.packageManifest.security?.workerEntrySignature?.algorithm).toBe('ECDSA_P256_SHA256');
+        expect(renderer.packageManifest.security?.workerEntrySignature?.publicKeyId).toBeTruthy();
+        expect(renderer.packageManifest.security?.workerEntrySignature?.valueBase64).toBeTruthy();
+      }
       expect(renderer.controlSchema).toBeTruthy();
       expect(renderer.declarativeSchema).toBeTruthy();
     });

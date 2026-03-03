@@ -66,6 +66,11 @@ const isSemverLess = (a: string, b: string): boolean => {
 };
 
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
+const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+const COMMUNITY_TRUSTED_PUBLIC_KEYS: Record<string, string> = {
+  // Placeholder trust store. Integrators should provide production keys here.
+};
 
 const workerEntryToUrl = (workerEntry: string | URL): string => {
   if (typeof workerEntry === 'string') {
@@ -78,6 +83,18 @@ const workerEntryToUrl = (workerEntry: string | URL): string => {
 const toHexString = (buffer: ArrayBuffer): string => {
   const bytes = new Uint8Array(buffer);
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const base64ToUint8Array = (value: string): Uint8Array => {
+  const normalized = value.replace(/\s+/g, '');
+  const binary = atob(normalized);
+  const output = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    output[index] = binary.charCodeAt(index);
+  }
+
+  return output;
 };
 
 const calculateSha256Hex = async (input: ArrayBuffer): Promise<string> => {
@@ -114,6 +131,27 @@ const validatePackageManifestPolicy = (
     if (!SHA256_HEX_REGEX.test(checksum)) {
       return `Manifest inválido para ${rendererId}: workerEntrySha256 debe ser SHA-256 hex (64 chars)`;
     }
+
+    const signature = manifest.security?.workerEntrySignature;
+    if (!signature) {
+      return `Manifest inválido para ${rendererId}: workerEntrySignature requerido en paquetes community`;
+    }
+
+    if (signature.algorithm !== 'ECDSA_P256_SHA256') {
+      return `Manifest inválido para ${rendererId}: algoritmo de firma no soportado (${signature.algorithm})`;
+    }
+
+    if (!signature.publicKeyId) {
+      return `Manifest inválido para ${rendererId}: publicKeyId requerido para firma`;
+    }
+
+    if (!signature.valueBase64 || !BASE64_REGEX.test(signature.valueBase64)) {
+      return `Manifest inválido para ${rendererId}: valueBase64 de firma inválido`;
+    }
+
+    if (!COMMUNITY_TRUSTED_PUBLIC_KEYS[signature.publicKeyId]) {
+      return `Manifest inválido para ${rendererId}: publicKeyId no confiable (${signature.publicKeyId})`;
+    }
   }
 
   return null;
@@ -121,7 +159,7 @@ const validatePackageManifestPolicy = (
 
 const validateWorkerEntryChecksum = async (
   rendererId: string,
-  workerEntry: string | URL,
+  workerContent: ArrayBuffer,
   manifest?: RendererPackageManifest,
 ): Promise<string | null> => {
   if (!manifest || manifest.source !== 'community') {
@@ -133,29 +171,9 @@ const validateWorkerEntryChecksum = async (
     return `Manifest inválido para ${rendererId}: workerEntrySha256 requerido en paquetes community`;
   }
 
-  const workerUrl = workerEntryToUrl(workerEntry);
-
-  let response: Response;
-  try {
-    response = await fetch(workerUrl, { cache: 'no-store' });
-  } catch {
-    return `No se pudo descargar workerEntry para verificar checksum (${rendererId})`;
-  }
-
-  if (!response.ok) {
-    return `workerEntry no disponible para verificar checksum (${rendererId}): HTTP ${response.status}`;
-  }
-
-  let content: ArrayBuffer;
-  try {
-    content = await response.arrayBuffer();
-  } catch {
-    return `No se pudo leer workerEntry para verificar checksum (${rendererId})`;
-  }
-
   let actualChecksum: string;
   try {
-    actualChecksum = await calculateSha256Hex(content);
+    actualChecksum = await calculateSha256Hex(workerContent);
   } catch (error) {
     return error instanceof Error
       ? error.message
@@ -167,6 +185,111 @@ const validateWorkerEntryChecksum = async (
   }
 
   return null;
+};
+
+const validateWorkerEntrySignature = async (
+  rendererId: string,
+  workerContent: ArrayBuffer,
+  manifest?: RendererPackageManifest,
+): Promise<string | null> => {
+  if (!manifest || manifest.source !== 'community') {
+    return null;
+  }
+
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    return 'SubtleCrypto no disponible para verificar firma del renderer';
+  }
+
+  const signature = manifest.security?.workerEntrySignature;
+  if (!signature) {
+    return `Manifest inválido para ${rendererId}: workerEntrySignature requerido en paquetes community`;
+  }
+
+  if (signature.algorithm !== 'ECDSA_P256_SHA256') {
+    return `Algoritmo de firma no soportado para ${rendererId}: ${signature.algorithm}`;
+  }
+
+  const trustedPublicKey = COMMUNITY_TRUSTED_PUBLIC_KEYS[signature.publicKeyId];
+  if (!trustedPublicKey) {
+    return `No existe clave confiable para ${rendererId}: ${signature.publicKeyId}`;
+  }
+
+  let signatureBytes: Uint8Array;
+  let publicKeyBytes: Uint8Array;
+  try {
+    signatureBytes = base64ToUint8Array(signature.valueBase64);
+    publicKeyBytes = base64ToUint8Array(trustedPublicKey);
+  } catch {
+    return `Codificación base64 inválida en firma o clave pública para ${rendererId}`;
+  }
+
+  let cryptoKey: CryptoKey;
+  try {
+    cryptoKey = await crypto.subtle.importKey(
+      'spki',
+      publicKeyBytes.buffer,
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256',
+      },
+      false,
+      ['verify'],
+    );
+  } catch {
+    return `No se pudo importar clave pública para ${rendererId}`;
+  }
+
+  let verified = false;
+  try {
+    verified = await crypto.subtle.verify(
+      {
+        name: 'ECDSA',
+        hash: 'SHA-256',
+      },
+      cryptoKey,
+      signatureBytes,
+      workerContent,
+    );
+  } catch {
+    return `Fallo al verificar firma criptográfica de ${rendererId}`;
+  }
+
+  if (!verified) {
+    return `Firma inválida para ${rendererId}: la firma no coincide con workerEntry`;
+  }
+
+  return null;
+};
+
+const downloadWorkerEntry = async (
+  rendererId: string,
+  workerEntry: string | URL,
+): Promise<{ content: ArrayBuffer } | { error: string }> => {
+  const workerUrl = workerEntryToUrl(workerEntry);
+
+  let response: Response;
+  try {
+    response = await fetch(workerUrl, { cache: 'no-store' });
+  } catch {
+    return {
+      error: `No se pudo descargar workerEntry para validación de seguridad (${rendererId})`,
+    };
+  }
+
+  if (!response.ok) {
+    return {
+      error: `workerEntry no disponible para validación de seguridad (${rendererId}): HTTP ${response.status}`,
+    };
+  }
+
+  try {
+    const content = await response.arrayBuffer();
+    return { content };
+  } catch {
+    return {
+      error: `No se pudo leer workerEntry para validación de seguridad (${rendererId})`,
+    };
+  }
 };
 
 const applyRendererUniforms = (
@@ -520,10 +643,38 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
         return;
       }
 
-      const checksumError = await validateWorkerEntryChecksum(rendererId, workerEntry, packageManifest);
+      const workerEntryDownload = await downloadWorkerEntry(rendererId, workerEntry);
+      if ('error' in workerEntryDownload) {
+        if (!cancelled) {
+          setUnavailableReason(workerEntryDownload.error);
+          setIsUnavailable(true);
+          setIsRendererValidated(false);
+        }
+        return;
+      }
+
+      const checksumError = await validateWorkerEntryChecksum(
+        rendererId,
+        workerEntryDownload.content,
+        packageManifest,
+      );
       if (checksumError) {
         if (!cancelled) {
           setUnavailableReason(checksumError);
+          setIsUnavailable(true);
+          setIsRendererValidated(false);
+        }
+        return;
+      }
+
+      const signatureError = await validateWorkerEntrySignature(
+        rendererId,
+        workerEntryDownload.content,
+        packageManifest,
+      );
+      if (signatureError) {
+        if (!cancelled) {
+          setUnavailableReason(signatureError);
           setIsUnavailable(true);
           setIsRendererValidated(false);
         }
