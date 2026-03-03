@@ -8,6 +8,15 @@ export const dvdScreensaverRenderer: RendererDefinition = {
   name: 'DVD Screensaver',
   component: DvdScreensaverRenderer,
   workerEntry: new URL('./workers/dvd-screensaver.worker.ts', import.meta.url),
+  packageManifest: {
+    schemaVersion: '1.0.0',
+    packageName: 'luxsequencer/renderer-dvd-screensaver',
+    packageVersion: '0.6.0-beta',
+    source: 'builtin',
+    sdk: {
+      minWorkerProtocolVersion: '1.0.0',
+    },
+  },
   workerRequirements: {
     requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
   },

@@ -39,6 +39,12 @@ describe('renderer declarative schemas', () => {
       expect(renderer.id).toBeTruthy();
       expect(renderer.name).toBeTruthy();
       expect(typeof renderer.component).toBe('function');
+      expect(renderer.workerEntry).toBeTruthy();
+      expect(renderer.workerRequirements).toBeTruthy();
+      expect(renderer.workerRequirements?.requiredCapabilities?.length ?? 0).toBeGreaterThan(0);
+      expect(renderer.packageManifest).toBeTruthy();
+      expect(renderer.packageManifest?.schemaVersion).toBe('1.0.0');
+      expect(renderer.packageManifest?.sdk?.minWorkerProtocolVersion).toBeTruthy();
       expect(renderer.controlSchema).toBeTruthy();
       expect(renderer.declarativeSchema).toBeTruthy();
     });

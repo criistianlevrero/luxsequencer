@@ -9,6 +9,15 @@ export const concentricRenderer: RendererDefinition = {
   name: 'Concénctrico',
   component: ConcentricRenderer,
   workerEntry: new URL('./workers/concentric.worker.ts', import.meta.url),
+  packageManifest: {
+    schemaVersion: '1.0.0',
+    packageName: 'luxsequencer/renderer-concentric',
+    packageVersion: '0.6.0-beta',
+    source: 'builtin',
+    sdk: {
+      minWorkerProtocolVersion: '1.0.0',
+    },
+  },
   workerRequirements: {
     requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
   },

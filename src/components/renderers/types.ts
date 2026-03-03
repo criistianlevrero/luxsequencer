@@ -10,6 +10,19 @@ export interface RendererWorkerRequirements {
   stallTimeoutMs?: number;
 }
 
+export interface RendererPackageManifest {
+  schemaVersion: '1.0.0';
+  packageName: string;
+  packageVersion: string;
+  source: 'builtin' | 'community';
+  sdk: {
+    minWorkerProtocolVersion: string;
+  };
+  security?: {
+    workerEntrySha256?: string;
+  };
+}
+
 // Updated RendererDefinition
 export interface RendererDefinition {
   id: string;
@@ -17,6 +30,7 @@ export interface RendererDefinition {
   component: React.FC<{ className?: string }>;
   workerEntry: string | URL;
   workerRequirements?: RendererWorkerRequirements;
+  packageManifest?: RendererPackageManifest;
   controlSchema: AccordionItem[] | (() => AccordionItem[]);
   
   // Phase 1.4: Declarative Control Schema Support

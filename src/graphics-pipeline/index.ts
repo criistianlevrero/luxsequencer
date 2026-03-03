@@ -1,5 +1,6 @@
 export { WebGLCompositor } from './WebGLCompositor';
 export { RendererWorkerManager } from './RendererWorkerManager';
+export { RENDERER_WORKER_PROTOCOL_VERSION } from './types';
 export type {
   CompositorMetrics,
   CompositorSourceMetrics,

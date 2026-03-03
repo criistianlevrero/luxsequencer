@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  RENDERER_WORKER_PROTOCOL_VERSION,
   RendererWorkerManager,
   WebGLCompositor,
   type CompositorMetrics,
@@ -15,13 +16,14 @@ import {
   getScalesCompatibleSettings,
 } from '../../../utils/settingsMigration';
 import type { DvdScreensaverSettings } from '../../../types';
-import type { RendererWorkerRequirements } from '../types';
+import type { RendererPackageManifest, RendererWorkerRequirements } from '../types';
 
 interface GraphicsPipelineHostProps {
   className?: string;
   rendererId: string;
   workerEntry: string | URL;
   workerRequirements?: RendererWorkerRequirements;
+  packageManifest?: RendererPackageManifest;
 }
 
 interface RuntimeRenderer {
@@ -44,6 +46,24 @@ const TRANSITION_DURATION_MS = 800;
 const WORKER_STALL_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
+
+const parseSemver = (value: string): [number, number, number] => {
+  const match = value.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) {
+    return [0, 0, 0];
+  }
+
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+};
+
+const isSemverLess = (a: string, b: string): boolean => {
+  const [aMajor, aMinor, aPatch] = parseSemver(a);
+  const [bMajor, bMinor, bPatch] = parseSemver(b);
+
+  if (aMajor !== bMajor) return aMajor < bMajor;
+  if (aMinor !== bMinor) return aMinor < bMinor;
+  return aPatch < bPatch;
+};
 
 const applyRendererUniforms = (
   rendererId: string,
@@ -108,6 +128,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   rendererId,
   workerEntry,
   workerRequirements,
+  packageManifest,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const compositorRef = useRef<WebGLCompositor | null>(null);
@@ -361,10 +382,21 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
   useEffect(() => {
     if (supportsGraphicsPipeline()) {
+      const expectedProtocolVersion = workerRequirements?.protocolVersion ?? RENDERER_WORKER_PROTOCOL_VERSION;
+      const minSdkProtocol = packageManifest?.sdk.minWorkerProtocolVersion;
+
+      if (minSdkProtocol && isSemverLess(expectedProtocolVersion, minSdkProtocol)) {
+        setUnavailableReason(
+          `SDK/protocolo incompatible para ${packageManifest?.packageName ?? rendererId}: runtime=${expectedProtocolVersion}, mínimo requerido=${minSdkProtocol}`,
+        );
+        setIsUnavailable(true);
+        return;
+      }
+
       setUnavailableReason('');
       setIsUnavailable(false);
     }
-  }, [workerEntry, rendererId]);
+  }, [workerEntry, rendererId, workerRequirements, packageManifest]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
