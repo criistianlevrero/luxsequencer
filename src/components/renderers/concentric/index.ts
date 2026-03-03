@@ -8,6 +8,7 @@ export const concentricRenderer: RendererDefinition = {
   id: 'concentric',
   name: 'Concénctrico',
   component: ConcentricRenderer,
+  workerEntry: new URL('./workers/concentric.worker.ts', import.meta.url),
   controlSchema: getConcentricSchema,
   declarativeSchema: concentricDeclarativeSchema,
 };

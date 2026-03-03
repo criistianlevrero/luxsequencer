@@ -7,6 +7,7 @@ import {
 import { useTextureStore } from '../../../store';
 import {
   createDefaultRendererSettings,
+  getConcentricCompatibleSettings,
   getNestedProperty,
   getScalesCompatibleSettings,
 } from '../../../utils/settingsMigration';
@@ -15,8 +16,7 @@ import type { DvdScreensaverSettings } from '../../../types';
 interface GraphicsPipelineHostProps {
   className?: string;
   rendererId: string;
-  workerEntry?: string | URL;
-  fallbackComponent?: React.FC<{ className?: string }>;
+  workerEntry: string | URL;
 }
 
 interface RuntimeRenderer {
@@ -42,6 +42,23 @@ const applyRendererUniforms = (
   state: ReturnType<typeof useTextureStore.getState>,
 ): void => {
   if (rendererId !== 'webgl') {
+    if (rendererId === 'concentric') {
+      const concentricSettings = getConcentricCompatibleSettings(state.currentSettings);
+
+      manager.updateUniform('concentricSettings', {
+        repetitionSpeed: concentricSettings.concentric_repetitionSpeed,
+        growthSpeed: concentricSettings.concentric_growthSpeed,
+        initialSize: concentricSettings.concentric_initialSize,
+        rotationSpeed: concentricSettings.concentric_rotationSpeed,
+        strokeWidth: concentricSettings.concentric_strokeWidth,
+        fillMode: concentricSettings.concentric_fillMode,
+        sides: concentricSettings.concentric_sides,
+        gradientColors: concentricSettings.concentric_gradientColors,
+        backgroundGradientColors: concentricSettings.backgroundGradientColors,
+        animationSpeed: concentricSettings.animationSpeed,
+      });
+    }
+
     if (rendererId === 'dvd-screensaver') {
       const dvdSettings =
         (getNestedProperty(state.currentSettings, 'renderer.dvd-screensaver') as DvdScreensaverSettings | undefined) ??
@@ -81,7 +98,6 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   className,
   rendererId,
   workerEntry,
-  fallbackComponent: FallbackComponent,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const compositorRef = useRef<WebGLCompositor | null>(null);
@@ -97,7 +113,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     toMix: number;
     durationMs: number;
   } | null>(null);
-  const [useFallback, setUseFallback] = useState(false);
+  const [isUnavailable, setIsUnavailable] = useState(false);
 
   const disposeRuntimeRenderer = (runtimeRenderer: RuntimeRenderer | null) => {
     if (!runtimeRenderer) {
@@ -129,7 +145,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       width,
       height,
       onFrame: (bitmap) => compositor.setSourceFrame(source, bitmap),
-      onError: () => setUseFallback(true),
+      onError: () => setIsUnavailable(true),
     });
 
     const started = manager.start();
@@ -163,17 +179,17 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     const canvas = canvasRef.current;
 
     if (!canvas || !supportsGraphicsPipeline()) {
-      setUseFallback(true);
+      setIsUnavailable(true);
       return;
     }
 
-    setUseFallback(false);
+    setIsUnavailable(false);
 
     const compositor = new WebGLCompositor(canvas);
     const initialized = compositor.init();
 
     if (!initialized) {
-      setUseFallback(true);
+      setIsUnavailable(true);
       return;
     }
 
@@ -246,18 +262,8 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!workerEntry) {
-      disposeRuntimeRenderer(nextRendererRef.current);
-      disposeRuntimeRenderer(activeRendererRef.current);
-      nextRendererRef.current = null;
-      activeRendererRef.current = null;
-      transitionRef.current = null;
-      setUseFallback(true);
-      return;
-    }
-
     if (supportsGraphicsPipeline()) {
-      setUseFallback(false);
+      setIsUnavailable(false);
     }
   }, [workerEntry, rendererId]);
 
@@ -276,7 +282,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     if (!active) {
       const initial = createRuntimeRenderer(rendererId, workerEntry, 'A', width, height);
       if (!initial) {
-        setUseFallback(true);
+        setIsUnavailable(true);
         return;
       }
 
@@ -299,7 +305,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     const next = createRuntimeRenderer(rendererId, workerEntry, nextSource, width, height);
 
     if (!next) {
-      setUseFallback(true);
+      setIsUnavailable(true);
       return;
     }
 
@@ -314,11 +320,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     syncUniforms(useTextureStore.getState());
   }, [rendererId, workerEntry]);
 
-  if (useFallback && FallbackComponent) {
-    return <FallbackComponent className={className} />;
-  }
-
-  if (useFallback) {
+  if (isUnavailable) {
     return <div className={className} />;
   }
 
