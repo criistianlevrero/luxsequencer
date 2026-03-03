@@ -337,12 +337,14 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - Remover ruta legacy de render en main thread.
 - Exigir `workerEntry` para renderers registrados.
 
-### Fase 4 — Endurecimiento SDK/Sandbox (siguiente)
+### Fase 4 — Endurecimiento SDK/Sandbox (en curso)
 
-- Definir contrato estable de protocolo para renderers comunitarios (versión + capacidades).
-- Añadir validación de handshake/capabilities al cargar plugins.
-- Instrumentar métricas de backpressure, drops y health-check por worker.
-- Endurecer manejo de fallos (aislar renderer defectuoso sin romper compositor).
+- ✅ Contrato estable de protocolo para renderers comunitarios (versión + capacidades).
+- ✅ Validación de handshake/capabilities al cargar plugins.
+- ✅ Métricas de backpressure, drops y health-check por worker.
+- ✅ Política de manifest por paquete (`builtin`/`community`) con requisitos mínimos de SDK.
+- ✅ Verificación real de integridad SHA-256 de `workerEntry` para paquetes community antes de iniciar el worker.
+- ⏳ Pendiente: verificación criptográfica de firma del paquete (además del checksum).
 
 ## 13. Decisiones Arquitectónicas
 
@@ -367,7 +369,7 @@ Cuando esté estable:
 
 - Formalizar Plugin SDK worker-only (protocolo, ciclo de vida, límites).
 - Separar renderers en repos externos.
-- Introducir sistema de firma y verificación de paquetes.
+- Introducir sistema de firma y verificación de paquetes (checksum ya aplicado).
 - Introducir sistema de licencia.
 
 ## 16. Riesgos y Mitigaciones

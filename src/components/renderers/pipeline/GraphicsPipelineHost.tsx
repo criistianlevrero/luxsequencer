@@ -67,6 +67,28 @@ const isSemverLess = (a: string, b: string): boolean => {
 
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 
+const workerEntryToUrl = (workerEntry: string | URL): string => {
+  if (typeof workerEntry === 'string') {
+    return workerEntry;
+  }
+
+  return workerEntry.toString();
+};
+
+const toHexString = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const calculateSha256Hex = async (input: ArrayBuffer): Promise<string> => {
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    throw new Error('SubtleCrypto no disponible para verificar integridad del renderer');
+  }
+
+  const digest = await crypto.subtle.digest('SHA-256', input);
+  return toHexString(digest);
+};
+
 const validatePackageManifestPolicy = (
   rendererId: string,
   manifest?: RendererPackageManifest,
@@ -92,6 +114,56 @@ const validatePackageManifestPolicy = (
     if (!SHA256_HEX_REGEX.test(checksum)) {
       return `Manifest inválido para ${rendererId}: workerEntrySha256 debe ser SHA-256 hex (64 chars)`;
     }
+  }
+
+  return null;
+};
+
+const validateWorkerEntryChecksum = async (
+  rendererId: string,
+  workerEntry: string | URL,
+  manifest?: RendererPackageManifest,
+): Promise<string | null> => {
+  if (!manifest || manifest.source !== 'community') {
+    return null;
+  }
+
+  const expectedChecksum = manifest.security?.workerEntrySha256;
+  if (!expectedChecksum) {
+    return `Manifest inválido para ${rendererId}: workerEntrySha256 requerido en paquetes community`;
+  }
+
+  const workerUrl = workerEntryToUrl(workerEntry);
+
+  let response: Response;
+  try {
+    response = await fetch(workerUrl, { cache: 'no-store' });
+  } catch {
+    return `No se pudo descargar workerEntry para verificar checksum (${rendererId})`;
+  }
+
+  if (!response.ok) {
+    return `workerEntry no disponible para verificar checksum (${rendererId}): HTTP ${response.status}`;
+  }
+
+  let content: ArrayBuffer;
+  try {
+    content = await response.arrayBuffer();
+  } catch {
+    return `No se pudo leer workerEntry para verificar checksum (${rendererId})`;
+  }
+
+  let actualChecksum: string;
+  try {
+    actualChecksum = await calculateSha256Hex(content);
+  } catch (error) {
+    return error instanceof Error
+      ? error.message
+      : `No se pudo calcular checksum SHA-256 para ${rendererId}`;
+  }
+
+  if (actualChecksum.toLowerCase() !== expectedChecksum.toLowerCase()) {
+    return `Checksum inválido para ${rendererId}: esperado=${expectedChecksum.toLowerCase()}, actual=${actualChecksum.toLowerCase()}`;
   }
 
   return null;
@@ -180,6 +252,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   } | null>(null);
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [unavailableReason, setUnavailableReason] = useState<string>('');
+  const [isRendererValidated, setIsRendererValidated] = useState(false);
 
   const handleWorkerReady = (snapshot: RendererWorkerHealthSnapshot) => {
     if (!env.debugMode) {
@@ -413,11 +486,23 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   }, []);
 
   useEffect(() => {
-    if (supportsGraphicsPipeline()) {
+    if (!supportsGraphicsPipeline()) {
+      setIsRendererValidated(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const runValidation = async () => {
+      setIsRendererValidated(false);
+
       const manifestPolicyError = validatePackageManifestPolicy(rendererId, packageManifest);
       if (manifestPolicyError) {
-        setUnavailableReason(manifestPolicyError);
-        setIsUnavailable(true);
+        if (!cancelled) {
+          setUnavailableReason(manifestPolicyError);
+          setIsUnavailable(true);
+          setIsRendererValidated(false);
+        }
         return;
       }
 
@@ -425,23 +510,45 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       const minSdkProtocol = packageManifest?.sdk.minWorkerProtocolVersion;
 
       if (minSdkProtocol && isSemverLess(expectedProtocolVersion, minSdkProtocol)) {
-        setUnavailableReason(
-          `SDK/protocolo incompatible para ${packageManifest?.packageName ?? rendererId}: runtime=${expectedProtocolVersion}, mínimo requerido=${minSdkProtocol}`,
-        );
-        setIsUnavailable(true);
+        if (!cancelled) {
+          setUnavailableReason(
+            `SDK/protocolo incompatible para ${packageManifest?.packageName ?? rendererId}: runtime=${expectedProtocolVersion}, mínimo requerido=${minSdkProtocol}`,
+          );
+          setIsUnavailable(true);
+          setIsRendererValidated(false);
+        }
         return;
       }
 
-      setUnavailableReason('');
-      setIsUnavailable(false);
-    }
+      const checksumError = await validateWorkerEntryChecksum(rendererId, workerEntry, packageManifest);
+      if (checksumError) {
+        if (!cancelled) {
+          setUnavailableReason(checksumError);
+          setIsUnavailable(true);
+          setIsRendererValidated(false);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setUnavailableReason('');
+        setIsUnavailable(false);
+        setIsRendererValidated(true);
+      }
+    };
+
+    void runValidation();
+
+    return () => {
+      cancelled = true;
+    };
   }, [workerEntry, rendererId, workerRequirements, packageManifest]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const compositor = compositorRef.current;
 
-    if (!canvas || !compositor || !workerEntry || !supportsGraphicsPipeline()) {
+    if (!canvas || !compositor || !workerEntry || !supportsGraphicsPipeline() || !isRendererValidated) {
       return;
     }
 
@@ -488,7 +595,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     };
 
     syncUniforms(useTextureStore.getState());
-  }, [rendererId, workerEntry, workerRequirements]);
+  }, [rendererId, workerEntry, workerRequirements, isRendererValidated]);
 
   if (isUnavailable) {
     return (
