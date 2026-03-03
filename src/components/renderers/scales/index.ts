@@ -1,7 +1,6 @@
 
 import { RendererDefinition } from '../types';
 import ScalesRenderer from './ScalesRenderer';
-import { getScaleTextureSchema } from '../shared/scale-texture-schema';
 import { webglRendererControlSpec } from './scales-declarative-schema';
 import { resolveExternalCoreRendererWorkerEntry } from '../marketplaceWorkerEntry';
 
@@ -33,6 +32,6 @@ export const webglRenderer: RendererDefinition = {
   workerRequirements: {
     requiredCapabilities: ['offscreen-canvas', 'webgl2', 'uniform-updates'],
   },
-  controlSchema: getScaleTextureSchema,
+  controlSchema: [],
   declarativeSchema: webglRendererControlSpec,
 };

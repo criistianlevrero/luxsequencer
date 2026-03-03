@@ -1,6 +1,5 @@
 import type { RendererDefinition } from '../types';
 import DvdScreensaverRenderer from './DvdScreensaverRenderer';
-import { getDvdScreensaverSchema } from './dvd-screensaver-schema';
 import { dvdScreensaverDeclarativeSchema } from './dvd-screensaver-declarative-schema';
 import { resolveExternalCoreRendererWorkerEntry } from '../marketplaceWorkerEntry';
 
@@ -32,6 +31,6 @@ export const dvdScreensaverRenderer: RendererDefinition = {
   workerRequirements: {
     requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
   },
-  controlSchema: getDvdScreensaverSchema,
+  controlSchema: [],
   declarativeSchema: dvdScreensaverDeclarativeSchema,
 };
