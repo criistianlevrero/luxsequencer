@@ -32,6 +32,8 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS: string;
   /** Require signature verification for remote trust store documents */
   readonly VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE: string;
+  /** Grace period in milliseconds for root key rotation */
+  readonly VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS: string;
 }
 
 interface ImportMeta {

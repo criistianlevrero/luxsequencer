@@ -4,6 +4,7 @@ import {
   hydrateCommunityTrustStore,
   isUntrustedCommunityPublicKey,
   resetCommunityTrustStoreForTests,
+  resolveTrustStoreRootPublicKey,
   resolveCommunityPublicKey,
   type TrustedCommunityPublicKey,
 } from './communityTrustStore';
@@ -25,6 +26,7 @@ describe('communityTrustStore', () => {
   const originalRootKeys = env.communityTrustStoreRootPublicKeysJson;
   const originalRevokedRootKeyIds = env.communityTrustStoreRevokedRootKeyIds;
   const originalRequireSignature = env.communityTrustStoreRequireSignature;
+  const originalRootRotationGraceMs = env.communityTrustStoreRootRotationGraceMs;
 
   beforeEach(() => {
     env.communityTrustStoreUrl = undefined;
@@ -34,6 +36,7 @@ describe('communityTrustStore', () => {
     env.communityTrustStoreRootPublicKeysJson = undefined;
     env.communityTrustStoreRevokedRootKeyIds = [];
     env.communityTrustStoreRequireSignature = false;
+    env.communityTrustStoreRootRotationGraceMs = 604800000;
     localStorage.clear();
     resetCommunityTrustStoreForTests();
   });
@@ -46,6 +49,7 @@ describe('communityTrustStore', () => {
     env.communityTrustStoreRootPublicKeysJson = originalRootKeys;
     env.communityTrustStoreRevokedRootKeyIds = originalRevokedRootKeyIds;
     env.communityTrustStoreRequireSignature = originalRequireSignature;
+    env.communityTrustStoreRootRotationGraceMs = originalRootRotationGraceMs;
     vi.restoreAllMocks();
     localStorage.clear();
     resetCommunityTrustStoreForTests();
@@ -184,5 +188,48 @@ describe('communityTrustStore', () => {
 
     const result = resolveCommunityPublicKey('unsigned-remote-key');
     expect(result.isTrusted).toBe(false);
+  });
+
+  it('allows recently expired root key within rotation grace period', () => {
+    env.communityTrustStoreRootRotationGraceMs = 7 * 24 * 60 * 60 * 1000;
+    env.communityTrustStoreRootPublicKeysJson = JSON.stringify([
+      {
+        id: 'trust-root-2026-q1',
+        spkiBase64: 'MIIF',
+        status: 'active',
+        notAfter: '2026-01-01T00:00:00Z',
+        replacedBy: 'trust-root-2026-q2',
+      },
+    ]);
+
+    const result = resolveTrustStoreRootPublicKey(
+      'trust-root-2026-q1',
+      new Date('2026-01-03T00:00:00Z'),
+    );
+
+    expect(result.isTrusted).toBe(true);
+  });
+
+  it('rejects expired root key outside grace period', () => {
+    env.communityTrustStoreRootRotationGraceMs = 24 * 60 * 60 * 1000;
+    env.communityTrustStoreRootPublicKeysJson = JSON.stringify([
+      {
+        id: 'trust-root-2026-q1',
+        spkiBase64: 'MIIG',
+        status: 'active',
+        notAfter: '2026-01-01T00:00:00Z',
+        replacedBy: 'trust-root-2026-q2',
+      },
+    ]);
+
+    const result = resolveTrustStoreRootPublicKey(
+      'trust-root-2026-q1',
+      new Date('2026-01-04T00:00:00Z'),
+    );
+
+    expect(result.isTrusted).toBe(false);
+    if (isUntrustedCommunityPublicKey(result)) {
+      expect(result.reason).toContain('expirada');
+    }
   });
 });

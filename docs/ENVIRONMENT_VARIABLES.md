@@ -265,6 +265,16 @@ VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS=[{"id":"trust-root-2026-q1","spkiBas
 VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS=trust-root-2025-q4
 ```
 
+### `VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS`
+
+- **Type:** Number (milliseconds)
+- **Default:** `604800000` (7 days)
+- **Description:** Grace period for automatic root key rotation. Recently expired root keys with `replacedBy` remain temporarily valid within this window.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS=604800000
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

@@ -190,6 +190,15 @@ const getLocalRootTrustStoreKeys = (): TrustedCommunityPublicKeysMap => ({
 
 const getLocalRevokedRootKeyIds = (): string[] => [...env.communityTrustStoreRevokedRootKeyIds];
 
+const isWithinGracePeriod = (expiredAt: Date, now: Date, graceMs: number): boolean => {
+  if (graceMs <= 0) {
+    return false;
+  }
+
+  const elapsed = now.getTime() - expiredAt.getTime();
+  return elapsed >= 0 && elapsed <= graceMs;
+};
+
 const dedupeStrings = (values: string[]): string[] => {
   return Array.from(new Set(values));
 };
@@ -231,7 +240,10 @@ const isRemoteDocument = (value: unknown): value is RemoteCommunityTrustStoreDoc
   );
 };
 
-const resolveRootPublicKey = (publicKeyId: string): CommunityPublicKeyResolution => {
+export const resolveTrustStoreRootPublicKey = (
+  publicKeyId: string,
+  now: Date = new Date(),
+): CommunityPublicKeyResolution => {
   const trustStore = getLocalRootTrustStoreKeys();
   const revoked = getLocalRevokedRootKeyIds();
   const key = trustStore[publicKeyId];
@@ -250,6 +262,46 @@ const resolveRootPublicKey = (publicKeyId: string): CommunityPublicKeyResolution
       keyId: publicKeyId,
       reason: `root key revocada (${publicKeyId})`,
     };
+  }
+
+  const notBefore = parseDate(key.notBefore);
+  if (key.notBefore && !notBefore) {
+    return {
+      isTrusted: false,
+      keyId: publicKeyId,
+      reason: `notBefore inválido para root key ${publicKeyId}`,
+    };
+  }
+
+  const notAfter = parseDate(key.notAfter);
+  if (key.notAfter && !notAfter) {
+    return {
+      isTrusted: false,
+      keyId: publicKeyId,
+      reason: `notAfter inválido para root key ${publicKeyId}`,
+    };
+  }
+
+  if (notBefore && now < notBefore) {
+    return {
+      isTrusted: false,
+      keyId: publicKeyId,
+      reason: `root key aún no vigente (${publicKeyId})`,
+    };
+  }
+
+  if (notAfter && now > notAfter) {
+    const hasRotationTarget = typeof key.replacedBy === 'string' && key.replacedBy.length > 0;
+    const withinGrace = isWithinGracePeriod(notAfter, now, env.communityTrustStoreRootRotationGraceMs);
+
+    if (!hasRotationTarget || !withinGrace) {
+      const replacement = hasRotationTarget ? `, reemplazada por ${key.replacedBy}` : '';
+      return {
+        isTrusted: false,
+        keyId: publicKeyId,
+        reason: `root key expirada (${publicKeyId}${replacement})`,
+      };
+    }
   }
 
   return {
@@ -295,7 +347,7 @@ const validateRemoteTrustStoreSignature = async (
     return 'SubtleCrypto no disponible para validar firma del trust store remoto';
   }
 
-  const rootPublicKey = resolveRootPublicKey(signature.publicKeyId);
+  const rootPublicKey = resolveTrustStoreRootPublicKey(signature.publicKeyId);
   if (isUntrustedCommunityPublicKey(rootPublicKey)) {
     return `trust store remoto inválido: ${rootPublicKey.reason}`;
   }

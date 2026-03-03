@@ -38,6 +38,8 @@ interface EnvConfig {
   communityTrustStoreRevokedRootKeyIds: string[];
   /** Require cryptographic signature for remote trust store documents */
   communityTrustStoreRequireSignature: boolean;
+  /** Grace period (ms) to allow recently expired root keys during rotation */
+  communityTrustStoreRootRotationGraceMs: number;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -101,6 +103,7 @@ export const env: EnvConfig = {
   communityTrustStoreRootPublicKeysJson: import.meta.env.VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS,
   communityTrustStoreRevokedRootKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS),
   communityTrustStoreRequireSignature: parseBoolean(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE, true),
+  communityTrustStoreRootRotationGraceMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS, 604800000),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),
