@@ -346,7 +346,8 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - ✅ Verificación real de integridad SHA-256 de `workerEntry` para paquetes community antes de iniciar el worker.
 - ✅ Verificación criptográfica de firma del paquete community (ECDSA P-256 + SHA-256) antes de iniciar el worker.
 - ✅ Trust store configurable para community packages con revocación explícita y ventanas de vigencia por clave.
-- ⏳ Pendiente: gobernanza operativa del trust store (distribución remota segura, rotación automática y revocación centralizada).
+- ✅ Distribución remota del trust store con versionado mínimo, timeout y fallback a cache/local.
+- ⏳ Pendiente: gobernanza operativa avanzada del trust store (canal firmado para metadata, rotación automática y revocación centralizada).
 
 ## 13. Decisiones Arquitectónicas
 

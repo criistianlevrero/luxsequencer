@@ -192,6 +192,49 @@ VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS=[{"id":"community-key-2026-q1","spkiBase64":"
 VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS=community-key-2025-q4,community-key-2026-q1
 ```
 
+### `VITE_COMMUNITY_TRUST_STORE_URL`
+
+- **Type:** String (URL)
+- **Default:** empty (disabled)
+- **Description:** Remote endpoint for trust store distribution. If empty, only local trust store sources are used.
+
+Expected JSON payload:
+
+```json
+{
+   "schemaVersion": "1.0.0",
+   "version": "1.2.0",
+   "keys": [
+      {
+         "id": "community-key-2026-q1",
+         "spkiBase64": "MIIB...",
+         "status": "active",
+         "notBefore": "2026-01-01T00:00:00Z",
+         "notAfter": "2026-12-31T23:59:59Z"
+      }
+   ],
+   "revokedKeyIds": ["community-key-2025-q4"]
+}
+```
+
+### `VITE_COMMUNITY_TRUST_STORE_FETCH_TIMEOUT_MS`
+
+- **Type:** Number (milliseconds)
+- **Default:** `2500`
+- **Description:** Timeout for remote trust store fetch.
+
+### `VITE_COMMUNITY_TRUST_STORE_CACHE_TTL_MS`
+
+- **Type:** Number (milliseconds)
+- **Default:** `300000`
+- **Description:** Runtime freshness TTL for remote trust store snapshot. On fetch failure, cached snapshot fallback is used when available.
+
+### `VITE_COMMUNITY_TRUST_STORE_MIN_VERSION`
+
+- **Type:** Semver string
+- **Default:** empty
+- **Description:** Minimum accepted version for remote trust store documents.
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { env } from '../config';
 import {
+  hydrateCommunityTrustStore,
   isUntrustedCommunityPublicKey,
+  resetCommunityTrustStoreForTests,
   resolveCommunityPublicKey,
   type TrustedCommunityPublicKey,
 } from './communityTrustStore';
@@ -15,6 +18,30 @@ const TRUSTED_KEY: TrustedCommunityPublicKey = {
 };
 
 describe('communityTrustStore', () => {
+  const originalTrustStoreUrl = env.communityTrustStoreUrl;
+  const originalFetchTimeout = env.communityTrustStoreFetchTimeoutMs;
+  const originalCacheTtl = env.communityTrustStoreCacheTtlMs;
+  const originalMinVersion = env.communityTrustStoreMinVersion;
+
+  beforeEach(() => {
+    env.communityTrustStoreUrl = undefined;
+    env.communityTrustStoreFetchTimeoutMs = 2500;
+    env.communityTrustStoreCacheTtlMs = 300000;
+    env.communityTrustStoreMinVersion = undefined;
+    localStorage.clear();
+    resetCommunityTrustStoreForTests();
+  });
+
+  afterEach(() => {
+    env.communityTrustStoreUrl = originalTrustStoreUrl;
+    env.communityTrustStoreFetchTimeoutMs = originalFetchTimeout;
+    env.communityTrustStoreCacheTtlMs = originalCacheTtl;
+    env.communityTrustStoreMinVersion = originalMinVersion;
+    vi.restoreAllMocks();
+    localStorage.clear();
+    resetCommunityTrustStoreForTests();
+  });
+
   it('accepts active key inside validity window', () => {
     const result = resolveCommunityPublicKey(
       'community-key-2026-q1',
@@ -63,5 +90,62 @@ describe('communityTrustStore', () => {
       expect(result.reason).toContain('expirada');
       expect(result.reason).toContain('community-key-2027-q1');
     }
+  });
+
+  it('hydrates trust store from remote endpoint and resolves key', async () => {
+    env.communityTrustStoreUrl = 'https://example.test/trust-store.json';
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          schemaVersion: '1.0.0',
+          version: '1.2.0',
+          keys: [
+            {
+              id: 'remote-key-2026-q1',
+              spkiBase64: 'MIIC',
+              status: 'active',
+            },
+          ],
+          revokedKeyIds: [],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await hydrateCommunityTrustStore();
+
+    const result = resolveCommunityPublicKey('remote-key-2026-q1');
+    expect(result.isTrusted).toBe(true);
+  });
+
+  it('falls back to cached snapshot when remote fetch fails', async () => {
+    env.communityTrustStoreUrl = 'https://example.test/trust-store.json';
+
+    localStorage.setItem(
+      'luxsequencer.communityTrustStore.v1',
+      JSON.stringify({
+        fetchedAt: Date.now(),
+        document: {
+          schemaVersion: '1.0.0',
+          version: '1.1.0',
+          keys: [
+            {
+              id: 'cached-key-2026-q1',
+              spkiBase64: 'MIID',
+              status: 'active',
+            },
+          ],
+          revokedKeyIds: [],
+        },
+      }),
+    );
+
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network down'));
+
+    await hydrateCommunityTrustStore();
+
+    const result = resolveCommunityPublicKey('cached-key-2026-q1');
+    expect(result.isTrusted).toBe(true);
   });
 });

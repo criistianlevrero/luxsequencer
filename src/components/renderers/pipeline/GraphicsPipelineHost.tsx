@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  hydrateCommunityTrustStore,
   RENDERER_WORKER_PROTOCOL_VERSION,
   RendererWorkerManager,
   WebGLCompositor,
@@ -625,6 +626,8 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
     const runValidation = async () => {
       setIsRendererValidated(false);
+
+      await hydrateCommunityTrustStore();
 
       const manifestPolicyError = validatePackageManifestPolicy(rendererId, packageManifest);
       if (manifestPolicyError) {

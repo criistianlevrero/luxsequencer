@@ -18,6 +18,14 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS: string;
   /** Comma-separated list of revoked community public key IDs */
   readonly VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS: string;
+  /** Optional URL to fetch remote trust store snapshot */
+  readonly VITE_COMMUNITY_TRUST_STORE_URL: string;
+  /** Fetch timeout (ms) for remote trust store URL */
+  readonly VITE_COMMUNITY_TRUST_STORE_FETCH_TIMEOUT_MS: string;
+  /** Runtime cache TTL (ms) for trust store snapshot */
+  readonly VITE_COMMUNITY_TRUST_STORE_CACHE_TTL_MS: string;
+  /** Minimum accepted trust store semver */
+  readonly VITE_COMMUNITY_TRUST_STORE_MIN_VERSION: string;
 }
 
 interface ImportMeta {

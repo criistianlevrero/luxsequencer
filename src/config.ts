@@ -24,6 +24,14 @@ interface EnvConfig {
   communityTrustedPublicKeysJson?: string;
   /** Explicitly revoked public key IDs for community package signatures */
   communityRevokedPublicKeyIds: string[];
+  /** Optional remote URL for trust store distribution */
+  communityTrustStoreUrl?: string;
+  /** HTTP timeout for remote trust store fetch */
+  communityTrustStoreFetchTimeoutMs: number;
+  /** Runtime cache TTL for remote trust store snapshot */
+  communityTrustStoreCacheTtlMs: number;
+  /** Optional minimum accepted remote trust store version */
+  communityTrustStoreMinVersion?: string;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -80,6 +88,10 @@ export const env: EnvConfig = {
   allowLegacyCustomControls: parseBoolean(import.meta.env.VITE_ALLOW_LEGACY_CUSTOM_CONTROLS, false),
   communityTrustedPublicKeysJson: import.meta.env.VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS,
   communityRevokedPublicKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS),
+  communityTrustStoreUrl: import.meta.env.VITE_COMMUNITY_TRUST_STORE_URL,
+  communityTrustStoreFetchTimeoutMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_FETCH_TIMEOUT_MS, 2500),
+  communityTrustStoreCacheTtlMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_CACHE_TTL_MS, 300000),
+  communityTrustStoreMinVersion: import.meta.env.VITE_COMMUNITY_TRUST_STORE_MIN_VERSION,
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),
