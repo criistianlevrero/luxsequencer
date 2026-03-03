@@ -44,6 +44,8 @@ interface EnvConfig {
   communityTrustStoreRevocationUrl?: string;
   /** Runtime cache TTL (ms) for centralized revocation snapshot */
   communityTrustStoreRevocationCacheTtlMs: number;
+  /** Base URL for external core-renderers worker files */
+  marketplaceCoreRenderersBaseUrl: string;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -110,6 +112,7 @@ export const env: EnvConfig = {
   communityTrustStoreRootRotationGraceMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS, 604800000),
   communityTrustStoreRevocationUrl: import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL,
   communityTrustStoreRevocationCacheTtlMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS, 120000),
+  marketplaceCoreRenderersBaseUrl: import.meta.env.VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL || 'http://localhost:4174/src/renderers/',
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),

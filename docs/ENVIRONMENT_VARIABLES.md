@@ -295,6 +295,21 @@ VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL=https://security.example.com/lux/revoc
 VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS=120000
 ```
 
+### `VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL`
+
+- **Type:** String (URL)
+- **Default:** `http://localhost:4174/src/renderers/`
+- **Description:** Base URL usada por la core app para resolver los workers de los renderers oficiales desde el repositorio marketplace externo.
+
+Ejemplos de resolución:
+- `webgl` → `${VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL}webgl/scales.worker.ts`
+- `concentric` → `${VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL}concentric/concentric.worker.ts`
+- `dvd-screensaver` → `${VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL}dvd-screensaver/dvd-screensaver.worker.ts`
+
+```env
+VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL=http://localhost:4174/src/renderers/
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

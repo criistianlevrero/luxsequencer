@@ -3,12 +3,17 @@ import { RendererDefinition } from '../types';
 import ConcentricRenderer from './ConcentricRenderer';
 import { getConcentricSchema } from './concentric-schema';
 import { concentricDeclarativeSchema } from './concentric-declarative-schema';
+import { resolveExternalCoreRendererWorkerEntry } from '../marketplaceWorkerEntry';
 
 export const concentricRenderer: RendererDefinition = {
   id: 'concentric',
   name: 'Concénctrico',
   component: ConcentricRenderer,
-  workerEntry: new URL('./workers/concentric.worker.ts', import.meta.url),
+  workerEntry: resolveExternalCoreRendererWorkerEntry(
+    'concentric',
+    'concentric.worker.ts',
+    new URL('./workers/concentric.worker.ts', import.meta.url),
+  ),
   packageManifest: {
     schemaVersion: '1.0.0',
     publisherId: 'luxsequencer',

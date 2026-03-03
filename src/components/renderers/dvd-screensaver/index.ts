@@ -2,12 +2,17 @@ import type { RendererDefinition } from '../types';
 import DvdScreensaverRenderer from './DvdScreensaverRenderer';
 import { getDvdScreensaverSchema } from './dvd-screensaver-schema';
 import { dvdScreensaverDeclarativeSchema } from './dvd-screensaver-declarative-schema';
+import { resolveExternalCoreRendererWorkerEntry } from '../marketplaceWorkerEntry';
 
 export const dvdScreensaverRenderer: RendererDefinition = {
   id: 'dvd-screensaver',
   name: 'DVD Screensaver',
   component: DvdScreensaverRenderer,
-  workerEntry: new URL('./workers/dvd-screensaver.worker.ts', import.meta.url),
+  workerEntry: resolveExternalCoreRendererWorkerEntry(
+    'dvd-screensaver',
+    'dvd-screensaver.worker.ts',
+    new URL('./workers/dvd-screensaver.worker.ts', import.meta.url),
+  ),
   packageManifest: {
     schemaVersion: '1.0.0',
     publisherId: 'luxsequencer',

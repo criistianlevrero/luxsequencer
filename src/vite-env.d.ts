@@ -38,6 +38,8 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL: string;
   /** Runtime TTL for centralized revocation snapshot */
   readonly VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS: string;
+  /** Base URL for external core-renderers worker files */
+  readonly VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL: string;
 }
 
 interface ImportMeta {
