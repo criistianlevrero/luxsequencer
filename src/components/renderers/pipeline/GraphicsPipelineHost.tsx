@@ -1,0 +1,328 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  RendererWorkerManager,
+  WebGLCompositor,
+  type PipelineSource,
+} from '../../../graphics-pipeline';
+import { useTextureStore } from '../../../store';
+import {
+  createDefaultRendererSettings,
+  getNestedProperty,
+  getScalesCompatibleSettings,
+} from '../../../utils/settingsMigration';
+import type { DvdScreensaverSettings } from '../../../types';
+
+interface GraphicsPipelineHostProps {
+  className?: string;
+  rendererId: string;
+  workerEntry?: string | URL;
+  fallbackComponent?: React.FC<{ className?: string }>;
+}
+
+interface RuntimeRenderer {
+  rendererId: string;
+  workerEntry: string | URL;
+  source: PipelineSource;
+  manager: RendererWorkerManager;
+}
+
+const supportsGraphicsPipeline = (): boolean => {
+  return (
+    typeof Worker !== 'undefined' &&
+    typeof OffscreenCanvas !== 'undefined' &&
+    typeof ResizeObserver !== 'undefined'
+  );
+};
+
+const TRANSITION_DURATION_MS = 800;
+
+const applyRendererUniforms = (
+  rendererId: string,
+  manager: RendererWorkerManager,
+  state: ReturnType<typeof useTextureStore.getState>,
+): void => {
+  if (rendererId !== 'webgl') {
+    if (rendererId === 'dvd-screensaver') {
+      const dvdSettings =
+        (getNestedProperty(state.currentSettings, 'renderer.dvd-screensaver') as DvdScreensaverSettings | undefined) ??
+        (createDefaultRendererSettings('dvd-screensaver') as DvdScreensaverSettings);
+
+      manager.updateUniform('dvdSettings', {
+        assets: dvdSettings.assets,
+        background: dvdSettings.background,
+        globalSpeed: dvdSettings.globalSpeed,
+        globalRotationSpeed: dvdSettings.globalRotationSpeed,
+      });
+    }
+
+    return;
+  }
+
+  const settings = getScalesCompatibleSettings(state.currentSettings);
+
+  manager.updateUniform('animationSpeed', settings.animationSpeed);
+  manager.updateUniform('animationDirection', settings.animationDirection);
+  manager.updateUniform('scaleSize', settings.scaleSize);
+  manager.updateUniform('scaleSpacing', settings.scaleSpacing);
+  manager.updateUniform('verticalOverlap', settings.verticalOverlap);
+  manager.updateUniform('horizontalOffset', settings.horizontalOffset);
+  manager.updateUniform('shapeMorph', settings.shapeMorph);
+  manager.updateUniform('textureRotation', state.textureRotation ?? settings.textureRotation);
+  manager.updateUniform('scaleBorderWidth', settings.scaleBorderWidth);
+  manager.updateUniform('scaleBorderColor', settings.scaleBorderColor);
+  manager.updateUniform('gradientColors', settings.gradientColors);
+  manager.updateUniform('previousGradientColors', state.previousGradient ?? []);
+  manager.updateUniform('backgroundGradientColors', settings.backgroundGradientColors);
+  manager.updateUniform('previousBackgroundGradientColors', state.previousBackgroundGradient ?? []);
+  manager.updateUniform('transitionProgress', state.transitionProgress);
+};
+
+const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
+  className,
+  rendererId,
+  workerEntry,
+  fallbackComponent: FallbackComponent,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const compositorRef = useRef<WebGLCompositor | null>(null);
+  const activeRendererRef = useRef<RuntimeRenderer | null>(null);
+  const nextRendererRef = useRef<RuntimeRenderer | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const unsubscribeStoreRef = useRef<(() => void) | null>(null);
+  const mixFactorRef = useRef(0);
+  const transitionRef = useRef<{
+    startedAt: number;
+    fromMix: number;
+    toMix: number;
+    durationMs: number;
+  } | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
+
+  const disposeRuntimeRenderer = (runtimeRenderer: RuntimeRenderer | null) => {
+    if (!runtimeRenderer) {
+      return;
+    }
+
+    runtimeRenderer.manager.dispose();
+  };
+
+  const sourceMixValue = (source: PipelineSource): number => {
+    return source === 'A' ? 0 : 1;
+  };
+
+  const createRuntimeRenderer = (
+    nextRendererId: string,
+    nextWorkerEntry: string | URL,
+    source: PipelineSource,
+    width: number,
+    height: number,
+  ): RuntimeRenderer | null => {
+    const compositor = compositorRef.current;
+    if (!compositor) {
+      return null;
+    }
+
+    const manager = new RendererWorkerManager({
+      rendererId: nextRendererId,
+      workerEntry: nextWorkerEntry,
+      width,
+      height,
+      onFrame: (bitmap) => compositor.setSourceFrame(source, bitmap),
+      onError: () => setUseFallback(true),
+    });
+
+    const started = manager.start();
+    if (!started) {
+      manager.dispose();
+      return null;
+    }
+
+    return {
+      rendererId: nextRendererId,
+      workerEntry: nextWorkerEntry,
+      source,
+      manager,
+    };
+  };
+
+  const syncUniforms = (state: ReturnType<typeof useTextureStore.getState>) => {
+    const active = activeRendererRef.current;
+    const next = nextRendererRef.current;
+
+    if (active) {
+      applyRendererUniforms(active.rendererId, active.manager, state);
+    }
+
+    if (next) {
+      applyRendererUniforms(next.rendererId, next.manager, state);
+    }
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas || !supportsGraphicsPipeline()) {
+      setUseFallback(true);
+      return;
+    }
+
+    setUseFallback(false);
+
+    const compositor = new WebGLCompositor(canvas);
+    const initialized = compositor.init();
+
+    if (!initialized) {
+      setUseFallback(true);
+      return;
+    }
+
+    compositorRef.current = compositor;
+
+    const renderLoop = () => {
+      const transition = transitionRef.current;
+
+      if (transition) {
+        const elapsed = performance.now() - transition.startedAt;
+        const progress = Math.max(0, Math.min(1, elapsed / transition.durationMs));
+        mixFactorRef.current = transition.fromMix + (transition.toMix - transition.fromMix) * progress;
+
+        if (progress >= 1) {
+          const previousActive = activeRendererRef.current;
+          const nextActive = nextRendererRef.current;
+
+          disposeRuntimeRenderer(previousActive);
+          activeRendererRef.current = nextActive;
+          nextRendererRef.current = null;
+          transitionRef.current = null;
+          mixFactorRef.current = transition.toMix;
+        }
+      }
+
+      compositor.render(mixFactorRef.current);
+      rafIdRef.current = requestAnimationFrame(renderLoop);
+    };
+
+    rafIdRef.current = requestAnimationFrame(renderLoop);
+
+    resizeObserverRef.current = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      const width = entry?.contentRect.width ?? canvas.clientWidth;
+      const height = entry?.contentRect.height ?? canvas.clientHeight;
+
+      compositor.resize(width, height);
+      activeRendererRef.current?.manager.resize(width, height);
+      nextRendererRef.current?.manager.resize(width, height);
+    });
+
+    resizeObserverRef.current.observe(canvas);
+
+    syncUniforms(useTextureStore.getState());
+    unsubscribeStoreRef.current = useTextureStore.subscribe((state) => {
+      syncUniforms(state);
+    });
+
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
+      unsubscribeStoreRef.current?.();
+      unsubscribeStoreRef.current = null;
+
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
+
+      disposeRuntimeRenderer(nextRendererRef.current);
+      disposeRuntimeRenderer(activeRendererRef.current);
+
+      nextRendererRef.current = null;
+      activeRendererRef.current = null;
+      transitionRef.current = null;
+
+      compositor.dispose();
+      compositorRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!workerEntry) {
+      disposeRuntimeRenderer(nextRendererRef.current);
+      disposeRuntimeRenderer(activeRendererRef.current);
+      nextRendererRef.current = null;
+      activeRendererRef.current = null;
+      transitionRef.current = null;
+      setUseFallback(true);
+      return;
+    }
+
+    if (supportsGraphicsPipeline()) {
+      setUseFallback(false);
+    }
+  }, [workerEntry, rendererId]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const compositor = compositorRef.current;
+
+    if (!canvas || !compositor || !workerEntry || !supportsGraphicsPipeline()) {
+      return;
+    }
+
+    const width = canvas.clientWidth || canvas.width || 1;
+    const height = canvas.clientHeight || canvas.height || 1;
+
+    const active = activeRendererRef.current;
+    if (!active) {
+      const initial = createRuntimeRenderer(rendererId, workerEntry, 'A', width, height);
+      if (!initial) {
+        setUseFallback(true);
+        return;
+      }
+
+      activeRendererRef.current = initial;
+      mixFactorRef.current = sourceMixValue(initial.source);
+      syncUniforms(useTextureStore.getState());
+      return;
+    }
+
+    if (active.rendererId === rendererId && active.workerEntry === workerEntry) {
+      return;
+    }
+
+    disposeRuntimeRenderer(nextRendererRef.current);
+    nextRendererRef.current = null;
+    transitionRef.current = null;
+    mixFactorRef.current = sourceMixValue(active.source);
+
+    const nextSource: PipelineSource = active.source === 'A' ? 'B' : 'A';
+    const next = createRuntimeRenderer(rendererId, workerEntry, nextSource, width, height);
+
+    if (!next) {
+      setUseFallback(true);
+      return;
+    }
+
+    nextRendererRef.current = next;
+    transitionRef.current = {
+      startedAt: performance.now(),
+      fromMix: sourceMixValue(active.source),
+      toMix: sourceMixValue(next.source),
+      durationMs: TRANSITION_DURATION_MS,
+    };
+
+    syncUniforms(useTextureStore.getState());
+  }, [rendererId, workerEntry]);
+
+  if (useFallback && FallbackComponent) {
+    return <FallbackComponent className={className} />;
+  }
+
+  if (useFallback) {
+    return <div className={className} />;
+  }
+
+  return <canvas ref={canvasRef} className={className} />;
+};
+
+export default GraphicsPipelineHost;

@@ -22,6 +22,25 @@ import { useDrawerStates } from '../../hooks/useDrawerStates';
 import { useAppEventHandlers } from '../../hooks/useAppEventHandlers';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useRendererHotReload as _useRendererHotReload } from '../../utils/hotReloadHooks';
+import GraphicsPipelineHost from '../renderers/pipeline/GraphicsPipelineHost';
+
+const PipelineViewportCanvas: React.FC<{ className?: string }> = ({ className }) => {
+  const currentRendererId = useTextureStore((state) => state.project?.globalSettings.renderer ?? 'webgl');
+  const currentRenderer = renderers[currentRendererId];
+
+  if (!currentRenderer) {
+    return <div className={className} />;
+  }
+
+  return (
+    <GraphicsPipelineHost
+      className={className}
+      rendererId={currentRendererId}
+      workerEntry={currentRenderer.workerEntry}
+      fallbackComponent={currentRenderer.component}
+    />
+  );
+};
 
 export const MainApp: React.FC = () => {
   const { t } = useTranslation();
@@ -64,10 +83,21 @@ export const MainApp: React.FC = () => {
   // Prepare components
   const controlPanel = <ControlPanel />;
   const sequencerPanel = <Sequencer />;
+  const StablePipelineCanvas = useMemo(() => PipelineViewportCanvas, []);
   
   // Get current renderer with fallback handling
   const currentRenderer = useMemo(() => renderers[rendererId], [rendererId]);
-  const CanvasComponent = currentRenderer?.component;
+  const CanvasComponent = useMemo<React.FC<{ className?: string }> | undefined>(() => {
+    if (!currentRenderer) {
+      return undefined;
+    }
+
+    if (!env.graphicsPipelineV2) {
+      return currentRenderer.component;
+    }
+
+    return StablePipelineCanvas;
+  }, [currentRenderer, StablePipelineCanvas]);
 
   const viewportSection = (
     <MainViewport
