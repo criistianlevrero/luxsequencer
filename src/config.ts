@@ -20,6 +20,10 @@ interface EnvConfig {
   midiAutoConnect: boolean;
   /** Temporary transition flag for legacy custom controls in renderer controlSchema */
   allowLegacyCustomControls: boolean;
+  /** JSON array with trusted community public keys (SPKI base64) */
+  communityTrustedPublicKeysJson?: string;
+  /** Explicitly revoked public key IDs for community package signatures */
+  communityRevokedPublicKeyIds: string[];
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -52,6 +56,17 @@ const parseNumber = (value: string | undefined, defaultValue: number): number =>
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
+const parseStringList = (value: string | undefined): string[] => {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+};
+
 /**
  * Application environment configuration
  * Loads from environment variables with sensible defaults
@@ -63,6 +78,8 @@ export const env: EnvConfig = {
   maxFps: parseNumber(import.meta.env.VITE_MAX_FPS, 60),
   midiAutoConnect: parseBoolean(import.meta.env.VITE_MIDI_AUTO_CONNECT, true),
   allowLegacyCustomControls: parseBoolean(import.meta.env.VITE_ALLOW_LEGACY_CUSTOM_CONTROLS, false),
+  communityTrustedPublicKeysJson: import.meta.env.VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS,
+  communityRevokedPublicKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),

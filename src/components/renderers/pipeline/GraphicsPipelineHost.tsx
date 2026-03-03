@@ -3,6 +3,8 @@ import {
   RENDERER_WORKER_PROTOCOL_VERSION,
   RendererWorkerManager,
   WebGLCompositor,
+  isUntrustedCommunityPublicKey,
+  resolveCommunityPublicKey,
   type CompositorMetrics,
   type PipelineSource,
   type RendererWorkerHealthSnapshot,
@@ -68,10 +70,6 @@ const isSemverLess = (a: string, b: string): boolean => {
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
-const COMMUNITY_TRUSTED_PUBLIC_KEYS: Record<string, string> = {
-  // Placeholder trust store. Integrators should provide production keys here.
-};
-
 const workerEntryToUrl = (workerEntry: string | URL): string => {
   if (typeof workerEntry === 'string') {
     return workerEntry;
@@ -95,6 +93,12 @@ const base64ToUint8Array = (value: string): Uint8Array => {
   }
 
   return output;
+};
+
+const toArrayBuffer = (value: Uint8Array): ArrayBuffer => {
+  const output = new Uint8Array(value.byteLength);
+  output.set(value);
+  return output.buffer;
 };
 
 const calculateSha256Hex = async (input: ArrayBuffer): Promise<string> => {
@@ -149,8 +153,9 @@ const validatePackageManifestPolicy = (
       return `Manifest inválido para ${rendererId}: valueBase64 de firma inválido`;
     }
 
-    if (!COMMUNITY_TRUSTED_PUBLIC_KEYS[signature.publicKeyId]) {
-      return `Manifest inválido para ${rendererId}: publicKeyId no confiable (${signature.publicKeyId})`;
+    const publicKey = resolveCommunityPublicKey(signature.publicKeyId);
+    if (isUntrustedCommunityPublicKey(publicKey)) {
+      return `Manifest inválido para ${rendererId}: ${publicKey.reason}`;
     }
   }
 
@@ -209,25 +214,26 @@ const validateWorkerEntrySignature = async (
     return `Algoritmo de firma no soportado para ${rendererId}: ${signature.algorithm}`;
   }
 
-  const trustedPublicKey = COMMUNITY_TRUSTED_PUBLIC_KEYS[signature.publicKeyId];
-  if (!trustedPublicKey) {
-    return `No existe clave confiable para ${rendererId}: ${signature.publicKeyId}`;
+  const publicKeyResolution = resolveCommunityPublicKey(signature.publicKeyId);
+  if (isUntrustedCommunityPublicKey(publicKeyResolution)) {
+    return `No existe clave confiable para ${rendererId}: ${publicKeyResolution.reason}`;
   }
 
   let signatureBytes: Uint8Array;
   let publicKeyBytes: Uint8Array;
   try {
     signatureBytes = base64ToUint8Array(signature.valueBase64);
-    publicKeyBytes = base64ToUint8Array(trustedPublicKey);
+    publicKeyBytes = base64ToUint8Array(publicKeyResolution.publicKeyBase64);
   } catch {
     return `Codificación base64 inválida en firma o clave pública para ${rendererId}`;
   }
 
   let cryptoKey: CryptoKey;
   try {
+    const publicKeyBuffer = toArrayBuffer(publicKeyBytes);
     cryptoKey = await crypto.subtle.importKey(
       'spki',
-      publicKeyBytes.buffer,
+      publicKeyBuffer,
       {
         name: 'ECDSA',
         namedCurve: 'P-256',
@@ -241,13 +247,14 @@ const validateWorkerEntrySignature = async (
 
   let verified = false;
   try {
+    const signatureBuffer = toArrayBuffer(signatureBytes);
     verified = await crypto.subtle.verify(
       {
         name: 'ECDSA',
         hash: 'SHA-256',
       },
       cryptoKey,
-      signatureBytes,
+      signatureBuffer,
       workerContent,
     );
   } catch {

@@ -165,6 +165,33 @@ Enable only as a temporary migration fallback.
 VITE_ALLOW_LEGACY_CUSTOM_CONTROLS=false
 ```
 
+### `VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS`
+
+- **Type:** JSON array (string)
+- **Default:** `[]`
+- **Description:** Trusted public keys for verifying community renderer package signatures.
+
+Each entry supports key rotation metadata:
+- `id`: key identifier referenced by `packageManifest.security.workerEntrySignature.publicKeyId`
+- `spkiBase64`: public key encoded as SPKI base64
+- `status`: `active` | `revoked`
+- `notBefore` / `notAfter`: optional ISO date validity window
+- `replacedBy`: optional next key ID for rotation guidance
+
+```env
+VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS=[{"id":"community-key-2026-q1","spkiBase64":"MIIB...","status":"active","notBefore":"2026-01-01T00:00:00Z","notAfter":"2026-12-31T23:59:59Z","replacedBy":"community-key-2027-q1"}]
+```
+
+### `VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS`
+
+- **Type:** Comma-separated string
+- **Default:** empty
+- **Description:** Explicitly revoked key IDs. This list overrides key status and blocks signature verification.
+
+```env
+VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS=community-key-2025-q4,community-key-2026-q1
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String
