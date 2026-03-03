@@ -2,6 +2,12 @@
 
 Este documento describe el estado vigente del sistema de renderers en `0.6-beta`.
 
+## Fuente de verdad
+
+- La documentación de arquitectura de renderers en la core app vive en este archivo (`docs/renderers.md`).
+- La documentación específica de cada renderer oficial vive en `core-renderers/src/renderers/*/README.md`.
+- No se mantiene documentación técnica de arquitectura dentro de `src/components/renderers/docs`.
+
 ## Resumen
 
 - Controles en modo **declarative-only**.
@@ -94,6 +100,10 @@ Responsabilidades del repo externo:
 - publicar workers (`*.worker.ts` en dev), manifests y catálogo;
 - mantener identidad canónica consistente en manifests;
 - ofrecer endpoint HTTP para consumo por core en desarrollo/entorno controlado.
+
+Ejemplo de documentación por renderer:
+
+- `../core-renderers/src/renderers/dvd-screensaver/README.md`
 
 ## 7) Checklist para agregar un renderer oficial
 
