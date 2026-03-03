@@ -1,11 +1,10 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTextureStore } from '../../store';
-import { renderers } from '../renderers';
 import { TrashIcon } from '../ui/icons';
 import { Button, SequencerCell, SliderInput } from '../ui';
 // FIX: SliderControlConfig will be available from ../types after the type definitions are moved.
-import type { PropertyTrack, SliderControlConfig } from '../../types';
+import type { PropertyTrack } from '../../types';
 
 interface PropertyTrackLaneProps {
     track: PropertyTrack;
@@ -15,44 +14,28 @@ interface PropertyTrackLaneProps {
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
-    const { project, activeSequenceIndex, sequencerCurrentStep } = useTextureStore(state => ({
+    const { project, activeSequenceIndex, sequencerCurrentStep, rendererAnimatableProperties } = useTextureStore(state => ({
         project: state.project,
         activeSequenceIndex: state.activeSequenceIndex,
         sequencerCurrentStep: state.sequencerCurrentStep,
+        rendererAnimatableProperties: state.rendererAnimatableProperties,
     }));
-    const { addKeyframe, removeKeyframe, updateKeyframeValue, removePropertyTrack } = useTextureStore.getState();
+    const { addKeyframe, removeKeyframe, updateKeyframeValue, removePropertyTrack, hydrateRendererAnimatableProperties } = useTextureStore.getState();
 
     const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
     const sequencerState = project?.sequences[activeSequenceIndex]?.rendererSequencerStates[project?.sequences[activeSequenceIndex]?.activeRenderer];
     const numSteps = sequencerState?.numSteps ?? 16;
+    const activeRenderer = project?.sequences[activeSequenceIndex]?.activeRenderer ?? 'webgl';
+
+    useEffect(() => {
+        void hydrateRendererAnimatableProperties(activeRenderer);
+    }, [activeRenderer]);
 
     const controlInfo = useMemo(() => {
-        for (const renderer of Object.values(renderers)) {
-            // Handle both array and function controlSchema
-            const schema = typeof renderer.controlSchema === 'function' 
-                ? renderer.controlSchema() 
-                : renderer.controlSchema;
-            
-            // Validate schema is an array
-            if (!Array.isArray(schema)) continue;
-            
-            for (const section of schema) {
-                // Skip separator sections - they don't have controls
-                if (!section || 'type' in section) continue; // SeparatorSection has 'type' property
-                
-                const controlSection = section as import('../../types').ControlSection;
-                if (!Array.isArray(controlSection.controls)) continue;
-                
-                const control = controlSection.controls.find(c => c.id === track.property);
-                if (control && control.type === 'slider') {
-                    // FIX: Also return the category (section title) to be used in the UI.
-                    return { ...(control as SliderControlConfig), category: controlSection.title };
-                }
-            }
-        }
-        return null;
-    }, [track.property]);
+        const properties = rendererAnimatableProperties[activeRenderer] || [];
+        return properties.find(property => property.id === track.property) || null;
+    }, [activeRenderer, rendererAnimatableProperties, track.property]);
 
     // Calculate interpolated value for a given step
     const getInterpolatedValueForStep = useMemo(() => {

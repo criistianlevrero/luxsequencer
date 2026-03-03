@@ -54,6 +54,7 @@ const initialState: State = {
     transitionProgress: 1,
     previousGradient: null,
     previousBackgroundGradient: null,
+    rendererAnimatableProperties: {},
 };
 
 // --- Store Creation ---

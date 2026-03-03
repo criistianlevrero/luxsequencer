@@ -4,6 +4,7 @@ import { renderers } from '../components/renderers';
 import { validateRendererSettings as _validateRendererSettings, validateSettingsWithSchema } from './validation';
 import { getFallbackManager } from './rendererFallback';
 import { isDevelopment } from '../config';
+import { useTextureStore } from '../store';
 
 /**
  * Hot reload state and change tracking
@@ -301,11 +302,13 @@ export class RendererHotReloadManager {
             (renderer as any).declarativeSchema = newSchema;
           }
         }
+        await useTextureStore.getState().invalidateRendererAnimatableProperties(rendererId, true);
         break;
         
       case 'component':
       case 'full':
         // For component or full changes, the HMR system should handle the reload automatically
+        await useTextureStore.getState().invalidateRendererAnimatableProperties(rendererId, true);
         break;
     }
   }

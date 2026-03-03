@@ -15,6 +15,16 @@ export interface MidiState {
     connectionError: string | null;
 }
 
+export interface AnimatablePropertyDescriptor {
+    id: string;
+    label: string;
+    category: string;
+    min: number;
+    max: number;
+    step: number;
+    formatter?: (value: number) => string;
+}
+
 export interface State {
     project: Project | null;
     activeSequenceIndex: number;
@@ -50,6 +60,7 @@ export interface State {
     transitionProgress: number;
     previousGradient: any[] | null;
     previousBackgroundGradient: any[] | null;
+    rendererAnimatableProperties: Record<string, AnimatablePropertyDescriptor[]>;
 }
 
 export interface ProjectActions {
@@ -105,6 +116,8 @@ export interface UIActions {
     setViewportMode: (mode: ViewportMode) => void;
     setRenderer: (renderer: string) => void;
     setLocale: (locale: LocaleCode) => void;
+    hydrateRendererAnimatableProperties: (rendererId: string) => Promise<void>;
+    invalidateRendererAnimatableProperties: (rendererId: string, rehydrate?: boolean) => Promise<void>;
 }
 
 export interface AnimationActions {

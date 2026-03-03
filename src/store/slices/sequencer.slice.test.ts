@@ -3,29 +3,6 @@ import type { Project } from '../../types';
 import { ControlSource } from '../../types';
 import { createInitialSettings, setNestedProperty } from '../../utils/settingsMigration';
 
-vi.mock('../../components/renderers', () => ({
-  renderers: {
-    scales: {
-      controlSchema: [
-        {
-          title: 'Test',
-          controls: [
-            {
-              type: 'slider',
-              id: 'common.animationSpeed',
-              label: 'Animation Speed',
-              min: 0,
-              max: 3,
-              step: 0.1,
-              formatter: (v: number) => String(v),
-            },
-          ],
-        },
-      ],
-    },
-  },
-}));
-
 let createSequencerSlice: any;
 
 beforeAll(async () => {
@@ -93,6 +70,19 @@ const createSequencerHarness = () => {
     sequencerLoopCount: 0,
     propertySequencerRafId: null,
     isPatternDirty: true,
+    rendererAnimatableProperties: {
+      scales: [
+        {
+          id: 'common.animationSpeed',
+          label: 'Animation Speed',
+          category: 'Test',
+          min: 0,
+          max: 3,
+          step: 0.1,
+          formatter: (v: number) => String(v),
+        },
+      ],
+    },
   };
 
   const set = (partial: any) => {

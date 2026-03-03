@@ -158,6 +158,8 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             get()._tickSequencer();
             get()._updatePropertySequencer();
         }
+
+        void get().hydrateRendererAnimatableProperties(currentRenderer);
     },
 
     setProject: (project) => {
@@ -445,5 +447,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectActions
             sequencerCurrentStep: 0,
             sequencerStartTime: null
         });
+
+        void get().hydrateRendererAnimatableProperties(rendererId);
     },
 });

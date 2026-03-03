@@ -61,8 +61,8 @@ export const MainApp: React.FC = () => {
   const rendererId = useTextureStore(state => state.project?.globalSettings.renderer ?? 'webgl');
   const dualScreenEnabled = useTextureStore(state => state.dualScreen.enabled);
   
-  // Hot reload for renderers in development
-  // const hotReload = useRendererHotReload(rendererId);
+  // Hot reload listener for renderer updates in development
+  _useRendererHotReload(rendererId);
 
   const handleToggleFullscreen = () => toggleFullscreen(appRef);
 

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { addPropertyTrackMock, storeState, useTextureStoreMock } = vi.hoisted(() => {
   const addPropertyTrackMock = vi.fn();
+  const hydrateRendererAnimatablePropertiesMock = vi.fn(async () => undefined);
   const storeState: any = {
     project: {
       globalSettings: {
@@ -22,11 +23,24 @@ const { addPropertyTrackMock, storeState, useTextureStoreMock } = vi.hoisted(() 
       ],
     },
     activeSequenceIndex: 0,
+    rendererAnimatableProperties: {
+      scales: [
+        {
+          id: 'common.animationSpeed',
+          label: 'Animation Speed',
+          category: 'Common',
+          min: 0,
+          max: 3,
+          step: 0.1,
+        },
+      ],
+    },
   };
 
   const useTextureStoreMock = vi.fn((selector: (state: any) => unknown) => selector(storeState));
   (useTextureStoreMock as any).getState = () => ({
     addPropertyTrack: addPropertyTrackMock,
+    hydrateRendererAnimatableProperties: hydrateRendererAnimatablePropertiesMock,
   });
 
   return { addPropertyTrackMock, storeState, useTextureStoreMock };
@@ -34,24 +48,6 @@ const { addPropertyTrackMock, storeState, useTextureStoreMock } = vi.hoisted(() 
 
 vi.mock('../../store', () => ({
   useTextureStore: useTextureStoreMock,
-}));
-
-vi.mock('../renderers', () => ({
-  renderers: {
-    scales: {
-      id: 'scales',
-      name: 'Scales',
-      controlSchema: [
-        {
-          title: 'Common',
-          controls: [
-            { type: 'slider', id: 'common.animationSpeed', label: 'Animation Speed' },
-          ],
-        },
-      ],
-      component: () => null,
-    },
-  },
 }));
 
 vi.mock('../ui/icons', () => ({

@@ -1,9 +1,8 @@
 import { produce } from 'immer';
 import type { StateCreator } from 'zustand';
 import type { StoreState, SequencerActions } from '../types';
-import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe, SliderControlConfig, ControlSection } from '../../types';
+import type { ControlSettings as _ControlSettings, PropertyTrack, Keyframe } from '../../types';
 import { ControlSource } from '../../types';
-import { resolveRendererDefinition } from '../../components/renderers';
 import { normalizeSettings, findChangedPaths, getNestedProperty } from '../../utils/settingsMigration';
 import { interpolateTrackValue } from '../utils/propertyInterpolation';
 
@@ -250,25 +249,23 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
             const track = sequencer?.propertyTracks?.find(t => t.id === trackId);
             if (!track || track.keyframes.some(k => k.step === step)) return;
 
-            const renderer = resolveRendererDefinition(activeRenderer);
-            if (!renderer || !renderer.controlSchema) {
-                return;
+            const sliderConfig = (get().rendererAnimatableProperties[activeRenderer] || [])
+                .find(property => property.id === track.property);
+
+            let defaultValue: number | null = null;
+            if (sliderConfig) {
+                defaultValue = sliderConfig.min + (sliderConfig.max - sliderConfig.min) * 0.5;
+            } else {
+                const currentValue = Number(getNestedProperty(get().currentSettings, track.property));
+                if (Number.isFinite(currentValue)) {
+                    defaultValue = currentValue;
+                }
             }
-            
-            // Get the control schema - it might be a function or an array
-            const controlSchema = typeof renderer.controlSchema === 'function' 
-                ? renderer.controlSchema() 
-                : renderer.controlSchema;
-            const control = controlSchema
-                .filter((item): item is ControlSection => !('type' in item))
-                .flatMap(s => s.controls)
-                .find(c => c.type === 'slider' && c.id === track.property) as SliderControlConfig | undefined;
-            
-            if (control) {
-                const defaultValue = control.min + (control.max - control.min) * 0.5;
-                const newKeyframe: Keyframe = { step, value: defaultValue, interpolation: 'linear' };
-                track.keyframes.push(newKeyframe);
-            }
+
+            if (defaultValue === null) return;
+
+            const newKeyframe: Keyframe = { step, value: defaultValue, interpolation: 'linear' };
+            track.keyframes.push(newKeyframe);
         });
         get().setProject(newProject);
     },
@@ -340,26 +337,11 @@ export const createSequencerSlice: StateCreator<StoreState, [], [], SequencerAct
         const fractionalStep = (timeElapsed / stepDuration) % numSteps;
 
         const rendererId = activeSequence.activeRenderer;
-        const renderer = resolveRendererDefinition(rendererId);
-        if (!renderer || !renderer.controlSchema) {
-            const rafId = requestAnimationFrame(() => get()._updatePropertySequencer());
-            set({ propertySequencerRafId: rafId });
-            return;
-        }
-        
-        // Get the control schema - it might be a function or an array
-        const controlSchema = typeof renderer.controlSchema === 'function' 
-            ? renderer.controlSchema() 
-            : renderer.controlSchema;
-        
-        const sliderConfigs = controlSchema
-            .filter((item): item is ControlSection => !('type' in item))
-            .flatMap(section => section.controls)
-            .filter(c => c.type === 'slider')
-            .reduce((acc, c: any) => {
+        const sliderConfigs = (get().rendererAnimatableProperties[rendererId] || [])
+            .reduce((acc, c) => {
                 acc[c.id] = c;
                 return acc;
-            }, {} as { [key: string]: any });
+            }, {} as Record<string, { min: number; max: number; step: number }>);
 
         // Update each property track
         propertyTracks.forEach(track => {

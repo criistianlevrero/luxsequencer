@@ -1,18 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTextureStore } from '../../store';
-import { renderers } from '../renderers';
 import { PlusIcon } from '../ui/icons';
 import { Button, EmptyState, Select } from '../ui';
 import PropertyTrackLane from './PropertyTrackLane';
-import type { ControlSettings, ControlSection } from '../../types';
+import type { ControlSettings } from '../../types';
 
 const PropertySequencer: React.FC = () => {
-    const { project, activeSequenceIndex } = useTextureStore(state => ({
+    const { project, activeSequenceIndex, rendererAnimatableProperties } = useTextureStore(state => ({
         project: state.project,
         activeSequenceIndex: state.activeSequenceIndex,
+        rendererAnimatableProperties: state.rendererAnimatableProperties,
     }));
-    const { addPropertyTrack } = useTextureStore.getState();
+    const { addPropertyTrack, hydrateRendererAnimatableProperties } = useTextureStore.getState();
 
     const [selectedProperty, setSelectedProperty] = useState<string>('');
 
@@ -21,43 +21,15 @@ const PropertySequencer: React.FC = () => {
     const propertyTracks = sequencerState?.propertyTracks || [];
     const usedProperties = useMemo(() => new Set(propertyTracks.map(t => t.property)), [propertyTracks]);
 
-    const allAnimatableProps = useMemo(() => {
-        // Get only properties from the selected renderer
-        const props: { id: string; label: string; category: string }[] = [];
-        const addedProps = new Set<string>();
+    const selectedRendererId = activeSequence?.activeRenderer || 'webgl';
 
-        // Get the currently selected renderer
-        const selectedRendererId = activeSequence?.activeRenderer || 'webgl';
-        const selectedRenderer = renderers[selectedRendererId];
-        
-        if (selectedRenderer) {
-            // Handle both array and function controlSchema
-            const controlSchema = typeof selectedRenderer.controlSchema === 'function' 
-                ? selectedRenderer.controlSchema() 
-                : selectedRenderer.controlSchema;
-                
-            controlSchema
-                .filter((item): item is ControlSection => !('type' in item))
-                .forEach(section => {
-                    section.controls.forEach(control => {
-                        if (control.type === 'slider' && !addedProps.has(control.id)) {
-                            props.push({ 
-                                id: control.id, 
-                                label: control.label,
-                                category: section.title 
-                            });
-                            addedProps.add(control.id);
-                        }
-                    });
-            });
-        }
-        
-        return props.sort((a, b) => {
-            const categoryCompare = a.category.localeCompare(b.category);
-            if (categoryCompare !== 0) return categoryCompare;
-            return a.label.localeCompare(b.label);
-        });
-    }, [project?.globalSettings.renderer]);
+    useEffect(() => {
+        void hydrateRendererAnimatableProperties(selectedRendererId);
+    }, [selectedRendererId]);
+
+    const allAnimatableProps = useMemo(() => {
+        return rendererAnimatableProperties[selectedRendererId] || [];
+    }, [rendererAnimatableProperties, selectedRendererId]);
 
     const handleAddTrack = () => {
         if (selectedProperty) {

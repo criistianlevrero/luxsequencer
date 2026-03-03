@@ -5,7 +5,12 @@ import type { LocaleCode } from '../../i18n/types';
 import { setLocale as setI18nLocale, initializeI18n } from '../../i18n';
 import { validateRendererSettings } from '../../utils/validation';
 import { createInitialSettings } from '../../utils/settingsMigration';
-import { resolveRendererDefinition } from '../../components/renderers';
+import {
+    ensureRendererDeclarativeSchema,
+    getRendererAnimatableProperties,
+    invalidateRendererDeclarativeSchema,
+    resolveRendererDefinition,
+} from '../../components/renderers';
 import { config } from '../../config';
 
 // LocalStorage key for locale persistence
@@ -86,6 +91,37 @@ export const createUISlice: StateCreator<StoreState, [], [], UIActions> = (set, 
         
         // Update store state
         set({ currentLocale: locale });
+    },
+
+    hydrateRendererAnimatableProperties: async (rendererId) => {
+        const currentCache = get().rendererAnimatableProperties[rendererId];
+        if (currentCache && currentCache.length > 0) {
+            return;
+        }
+
+        await ensureRendererDeclarativeSchema(rendererId);
+        const properties = getRendererAnimatableProperties(rendererId);
+
+        set(state => ({
+            rendererAnimatableProperties: {
+                ...state.rendererAnimatableProperties,
+                [rendererId]: properties,
+            },
+        }));
+    },
+
+    invalidateRendererAnimatableProperties: async (rendererId, rehydrate = false) => {
+        invalidateRendererDeclarativeSchema(rendererId);
+
+        set(state => {
+            const nextCache = { ...state.rendererAnimatableProperties };
+            delete nextCache[rendererId];
+            return { rendererAnimatableProperties: nextCache };
+        });
+
+        if (rehydrate) {
+            await get().hydrateRendererAnimatableProperties(rendererId);
+        }
     },
 });
 
