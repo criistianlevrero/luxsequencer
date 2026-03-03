@@ -4,6 +4,12 @@ const ensureTrailingSlash = (value: string): string => {
   return value.endsWith('/') ? value : `${value}/`;
 };
 
+const MARKETPLACE_PROXY_PREFIX = '/marketplace-core-renderers';
+
+const toSameOriginProxyUrl = (remoteUrl: URL): string => {
+  return `${MARKETPLACE_PROXY_PREFIX}${remoteUrl.pathname}`;
+};
+
 export const resolveExternalCoreRendererWorkerEntry = (
   rendererId: string,
   workerFileName: string,
@@ -11,7 +17,13 @@ export const resolveExternalCoreRendererWorkerEntry = (
 ): string | URL => {
   try {
     const baseUrl = ensureTrailingSlash(env.marketplaceCoreRenderersBaseUrl);
-    return new URL(`${rendererId}/${workerFileName}`, baseUrl).toString();
+    const resolved = new URL(`${rendererId}/${workerFileName}`, baseUrl);
+
+    if (typeof window !== 'undefined' && resolved.origin !== window.location.origin) {
+      return toSameOriginProxyUrl(resolved);
+    }
+
+    return resolved.toString();
   } catch {
     return localFallback;
   }

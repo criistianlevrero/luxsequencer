@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/marketplace-core-renderers': {
+            target: 'http://localhost:4174',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/marketplace-core-renderers/, ''),
+          },
+        },
       },
       plugins: [react(), svgr()],
       optimizeDeps: {
