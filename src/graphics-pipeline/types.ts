@@ -7,6 +7,14 @@ export type PipelineRendererStatus =
 
 export type PipelineSource = 'A' | 'B';
 
+export const RENDERER_WORKER_PROTOCOL_VERSION = '1.0.0';
+
+export type RendererWorkerCapability =
+  | 'offscreen-canvas'
+  | 'webgl2'
+  | 'canvas2d'
+  | 'uniform-updates';
+
 export type RendererWorkerInitMessage = {
   type: 'init';
   canvas: OffscreenCanvas;
@@ -41,12 +49,22 @@ export type RendererWorkerFrameMessage = {
   bitmap: ImageBitmap;
 };
 
+export type RendererWorkerReadyMessage = {
+  type: 'ready';
+  rendererId: string;
+  protocolVersion: string;
+  capabilities: RendererWorkerCapability[];
+};
+
 export type RendererWorkerErrorMessage = {
   type: 'error';
   message: string;
 };
 
-export type RendererWorkerToMainMessage = RendererWorkerFrameMessage | RendererWorkerErrorMessage;
+export type RendererWorkerToMainMessage =
+  | RendererWorkerFrameMessage
+  | RendererWorkerReadyMessage
+  | RendererWorkerErrorMessage;
 
 export const isFrameMessage = (message: unknown): message is RendererWorkerFrameMessage => {
   return (
@@ -64,5 +82,16 @@ export const isErrorMessage = (message: unknown): message is RendererWorkerError
     message !== null &&
     'type' in message &&
     (message as { type?: string }).type === 'error'
+  );
+};
+
+export const isReadyMessage = (message: unknown): message is RendererWorkerReadyMessage => {
+  return (
+    typeof message === 'object' &&
+    message !== null &&
+    'type' in message &&
+    (message as { type?: string }).type === 'ready' &&
+    'protocolVersion' in message &&
+    'capabilities' in message
   );
 };

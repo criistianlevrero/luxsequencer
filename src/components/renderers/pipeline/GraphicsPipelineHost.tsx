@@ -3,6 +3,7 @@ import {
   RendererWorkerManager,
   WebGLCompositor,
   type PipelineSource,
+  type RendererWorkerCapability,
 } from '../../../graphics-pipeline';
 import { useTextureStore } from '../../../store';
 import {
@@ -35,6 +36,18 @@ const supportsGraphicsPipeline = (): boolean => {
 };
 
 const TRANSITION_DURATION_MS = 800;
+
+const getRequiredCapabilities = (rendererId: string): RendererWorkerCapability[] => {
+  if (rendererId === 'webgl') {
+    return ['offscreen-canvas', 'webgl2', 'uniform-updates'];
+  }
+
+  if (rendererId === 'concentric' || rendererId === 'dvd-screensaver') {
+    return ['offscreen-canvas', 'canvas2d', 'uniform-updates'];
+  }
+
+  return ['offscreen-canvas', 'uniform-updates'];
+};
 
 const applyRendererUniforms = (
   rendererId: string,
@@ -114,6 +127,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     durationMs: number;
   } | null>(null);
   const [isUnavailable, setIsUnavailable] = useState(false);
+  const [unavailableReason, setUnavailableReason] = useState<string>('');
 
   const disposeRuntimeRenderer = (runtimeRenderer: RuntimeRenderer | null) => {
     if (!runtimeRenderer) {
@@ -144,8 +158,12 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       workerEntry: nextWorkerEntry,
       width,
       height,
+      requiredCapabilities: getRequiredCapabilities(nextRendererId),
       onFrame: (bitmap) => compositor.setSourceFrame(source, bitmap),
-      onError: () => setIsUnavailable(true),
+      onError: (error) => {
+        setUnavailableReason(error.message);
+        setIsUnavailable(true);
+      },
     });
 
     const started = manager.start();
@@ -179,16 +197,19 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     const canvas = canvasRef.current;
 
     if (!canvas || !supportsGraphicsPipeline()) {
+      setUnavailableReason('Graphics pipeline no está disponible en este navegador/dispositivo');
       setIsUnavailable(true);
       return;
     }
 
+    setUnavailableReason('');
     setIsUnavailable(false);
 
     const compositor = new WebGLCompositor(canvas);
     const initialized = compositor.init();
 
     if (!initialized) {
+      setUnavailableReason('No se pudo inicializar el compositor WebGL2');
       setIsUnavailable(true);
       return;
     }
@@ -263,6 +284,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
   useEffect(() => {
     if (supportsGraphicsPipeline()) {
+      setUnavailableReason('');
       setIsUnavailable(false);
     }
   }, [workerEntry, rendererId]);
@@ -321,7 +343,14 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   }, [rendererId, workerEntry]);
 
   if (isUnavailable) {
-    return <div className={className} />;
+    return (
+      <div className={`${className ?? ''} flex items-center justify-center bg-gray-900 text-gray-400 p-4`}>
+        <div className="text-center">
+          <h3 className="font-semibold text-gray-300 mb-1">Renderer worker no disponible</h3>
+          <p className="text-sm text-gray-400">{unavailableReason || 'No se pudo iniciar el renderer en sandbox worker.'}</p>
+        </div>
+      </div>
+    );
   }
 
   return <canvas ref={canvasRef} className={className} />;

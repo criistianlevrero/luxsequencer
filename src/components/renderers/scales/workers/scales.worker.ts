@@ -6,6 +6,8 @@ type WorkerMessage =
 
 type GradientStop = { color: string; hardStop?: boolean };
 
+const WORKER_PROTOCOL_VERSION = '1.0.0';
+
 const workerScope = self as unknown as {
   onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null;
   postMessage: (message: unknown, transfer?: Transferable[]) => void;
@@ -423,6 +425,13 @@ workerScope.onmessage = (event) => {
         uniforms[`prevBackgroundGradientColors[${index}]`] = gl.getUniformLocation(program, `u_prevBackgroundGradientColors[${index}]`);
         uniforms[`prevBackgroundHardStops[${index}]`] = gl.getUniformLocation(program, `u_prevBackgroundHardStops[${index}]`);
       }
+
+      workerScope.postMessage({
+        type: 'ready',
+        rendererId: 'webgl',
+        protocolVersion: WORKER_PROTOCOL_VERSION,
+        capabilities: ['offscreen-canvas', 'webgl2', 'uniform-updates'],
+      });
 
       startLoop();
       break;

@@ -62,6 +62,8 @@ type RuntimeAsset = {
   bitmap: ImageBitmap | null;
 };
 
+const WORKER_PROTOCOL_VERSION = '1.0.0';
+
 const workerScope = self as unknown as {
   onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null;
   postMessage: (message: unknown, transfer?: Transferable[]) => void;
@@ -437,6 +439,12 @@ workerScope.onmessage = (event) => {
 
       ensureViewport();
       settingsHash = '';
+      workerScope.postMessage({
+        type: 'ready',
+        rendererId: 'dvd-screensaver',
+        protocolVersion: WORKER_PROTOCOL_VERSION,
+        capabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+      });
       startLoop();
       break;
     }

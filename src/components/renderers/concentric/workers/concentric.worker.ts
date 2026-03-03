@@ -30,6 +30,8 @@ type RingSnapshot = {
   gradientColors: Array<{ r: number; g: number; b: number }>;
 };
 
+const WORKER_PROTOCOL_VERSION = '1.0.0';
+
 const workerScope = self as unknown as {
   onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null;
   postMessage: (message: unknown, transfer?: Transferable[]) => void;
@@ -247,6 +249,12 @@ workerScope.onmessage = (event) => {
 
       rings = [];
       lastCreationTime = 0;
+      workerScope.postMessage({
+        type: 'ready',
+        rendererId: 'concentric',
+        protocolVersion: WORKER_PROTOCOL_VERSION,
+        capabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+      });
       startLoop();
       break;
     }
