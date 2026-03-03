@@ -18,8 +18,6 @@ interface EnvConfig {
   maxFps: number;
   /** Auto-connect MIDI on startup */
   midiAutoConnect: boolean;
-  /** Temporary transition flag for legacy custom controls in renderer controlSchema */
-  allowLegacyCustomControls: boolean;
   /** JSON array with trusted community public keys (SPKI base64) */
   communityTrustedPublicKeysJson?: string;
   /** Explicitly revoked public key IDs for community package signatures */
@@ -99,7 +97,6 @@ export const env: EnvConfig = {
   geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
   maxFps: parseNumber(import.meta.env.VITE_MAX_FPS, 60),
   midiAutoConnect: parseBoolean(import.meta.env.VITE_MIDI_AUTO_CONNECT, true),
-  allowLegacyCustomControls: parseBoolean(import.meta.env.VITE_ALLOW_LEGACY_CUSTOM_CONTROLS, false),
   communityTrustedPublicKeysJson: import.meta.env.VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS,
   communityRevokedPublicKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_REVOKED_PUBLIC_KEY_IDS),
   communityTrustStoreUrl: import.meta.env.VITE_COMMUNITY_TRUST_STORE_URL,

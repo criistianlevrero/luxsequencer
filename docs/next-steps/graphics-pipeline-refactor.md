@@ -311,7 +311,6 @@ Con este contrato, cualquier intento de agregar `type: 'custom'` desde un render
 
 ### Transición y deprecación del camino legacy
 
-- Se mantiene un flag temporal de migración: `VITE_ALLOW_LEGACY_CUSTOM_CONTROLS`.
 - Valor por defecto: `false`.
 - Uso permitido: solo compatibilidad temporal en renderers legacy no migrados.
 - Objetivo de retiro: eliminar este flag y el soporte legacy en la versión `v0.7.0` (Q2 2026), sujeto a completar la migración de renderers internos.

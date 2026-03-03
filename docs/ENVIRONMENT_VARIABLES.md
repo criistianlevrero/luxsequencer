@@ -152,19 +152,6 @@ Set to `false` to require manual MIDI connection:
 VITE_MIDI_AUTO_CONNECT=false
 ```
 
-### `VITE_ALLOW_LEGACY_CUSTOM_CONTROLS`
-
-- **Type:** Boolean (`true` | `false`)
-- **Default:** `false`
-- **Description:** Transitional flag to allow legacy `controlSchema` controls with `type: 'custom'`
-
-Recommended value is `false` to enforce the declarative-only policy for renderer controls.
-Enable only as a temporary migration fallback.
-
-```env
-VITE_ALLOW_LEGACY_CUSTOM_CONTROLS=false
-```
-
 ### `VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS`
 
 - **Type:** JSON array (string)

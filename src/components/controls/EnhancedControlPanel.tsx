@@ -12,7 +12,6 @@ import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
 import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/scales/scales-declarative-schema';
 import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';
 import type { ControlSection } from '../../types';
-import { env } from '../../config';
 
 interface EnhancedControlPanelProps {
   /**
@@ -30,7 +29,6 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
   useDeclarativeControls = true,
   showComparison = false
 }) => {
-  const allowLegacyCustomControls = env.allowLegacyCustomControls;
   const { t: _t } = useTranslation();
   
   const {
@@ -105,7 +103,7 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
                 {controlSection.controls?.map((control, controlIndex) => (
                   <div key={control.id || `control-${controlIndex}`}>
                     {/* Legacy control rendering logic */}
-                    {allowLegacyCustomControls && control.type === 'custom' && control.component && (
+                    {control.type === 'custom' && control.component && (
                       <control.component />
                     )}
                     {/* Add other control types as needed */}

@@ -12,8 +12,6 @@ interface ImportMetaEnv {
   readonly VITE_MAX_FPS: string;
   /** Auto-connect MIDI on startup */
   readonly VITE_MIDI_AUTO_CONNECT: string;
-  /** Temporary transition flag for legacy custom controls */
-  readonly VITE_ALLOW_LEGACY_CUSTOM_CONTROLS: string;
   /** JSON-encoded trusted community public keys */
   readonly VITE_COMMUNITY_TRUSTED_PUBLIC_KEYS: string;
   /** Comma-separated list of revoked community public key IDs */
