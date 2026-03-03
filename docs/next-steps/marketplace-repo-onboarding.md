@@ -8,10 +8,9 @@ Base local:
 
 ```text
 luxsequencer/
+├── core-renderers/
 ├── luxsequencer-core/
-└── marketplace-repos/
-    ├── core-renderers/
-    └── <nuevo-repo>/
+└── <nuevo-repo>/
 ```
 
 ## 2) Crear repositorio local
@@ -19,8 +18,8 @@ luxsequencer/
 Desde la carpeta base (`luxsequencer/`):
 
 ```bash
-mkdir -p marketplace-repos/<nuevo-repo>
-cd marketplace-repos/<nuevo-repo>
+mkdir -p <nuevo-repo>
+cd <nuevo-repo>
 git init
 ```
 
