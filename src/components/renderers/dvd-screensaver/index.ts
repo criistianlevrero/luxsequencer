@@ -7,6 +7,7 @@ export const dvdScreensaverRenderer: RendererDefinition = {
   id: 'dvd-screensaver',
   name: 'DVD Screensaver',
   component: DvdScreensaverRenderer,
+  workerEntry: new URL('./workers/dvd-screensaver.worker.ts', import.meta.url),
   controlSchema: getDvdScreensaverSchema,
   declarativeSchema: dvdScreensaverDeclarativeSchema,
 };
