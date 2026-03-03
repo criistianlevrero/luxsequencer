@@ -26,6 +26,12 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUST_STORE_CACHE_TTL_MS: string;
   /** Minimum accepted trust store semver */
   readonly VITE_COMMUNITY_TRUST_STORE_MIN_VERSION: string;
+  /** Trusted root public keys for trust store metadata signature verification */
+  readonly VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS: string;
+  /** Revoked root key IDs for trust store metadata signature verification */
+  readonly VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS: string;
+  /** Require signature verification for remote trust store documents */
+  readonly VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE: string;
 }
 
 interface ImportMeta {

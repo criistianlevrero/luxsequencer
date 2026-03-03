@@ -22,12 +22,18 @@ describe('communityTrustStore', () => {
   const originalFetchTimeout = env.communityTrustStoreFetchTimeoutMs;
   const originalCacheTtl = env.communityTrustStoreCacheTtlMs;
   const originalMinVersion = env.communityTrustStoreMinVersion;
+  const originalRootKeys = env.communityTrustStoreRootPublicKeysJson;
+  const originalRevokedRootKeyIds = env.communityTrustStoreRevokedRootKeyIds;
+  const originalRequireSignature = env.communityTrustStoreRequireSignature;
 
   beforeEach(() => {
     env.communityTrustStoreUrl = undefined;
     env.communityTrustStoreFetchTimeoutMs = 2500;
     env.communityTrustStoreCacheTtlMs = 300000;
     env.communityTrustStoreMinVersion = undefined;
+    env.communityTrustStoreRootPublicKeysJson = undefined;
+    env.communityTrustStoreRevokedRootKeyIds = [];
+    env.communityTrustStoreRequireSignature = false;
     localStorage.clear();
     resetCommunityTrustStoreForTests();
   });
@@ -37,6 +43,9 @@ describe('communityTrustStore', () => {
     env.communityTrustStoreFetchTimeoutMs = originalFetchTimeout;
     env.communityTrustStoreCacheTtlMs = originalCacheTtl;
     env.communityTrustStoreMinVersion = originalMinVersion;
+    env.communityTrustStoreRootPublicKeysJson = originalRootKeys;
+    env.communityTrustStoreRevokedRootKeyIds = originalRevokedRootKeyIds;
+    env.communityTrustStoreRequireSignature = originalRequireSignature;
     vi.restoreAllMocks();
     localStorage.clear();
     resetCommunityTrustStoreForTests();
@@ -147,5 +156,33 @@ describe('communityTrustStore', () => {
 
     const result = resolveCommunityPublicKey('cached-key-2026-q1');
     expect(result.isTrusted).toBe(true);
+  });
+
+  it('rejects unsigned remote payload when signature is required', async () => {
+    env.communityTrustStoreUrl = 'https://example.test/trust-store.json';
+    env.communityTrustStoreRequireSignature = true;
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          schemaVersion: '1.0.0',
+          version: '1.2.0',
+          keys: [
+            {
+              id: 'unsigned-remote-key',
+              spkiBase64: 'MIIE',
+              status: 'active',
+            },
+          ],
+          revokedKeyIds: [],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await hydrateCommunityTrustStore();
+
+    const result = resolveCommunityPublicKey('unsigned-remote-key');
+    expect(result.isTrusted).toBe(false);
   });
 });

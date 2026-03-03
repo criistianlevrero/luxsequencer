@@ -12,8 +12,16 @@ export interface TrustedCommunityPublicKey {
 type TrustedCommunityPublicKeysMap = Record<string, TrustedCommunityPublicKey>;
 
 const BUILTIN_COMMUNITY_TRUSTED_PUBLIC_KEYS: TrustedCommunityPublicKeysMap = {};
+const BUILTIN_TRUST_STORE_ROOT_PUBLIC_KEYS: TrustedCommunityPublicKeysMap = {};
 const TRUST_STORE_SCHEMA_VERSION = '1.0.0';
 const TRUST_STORE_CACHE_KEY = 'luxsequencer.communityTrustStore.v1';
+const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+interface RemoteTrustStoreSignature {
+  algorithm: 'ECDSA_P256_SHA256';
+  publicKeyId: string;
+  valueBase64: string;
+}
 
 interface RemoteCommunityTrustStoreDocument {
   schemaVersion: string;
@@ -21,6 +29,7 @@ interface RemoteCommunityTrustStoreDocument {
   generatedAt?: string;
   keys: unknown;
   revokedKeyIds?: unknown;
+  signature?: RemoteTrustStoreSignature;
 }
 
 interface PersistedCommunityTrustStoreCache {
@@ -119,6 +128,41 @@ const parseRevokedKeyIds = (value: unknown): string[] => {
   return value.filter((entry): entry is string => typeof entry === 'string');
 };
 
+const base64ToUint8Array = (value: string): Uint8Array => {
+  const normalized = value.replace(/\s+/g, '');
+  const binary = atob(normalized);
+  const output = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    output[index] = binary.charCodeAt(index);
+  }
+
+  return output;
+};
+
+const toArrayBuffer = (value: Uint8Array): ArrayBuffer => {
+  const output = new Uint8Array(value.byteLength);
+  output.set(value);
+  return output.buffer;
+};
+
+const stableStringify = (value: unknown): string => {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableStringify(entry)).join(',')}]`;
+  }
+
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record).sort();
+
+  return `{${keys
+    .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
+    .join(',')}}`;
+};
+
 const parseTrustedKeysFromEnv = (raw?: string): TrustedCommunityPublicKeysMap => {
   if (!raw) {
     return {};
@@ -138,6 +182,13 @@ const getLocalTrustStoreKeys = (): TrustedCommunityPublicKeysMap => ({
 });
 
 const getLocalRevokedKeyIds = (): string[] => [...env.communityRevokedPublicKeyIds];
+
+const getLocalRootTrustStoreKeys = (): TrustedCommunityPublicKeysMap => ({
+  ...BUILTIN_TRUST_STORE_ROOT_PUBLIC_KEYS,
+  ...parseTrustedKeysFromEnv(env.communityTrustStoreRootPublicKeysJson),
+});
+
+const getLocalRevokedRootKeyIds = (): string[] => [...env.communityTrustStoreRevokedRootKeyIds];
 
 const dedupeStrings = (values: string[]): string[] => {
   return Array.from(new Set(values));
@@ -178,6 +229,149 @@ const isRemoteDocument = (value: unknown): value is RemoteCommunityTrustStoreDoc
     typeof value.schemaVersion === 'string' &&
     typeof value.version === 'string'
   );
+};
+
+const resolveRootPublicKey = (publicKeyId: string): CommunityPublicKeyResolution => {
+  const trustStore = getLocalRootTrustStoreKeys();
+  const revoked = getLocalRevokedRootKeyIds();
+  const key = trustStore[publicKeyId];
+
+  if (!key) {
+    return {
+      isTrusted: false,
+      keyId: publicKeyId,
+      reason: `root key no confiable (${publicKeyId})`,
+    };
+  }
+
+  if (revoked.includes(publicKeyId) || key.status === 'revoked') {
+    return {
+      isTrusted: false,
+      keyId: publicKeyId,
+      reason: `root key revocada (${publicKeyId})`,
+    };
+  }
+
+  return {
+    isTrusted: true,
+    keyId: publicKeyId,
+    publicKeyBase64: key.spkiBase64,
+  };
+};
+
+const getSignedDocumentPayload = (document: RemoteCommunityTrustStoreDocument): ArrayBuffer => {
+  const canonicalPayload = stableStringify({
+    schemaVersion: document.schemaVersion,
+    version: document.version,
+    generatedAt: document.generatedAt,
+    keys: document.keys,
+    revokedKeyIds: document.revokedKeyIds,
+  });
+
+  return new TextEncoder().encode(canonicalPayload).buffer;
+};
+
+const validateRemoteTrustStoreSignature = async (
+  document: RemoteCommunityTrustStoreDocument,
+): Promise<string | null> => {
+  if (!env.communityTrustStoreRequireSignature) {
+    return null;
+  }
+
+  const signature = document.signature;
+  if (!signature) {
+    return 'trust store remoto inválido: firma requerida y ausente';
+  }
+
+  if (signature.algorithm !== 'ECDSA_P256_SHA256') {
+    return `trust store remoto inválido: algoritmo de firma no soportado (${signature.algorithm})`;
+  }
+
+  if (!signature.publicKeyId || !signature.valueBase64 || !BASE64_REGEX.test(signature.valueBase64)) {
+    return 'trust store remoto inválido: metadata de firma incompleta o malformada';
+  }
+
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    return 'SubtleCrypto no disponible para validar firma del trust store remoto';
+  }
+
+  const rootPublicKey = resolveRootPublicKey(signature.publicKeyId);
+  if (isUntrustedCommunityPublicKey(rootPublicKey)) {
+    return `trust store remoto inválido: ${rootPublicKey.reason}`;
+  }
+
+  let publicKeyBytes: Uint8Array;
+  let signatureBytes: Uint8Array;
+  try {
+    publicKeyBytes = base64ToUint8Array(rootPublicKey.publicKeyBase64);
+    signatureBytes = base64ToUint8Array(signature.valueBase64);
+  } catch {
+    return 'trust store remoto inválido: clave/firma base64 corrupta';
+  }
+
+  let cryptoKey: CryptoKey;
+  try {
+    cryptoKey = await crypto.subtle.importKey(
+      'spki',
+      toArrayBuffer(publicKeyBytes),
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256',
+      },
+      false,
+      ['verify'],
+    );
+  } catch {
+    return 'trust store remoto inválido: no se pudo importar root key';
+  }
+
+  let verified = false;
+  try {
+    verified = await crypto.subtle.verify(
+      {
+        name: 'ECDSA',
+        hash: 'SHA-256',
+      },
+      cryptoKey,
+      toArrayBuffer(signatureBytes),
+      getSignedDocumentPayload(document),
+    );
+  } catch {
+    return 'trust store remoto inválido: fallo al verificar firma';
+  }
+
+  if (!verified) {
+    return 'trust store remoto inválido: firma no válida';
+  }
+
+  return null;
+};
+
+const toValidatedRuntimeSnapshot = async (
+  document: RemoteCommunityTrustStoreDocument,
+  source: 'remote' | 'cache',
+): Promise<RuntimeTrustStoreSnapshot | null> => {
+  const signatureError = await validateRemoteTrustStoreSignature(document);
+  if (signatureError) {
+    return null;
+  }
+
+  return toRuntimeSnapshot(document, source);
+};
+
+const tryHydrateFromCache = async (): Promise<boolean> => {
+  const cached = readCache();
+  if (!cached) {
+    return false;
+  }
+
+  const snapshot = await toValidatedRuntimeSnapshot(cached.document, 'cache');
+  if (!snapshot) {
+    return false;
+  }
+
+  runtimeTrustStoreSnapshot = snapshot;
+  return true;
 };
 
 const toRuntimeSnapshot = (
@@ -288,24 +482,12 @@ const hydrateRemoteTrustStore = async (): Promise<void> => {
   try {
     response = await fetchWithTimeout(remoteUrl, env.communityTrustStoreFetchTimeoutMs);
   } catch {
-    const cached = readCache();
-    if (cached) {
-      const cachedSnapshot = toRuntimeSnapshot(cached.document, 'cache');
-      if (cachedSnapshot) {
-        runtimeTrustStoreSnapshot = cachedSnapshot;
-      }
-    }
+    await tryHydrateFromCache();
     return;
   }
 
   if (!response.ok) {
-    const cached = readCache();
-    if (cached) {
-      const cachedSnapshot = toRuntimeSnapshot(cached.document, 'cache');
-      if (cachedSnapshot) {
-        runtimeTrustStoreSnapshot = cachedSnapshot;
-      }
-    }
+    await tryHydrateFromCache();
     return;
   }
 
@@ -317,11 +499,13 @@ const hydrateRemoteTrustStore = async (): Promise<void> => {
   }
 
   if (!isRemoteDocument(payload)) {
+    await tryHydrateFromCache();
     return;
   }
 
-  const snapshot = toRuntimeSnapshot(payload, 'remote');
+  const snapshot = await toValidatedRuntimeSnapshot(payload, 'remote');
   if (!snapshot) {
+    await tryHydrateFromCache();
     return;
   }
 

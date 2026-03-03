@@ -32,6 +32,12 @@ interface EnvConfig {
   communityTrustStoreCacheTtlMs: number;
   /** Optional minimum accepted remote trust store version */
   communityTrustStoreMinVersion?: string;
+  /** JSON array with trusted root keys used to verify remote trust store metadata signatures */
+  communityTrustStoreRootPublicKeysJson?: string;
+  /** Explicitly revoked root key IDs for trust store metadata signatures */
+  communityTrustStoreRevokedRootKeyIds: string[];
+  /** Require cryptographic signature for remote trust store documents */
+  communityTrustStoreRequireSignature: boolean;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -92,6 +98,9 @@ export const env: EnvConfig = {
   communityTrustStoreFetchTimeoutMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_FETCH_TIMEOUT_MS, 2500),
   communityTrustStoreCacheTtlMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_CACHE_TTL_MS, 300000),
   communityTrustStoreMinVersion: import.meta.env.VITE_COMMUNITY_TRUST_STORE_MIN_VERSION,
+  communityTrustStoreRootPublicKeysJson: import.meta.env.VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS,
+  communityTrustStoreRevokedRootKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS),
+  communityTrustStoreRequireSignature: parseBoolean(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE, true),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),

@@ -235,6 +235,36 @@ Expected JSON payload:
 - **Default:** empty
 - **Description:** Minimum accepted version for remote trust store documents.
 
+### `VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE`
+
+- **Type:** Boolean (`true` | `false`)
+- **Default:** `true`
+- **Description:** Requires cryptographic signature validation for remote trust store documents. When enabled, unsigned or invalidly signed payloads are rejected.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE=true
+```
+
+### `VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS`
+
+- **Type:** JSON array (string)
+- **Default:** `[]`
+- **Description:** Root public keys used to verify the remote trust store document signature.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_ROOT_PUBLIC_KEYS=[{"id":"trust-root-2026-q1","spkiBase64":"MIIB...","status":"active"}]
+```
+
+### `VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS`
+
+- **Type:** Comma-separated string
+- **Default:** empty
+- **Description:** Explicitly revoked root key IDs for trust store document signature verification.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS=trust-root-2025-q4
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String
