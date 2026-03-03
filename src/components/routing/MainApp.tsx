@@ -37,7 +37,6 @@ const PipelineViewportCanvas: React.FC<{ className?: string }> = ({ className })
       className={className}
       rendererId={currentRendererId}
       workerEntry={currentRenderer.workerEntry}
-      fallbackComponent={currentRenderer.component}
     />
   );
 };
@@ -90,10 +89,6 @@ export const MainApp: React.FC = () => {
   const CanvasComponent = useMemo<React.FC<{ className?: string }> | undefined>(() => {
     if (!currentRenderer) {
       return undefined;
-    }
-
-    if (!env.graphicsPipelineV2) {
-      return currentRenderer.component;
     }
 
     return StablePipelineCanvas;

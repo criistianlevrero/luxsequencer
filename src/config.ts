@@ -18,8 +18,6 @@ interface EnvConfig {
   maxFps: number;
   /** Auto-connect MIDI on startup */
   midiAutoConnect: boolean;
-  /** Enable graphics pipeline v2 (worker + compositor) */
-  graphicsPipelineV2: boolean;
   /** Temporary transition flag for legacy custom controls in renderer controlSchema */
   allowLegacyCustomControls: boolean;
   /** Debug categories for fine-grained control */
@@ -64,7 +62,6 @@ export const env: EnvConfig = {
   geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
   maxFps: parseNumber(import.meta.env.VITE_MAX_FPS, 60),
   midiAutoConnect: parseBoolean(import.meta.env.VITE_MIDI_AUTO_CONNECT, true),
-  graphicsPipelineV2: parseBoolean(import.meta.env.VITE_GRAPHICS_PIPELINE_V2, false),
   allowLegacyCustomControls: parseBoolean(import.meta.env.VITE_ALLOW_LEGACY_CUSTOM_CONTROLS, false),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),

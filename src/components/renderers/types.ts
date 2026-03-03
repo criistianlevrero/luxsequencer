@@ -7,7 +7,7 @@ export interface RendererDefinition {
   id: string;
   name: string;
   component: React.FC<{ className?: string }>;
-  workerEntry?: string | URL;
+  workerEntry: string | URL;
   controlSchema: AccordionItem[] | (() => AccordionItem[]);
   
   // Phase 1.4: Declarative Control Schema Support

@@ -12,11 +12,3 @@ export const webglRenderer: RendererDefinition = {
   controlSchema: getScaleTextureSchema,
   declarativeSchema: webglRendererControlSpec,
 };
-
-export const webglRendererLegacy: RendererDefinition = {
-  id: 'webgl-legacy',
-  name: 'Escamas WebGL (Legacy)',
-  component: ScalesRenderer,
-  controlSchema: getScaleTextureSchema,
-  declarativeSchema: webglRendererControlSpec,
-};

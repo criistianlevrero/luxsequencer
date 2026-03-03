@@ -15,6 +15,7 @@ const baseRenderer: RendererDefinition = {
   id: 'scales',
   name: 'Scales',
   component: (() => null) as React.FC<{ className?: string }>,
+  workerEntry: 'data:text/javascript,self.onmessage=()=>{}',
   controlSchema: [],
 };
 
