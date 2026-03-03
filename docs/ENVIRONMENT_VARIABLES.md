@@ -275,6 +275,26 @@ VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS=trust-root-2025-q4
 VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS=604800000
 ```
 
+### `VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL`
+
+- **Type:** String (URL)
+- **Default:** empty (disabled)
+- **Description:** Dedicated endpoint for centralized revocation deltas. The list is merged into runtime revocations with precedence over local/remote key status.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL=https://security.example.com/lux/revocations.json
+```
+
+### `VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS`
+
+- **Type:** Number (milliseconds)
+- **Default:** `120000`
+- **Description:** Runtime freshness TTL for centralized revocation snapshot. Falls back to cached snapshot on network failure.
+
+```env
+VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS=120000
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

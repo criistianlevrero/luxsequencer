@@ -337,7 +337,7 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - Remover ruta legacy de render en main thread.
 - Exigir `workerEntry` para renderers registrados.
 
-### Fase 4 — Endurecimiento SDK/Sandbox (en curso)
+### Fase 4 — Endurecimiento SDK/Sandbox (completada)
 
 - ✅ Contrato estable de protocolo para renderers comunitarios (versión + capacidades).
 - ✅ Validación de handshake/capabilities al cargar plugins.
@@ -348,7 +348,8 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 - ✅ Trust store configurable para community packages con revocación explícita y ventanas de vigencia por clave.
 - ✅ Distribución remota del trust store con versionado mínimo, timeout y fallback a cache/local.
 - ✅ Canal firmado para metadata remota del trust store (ECDSA P-256 + SHA-256 con root keys dedicadas).
-- ⏳ Pendiente: gobernanza operativa avanzada del trust store (rotación automática de root keys y revocación centralizada).
+- ✅ Rotación automática de root keys con grace period configurable.
+- ✅ Revocación centralizada vía endpoint delta con cache/fallback.
 
 ## 13. Decisiones Arquitectónicas
 

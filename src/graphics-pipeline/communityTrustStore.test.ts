@@ -27,6 +27,8 @@ describe('communityTrustStore', () => {
   const originalRevokedRootKeyIds = env.communityTrustStoreRevokedRootKeyIds;
   const originalRequireSignature = env.communityTrustStoreRequireSignature;
   const originalRootRotationGraceMs = env.communityTrustStoreRootRotationGraceMs;
+  const originalRevocationUrl = env.communityTrustStoreRevocationUrl;
+  const originalRevocationCacheTtlMs = env.communityTrustStoreRevocationCacheTtlMs;
 
   beforeEach(() => {
     env.communityTrustStoreUrl = undefined;
@@ -37,6 +39,8 @@ describe('communityTrustStore', () => {
     env.communityTrustStoreRevokedRootKeyIds = [];
     env.communityTrustStoreRequireSignature = false;
     env.communityTrustStoreRootRotationGraceMs = 604800000;
+    env.communityTrustStoreRevocationUrl = undefined;
+    env.communityTrustStoreRevocationCacheTtlMs = 120000;
     localStorage.clear();
     resetCommunityTrustStoreForTests();
   });
@@ -50,6 +54,8 @@ describe('communityTrustStore', () => {
     env.communityTrustStoreRevokedRootKeyIds = originalRevokedRootKeyIds;
     env.communityTrustStoreRequireSignature = originalRequireSignature;
     env.communityTrustStoreRootRotationGraceMs = originalRootRotationGraceMs;
+    env.communityTrustStoreRevocationUrl = originalRevocationUrl;
+    env.communityTrustStoreRevocationCacheTtlMs = originalRevocationCacheTtlMs;
     vi.restoreAllMocks();
     localStorage.clear();
     resetCommunityTrustStoreForTests();
@@ -188,6 +194,50 @@ describe('communityTrustStore', () => {
 
     const result = resolveCommunityPublicKey('unsigned-remote-key');
     expect(result.isTrusted).toBe(false);
+  });
+
+  it('applies centralized revocation endpoint deltas', async () => {
+    env.communityTrustStoreUrl = 'https://example.test/trust-store.json';
+    env.communityTrustStoreRevocationUrl = 'https://example.test/revocations.json';
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+
+      if (url.includes('trust-store.json')) {
+        return new Response(
+          JSON.stringify({
+            schemaVersion: '1.0.0',
+            version: '1.2.0',
+            keys: [
+              {
+                id: 'central-revoked-key',
+                spkiBase64: 'MIIH',
+                status: 'active',
+              },
+            ],
+            revokedKeyIds: [],
+          }),
+          { status: 200 },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          schemaVersion: '1.0.0',
+          version: '1.0.0',
+          revokedKeyIds: ['central-revoked-key'],
+        }),
+        { status: 200 },
+      );
+    });
+
+    await hydrateCommunityTrustStore();
+
+    const result = resolveCommunityPublicKey('central-revoked-key');
+    expect(result.isTrusted).toBe(false);
+    if (isUntrustedCommunityPublicKey(result)) {
+      expect(result.reason).toContain('revocada');
+    }
   });
 
   it('allows recently expired root key within rotation grace period', () => {

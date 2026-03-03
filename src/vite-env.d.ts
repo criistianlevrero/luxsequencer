@@ -34,6 +34,10 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE: string;
   /** Grace period in milliseconds for root key rotation */
   readonly VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS: string;
+  /** Optional URL for centralized community revocation deltas */
+  readonly VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL: string;
+  /** Runtime TTL for centralized revocation snapshot */
+  readonly VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS: string;
 }
 
 interface ImportMeta {

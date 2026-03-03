@@ -15,6 +15,7 @@ const BUILTIN_COMMUNITY_TRUSTED_PUBLIC_KEYS: TrustedCommunityPublicKeysMap = {};
 const BUILTIN_TRUST_STORE_ROOT_PUBLIC_KEYS: TrustedCommunityPublicKeysMap = {};
 const TRUST_STORE_SCHEMA_VERSION = '1.0.0';
 const TRUST_STORE_CACHE_KEY = 'luxsequencer.communityTrustStore.v1';
+const TRUST_STORE_REVOCATION_CACHE_KEY = 'luxsequencer.communityTrustStore.revocations.v1';
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 interface RemoteTrustStoreSignature {
@@ -32,9 +33,22 @@ interface RemoteCommunityTrustStoreDocument {
   signature?: RemoteTrustStoreSignature;
 }
 
+interface RemoteCommunityRevocationDocument {
+  schemaVersion: string;
+  version: string;
+  generatedAt?: string;
+  revokedKeyIds: unknown;
+  signature?: RemoteTrustStoreSignature;
+}
+
 interface PersistedCommunityTrustStoreCache {
   fetchedAt: number;
   document: RemoteCommunityTrustStoreDocument;
+}
+
+interface PersistedCommunityRevocationCache {
+  fetchedAt: number;
+  document: RemoteCommunityRevocationDocument;
 }
 
 interface RuntimeTrustStoreSnapshot {
@@ -45,7 +59,15 @@ interface RuntimeTrustStoreSnapshot {
   revokedKeyIds: string[];
 }
 
+interface RuntimeRevocationSnapshot {
+  loadedAt: number;
+  source: 'remote' | 'cache';
+  version: string;
+  revokedKeyIds: string[];
+}
+
 let runtimeTrustStoreSnapshot: RuntimeTrustStoreSnapshot | null = null;
+let runtimeRevocationSnapshot: RuntimeRevocationSnapshot | null = null;
 let hydrationInFlight: Promise<void> | null = null;
 
 const parseDate = (value?: string): Date | null => {
@@ -212,7 +234,10 @@ const mergeTrustStoreData = (
   if (!remote) {
     return {
       keys: localKeys,
-      revokedKeyIds: localRevoked,
+      revokedKeyIds: dedupeStrings([
+        ...(runtimeRevocationSnapshot?.revokedKeyIds ?? []),
+        ...localRevoked,
+      ]),
     };
   }
 
@@ -222,7 +247,11 @@ const mergeTrustStoreData = (
       ...remote.keys,
       ...localKeys,
     },
-    revokedKeyIds: dedupeStrings([...remote.revokedKeyIds, ...localRevoked]),
+    revokedKeyIds: dedupeStrings([
+      ...remote.revokedKeyIds,
+      ...(runtimeRevocationSnapshot?.revokedKeyIds ?? []),
+      ...localRevoked,
+    ]),
   };
 };
 
@@ -235,6 +264,20 @@ const isRemoteDocument = (value: unknown): value is RemoteCommunityTrustStoreDoc
     'schemaVersion' in value &&
     'version' in value &&
     'keys' in value &&
+    typeof value.schemaVersion === 'string' &&
+    typeof value.version === 'string'
+  );
+};
+
+const isRemoteRevocationDocument = (value: unknown): value is RemoteCommunityRevocationDocument => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  return (
+    'schemaVersion' in value &&
+    'version' in value &&
+    'revokedKeyIds' in value &&
     typeof value.schemaVersion === 'string' &&
     typeof value.version === 'string'
   );
@@ -323,33 +366,44 @@ const getSignedDocumentPayload = (document: RemoteCommunityTrustStoreDocument): 
   return new TextEncoder().encode(canonicalPayload).buffer;
 };
 
-const validateRemoteTrustStoreSignature = async (
-  document: RemoteCommunityTrustStoreDocument,
+const getSignedRevocationPayload = (document: RemoteCommunityRevocationDocument): ArrayBuffer => {
+  const canonicalPayload = stableStringify({
+    schemaVersion: document.schemaVersion,
+    version: document.version,
+    generatedAt: document.generatedAt,
+    revokedKeyIds: document.revokedKeyIds,
+  });
+
+  return new TextEncoder().encode(canonicalPayload).buffer;
+};
+
+const validateSignedPayload = async (
+  signature: RemoteTrustStoreSignature | undefined,
+  payload: ArrayBuffer,
 ): Promise<string | null> => {
   if (!env.communityTrustStoreRequireSignature) {
     return null;
   }
 
-  const signature = document.signature;
   if (!signature) {
-    return 'trust store remoto inválido: firma requerida y ausente';
+    return 'firma requerida y ausente';
   }
 
   if (signature.algorithm !== 'ECDSA_P256_SHA256') {
-    return `trust store remoto inválido: algoritmo de firma no soportado (${signature.algorithm})`;
+    return `algoritmo de firma no soportado (${signature.algorithm})`;
   }
 
   if (!signature.publicKeyId || !signature.valueBase64 || !BASE64_REGEX.test(signature.valueBase64)) {
-    return 'trust store remoto inválido: metadata de firma incompleta o malformada';
+    return 'metadata de firma incompleta o malformada';
   }
 
   if (typeof crypto === 'undefined' || !crypto.subtle) {
-    return 'SubtleCrypto no disponible para validar firma del trust store remoto';
+    return 'SubtleCrypto no disponible para validar firma';
   }
 
   const rootPublicKey = resolveTrustStoreRootPublicKey(signature.publicKeyId);
   if (isUntrustedCommunityPublicKey(rootPublicKey)) {
-    return `trust store remoto inválido: ${rootPublicKey.reason}`;
+    return rootPublicKey.reason;
   }
 
   let publicKeyBytes: Uint8Array;
@@ -358,7 +412,7 @@ const validateRemoteTrustStoreSignature = async (
     publicKeyBytes = base64ToUint8Array(rootPublicKey.publicKeyBase64);
     signatureBytes = base64ToUint8Array(signature.valueBase64);
   } catch {
-    return 'trust store remoto inválido: clave/firma base64 corrupta';
+    return 'clave/firma base64 corrupta';
   }
 
   let cryptoKey: CryptoKey;
@@ -374,7 +428,7 @@ const validateRemoteTrustStoreSignature = async (
       ['verify'],
     );
   } catch {
-    return 'trust store remoto inválido: no se pudo importar root key';
+    return 'no se pudo importar root key';
   }
 
   let verified = false;
@@ -386,14 +440,44 @@ const validateRemoteTrustStoreSignature = async (
       },
       cryptoKey,
       toArrayBuffer(signatureBytes),
-      getSignedDocumentPayload(document),
+      payload,
     );
   } catch {
-    return 'trust store remoto inválido: fallo al verificar firma';
+    return 'fallo al verificar firma';
   }
 
   if (!verified) {
-    return 'trust store remoto inválido: firma no válida';
+    return 'firma no válida';
+  }
+
+  return null;
+};
+
+const validateRemoteTrustStoreSignature = async (
+  document: RemoteCommunityTrustStoreDocument,
+): Promise<string | null> => {
+  const validationError = await validateSignedPayload(
+    document.signature,
+    getSignedDocumentPayload(document),
+  );
+
+  if (validationError) {
+    return `trust store remoto inválido: ${validationError}`;
+  }
+
+  return null;
+};
+
+const validateRemoteRevocationSignature = async (
+  document: RemoteCommunityRevocationDocument,
+): Promise<string | null> => {
+  const validationError = await validateSignedPayload(
+    document.signature,
+    getSignedRevocationPayload(document),
+  );
+
+  if (validationError) {
+    return `revocation list remota inválida: ${validationError}`;
   }
 
   return null;
@@ -424,6 +508,38 @@ const tryHydrateFromCache = async (): Promise<boolean> => {
 
   runtimeTrustStoreSnapshot = snapshot;
   return true;
+};
+
+const toRevocationSnapshot = (
+  document: RemoteCommunityRevocationDocument,
+  source: 'remote' | 'cache',
+): RuntimeRevocationSnapshot | null => {
+  if (document.schemaVersion !== TRUST_STORE_SCHEMA_VERSION) {
+    return null;
+  }
+
+  if (env.communityTrustStoreMinVersion && isSemverLess(document.version, env.communityTrustStoreMinVersion)) {
+    return null;
+  }
+
+  return {
+    loadedAt: Date.now(),
+    source,
+    version: document.version,
+    revokedKeyIds: parseRevokedKeyIds(document.revokedKeyIds),
+  };
+};
+
+const toValidatedRevocationSnapshot = async (
+  document: RemoteCommunityRevocationDocument,
+  source: 'remote' | 'cache',
+): Promise<RuntimeRevocationSnapshot | null> => {
+  const signatureError = await validateRemoteRevocationSignature(document);
+  if (signatureError) {
+    return null;
+  }
+
+  return toRevocationSnapshot(document, source);
 };
 
 const toRuntimeSnapshot = (
@@ -498,6 +614,38 @@ const readCache = (): PersistedCommunityTrustStoreCache | null => {
   }
 };
 
+const readRevocationCache = (): PersistedCommunityRevocationCache | null => {
+  if (typeof localStorage === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = localStorage.getItem(TRUST_STORE_REVOCATION_CACHE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      !('fetchedAt' in parsed) ||
+      !('document' in parsed) ||
+      typeof parsed.fetchedAt !== 'number' ||
+      !isRemoteRevocationDocument(parsed.document)
+    ) {
+      return null;
+    }
+
+    return {
+      fetchedAt: parsed.fetchedAt,
+      document: parsed.document,
+    };
+  } catch {
+    return null;
+  }
+};
+
 const writeCache = (document: RemoteCommunityTrustStoreDocument): void => {
   if (typeof localStorage === 'undefined') {
     return;
@@ -514,9 +662,92 @@ const writeCache = (document: RemoteCommunityTrustStoreDocument): void => {
   }
 };
 
+const writeRevocationCache = (document: RemoteCommunityRevocationDocument): void => {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    const payload: PersistedCommunityRevocationCache = {
+      fetchedAt: Date.now(),
+      document,
+    };
+    localStorage.setItem(TRUST_STORE_REVOCATION_CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    return;
+  }
+};
+
 const shouldUseCurrentRuntimeSnapshot = (snapshot: RuntimeTrustStoreSnapshot): boolean => {
   const elapsed = Date.now() - snapshot.loadedAt;
   return elapsed < env.communityTrustStoreCacheTtlMs;
+};
+
+const shouldUseCurrentRevocationSnapshot = (snapshot: RuntimeRevocationSnapshot): boolean => {
+  const elapsed = Date.now() - snapshot.loadedAt;
+  return elapsed < env.communityTrustStoreRevocationCacheTtlMs;
+};
+
+const tryHydrateRevocationFromCache = async (): Promise<boolean> => {
+  const cached = readRevocationCache();
+  if (!cached) {
+    return false;
+  }
+
+  const snapshot = await toValidatedRevocationSnapshot(cached.document, 'cache');
+  if (!snapshot) {
+    return false;
+  }
+
+  runtimeRevocationSnapshot = snapshot;
+  return true;
+};
+
+const hydrateCentralizedRevocations = async (): Promise<void> => {
+  const revocationUrl = env.communityTrustStoreRevocationUrl;
+  if (!revocationUrl) {
+    runtimeRevocationSnapshot = null;
+    return;
+  }
+
+  if (runtimeRevocationSnapshot && shouldUseCurrentRevocationSnapshot(runtimeRevocationSnapshot)) {
+    return;
+  }
+
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(revocationUrl, env.communityTrustStoreFetchTimeoutMs);
+  } catch {
+    await tryHydrateRevocationFromCache();
+    return;
+  }
+
+  if (!response.ok) {
+    await tryHydrateRevocationFromCache();
+    return;
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    await tryHydrateRevocationFromCache();
+    return;
+  }
+
+  if (!isRemoteRevocationDocument(payload)) {
+    await tryHydrateRevocationFromCache();
+    return;
+  }
+
+  const snapshot = await toValidatedRevocationSnapshot(payload, 'remote');
+  if (!snapshot) {
+    await tryHydrateRevocationFromCache();
+    return;
+  }
+
+  runtimeRevocationSnapshot = snapshot;
+  writeRevocationCache(payload);
 };
 
 const hydrateRemoteTrustStore = async (): Promise<void> => {
@@ -571,7 +802,10 @@ export const hydrateCommunityTrustStore = async (): Promise<void> => {
     return;
   }
 
-  hydrationInFlight = hydrateRemoteTrustStore();
+  hydrationInFlight = Promise.all([
+    hydrateRemoteTrustStore(),
+    hydrateCentralizedRevocations(),
+  ]).then(() => undefined);
 
   try {
     await hydrationInFlight;
@@ -582,6 +816,7 @@ export const hydrateCommunityTrustStore = async (): Promise<void> => {
 
 export const resetCommunityTrustStoreForTests = (): void => {
   runtimeTrustStoreSnapshot = null;
+  runtimeRevocationSnapshot = null;
   hydrationInFlight = null;
 };
 

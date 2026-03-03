@@ -40,6 +40,10 @@ interface EnvConfig {
   communityTrustStoreRequireSignature: boolean;
   /** Grace period (ms) to allow recently expired root keys during rotation */
   communityTrustStoreRootRotationGraceMs: number;
+  /** Optional endpoint for centralized revocation delta list */
+  communityTrustStoreRevocationUrl?: string;
+  /** Runtime cache TTL (ms) for centralized revocation snapshot */
+  communityTrustStoreRevocationCacheTtlMs: number;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -104,6 +108,8 @@ export const env: EnvConfig = {
   communityTrustStoreRevokedRootKeyIds: parseStringList(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOKED_ROOT_KEY_IDS),
   communityTrustStoreRequireSignature: parseBoolean(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REQUIRE_SIGNATURE, true),
   communityTrustStoreRootRotationGraceMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_ROOT_ROTATION_GRACE_MS, 604800000),
+  communityTrustStoreRevocationUrl: import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL,
+  communityTrustStoreRevocationCacheTtlMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS, 120000),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),
