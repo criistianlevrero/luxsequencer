@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   RendererWorkerManager,
   WebGLCompositor,
+  type CompositorMetrics,
   type PipelineSource,
   type RendererWorkerCapability,
+  type RendererWorkerHealthSnapshot,
 } from '../../../graphics-pipeline';
 import { useTextureStore } from '../../../store';
+import { env } from '../../../config';
 import {
   createDefaultRendererSettings,
   getConcentricCompatibleSettings,
@@ -36,6 +39,9 @@ const supportsGraphicsPipeline = (): boolean => {
 };
 
 const TRANSITION_DURATION_MS = 800;
+const WORKER_STALL_TIMEOUT_MS = 3000;
+const HEALTH_CHECK_INTERVAL_MS = 1000;
+const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
 
 const getRequiredCapabilities = (rendererId: string): RendererWorkerCapability[] => {
   if (rendererId === 'webgl') {
@@ -118,6 +124,8 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   const nextRendererRef = useRef<RuntimeRenderer | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const healthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const debugMetricsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const unsubscribeStoreRef = useRef<(() => void) | null>(null);
   const mixFactorRef = useRef(0);
   const transitionRef = useRef<{
@@ -128,6 +136,53 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   } | null>(null);
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [unavailableReason, setUnavailableReason] = useState<string>('');
+
+  const handleWorkerReady = (snapshot: RendererWorkerHealthSnapshot) => {
+    if (!env.debugMode) {
+      return;
+    }
+
+    const handshake = snapshot.handshakeDurationMs === null
+      ? 'n/a'
+      : `${snapshot.handshakeDurationMs.toFixed(1)}ms`;
+    console.debug(
+      `[graphics-pipeline] worker ready: ${snapshot.rendererId} | handshake=${handshake} | capabilities=${snapshot.capabilities.join(', ')}`,
+    );
+  };
+
+  const checkRendererHealth = (runtimeRenderer: RuntimeRenderer | null): string | null => {
+    if (!runtimeRenderer) {
+      return null;
+    }
+
+    const snapshot = runtimeRenderer.manager.getHealthSnapshot();
+    if (!snapshot.isReady || snapshot.lastFrameAtMs === null) {
+      return null;
+    }
+
+    const elapsedSinceFrame = performance.now() - snapshot.lastFrameAtMs;
+    if (elapsedSinceFrame > WORKER_STALL_TIMEOUT_MS) {
+      return `Worker detenido (${snapshot.rendererId}) sin frames por ${Math.round(elapsedSinceFrame)}ms`;
+    }
+
+    return null;
+  };
+
+  const logDebugMetrics = (compositor: WebGLCompositor) => {
+    if (!env.debugMode) {
+      return;
+    }
+
+    const metrics: CompositorMetrics = compositor.getMetrics();
+    const activeSnapshot = activeRendererRef.current?.manager.getHealthSnapshot();
+    const nextSnapshot = nextRendererRef.current?.manager.getHealthSnapshot();
+
+    console.debug('[graphics-pipeline] metrics', {
+      compositor: metrics,
+      active: activeSnapshot,
+      next: nextSnapshot,
+    });
+  };
 
   const disposeRuntimeRenderer = (runtimeRenderer: RuntimeRenderer | null) => {
     if (!runtimeRenderer) {
@@ -160,6 +215,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       height,
       requiredCapabilities: getRequiredCapabilities(nextRendererId),
       onFrame: (bitmap) => compositor.setSourceFrame(source, bitmap),
+      onReady: handleWorkerReady,
       onError: (error) => {
         setUnavailableReason(error.message);
         setIsUnavailable(true);
@@ -259,6 +315,23 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       syncUniforms(state);
     });
 
+    healthIntervalRef.current = setInterval(() => {
+      const activeError = checkRendererHealth(activeRendererRef.current);
+      const nextError = checkRendererHealth(nextRendererRef.current);
+      const error = activeError ?? nextError;
+
+      if (error) {
+        setUnavailableReason(error);
+        setIsUnavailable(true);
+      }
+    }, HEALTH_CHECK_INTERVAL_MS);
+
+    if (env.debugMode) {
+      debugMetricsIntervalRef.current = setInterval(() => {
+        logDebugMetrics(compositor);
+      }, DEBUG_METRICS_LOG_INTERVAL_MS);
+    }
+
     return () => {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
@@ -269,6 +342,16 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
       resizeObserverRef.current?.disconnect();
       resizeObserverRef.current = null;
+
+      if (healthIntervalRef.current) {
+        clearInterval(healthIntervalRef.current);
+      }
+      healthIntervalRef.current = null;
+
+      if (debugMetricsIntervalRef.current) {
+        clearInterval(debugMetricsIntervalRef.current);
+      }
+      debugMetricsIntervalRef.current = null;
 
       disposeRuntimeRenderer(nextRendererRef.current);
       disposeRuntimeRenderer(activeRendererRef.current);

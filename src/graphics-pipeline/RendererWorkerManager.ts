@@ -4,6 +4,7 @@ import {
   isFrameMessage,
   isReadyMessage,
   type RendererWorkerCapability,
+  type RendererWorkerHealthSnapshot,
   type RendererWorkerMessage,
   type RendererWorkerToMainMessage,
 } from './types';
@@ -17,6 +18,7 @@ export interface RendererWorkerManagerOptions {
   height: number;
   onFrame: (bitmap: ImageBitmap) => void;
   onError?: (error: Error) => void;
+  onReady?: (snapshot: RendererWorkerHealthSnapshot) => void;
   handshakeTimeoutMs?: number;
   requiredCapabilities?: RendererWorkerCapability[];
 }
@@ -26,6 +28,11 @@ export class RendererWorkerManager {
   private worker: Worker | null = null;
   private isReady = false;
   private handshakeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private startedAtMs: number | null = null;
+  private handshakeDurationMs: number | null = null;
+  private protocolVersion: string | null = null;
+  private capabilities: RendererWorkerCapability[] = [];
+  private lastFrameAtMs: number | null = null;
 
   constructor(options: RendererWorkerManagerOptions) {
     this.options = options;
@@ -42,6 +49,11 @@ export class RendererWorkerManager {
 
     this.worker = new Worker(workerUrl, { type: 'module', name: `renderer-worker-${this.options.rendererId}` });
     this.isReady = false;
+    this.startedAtMs = performance.now();
+    this.handshakeDurationMs = null;
+    this.protocolVersion = null;
+    this.capabilities = [];
+    this.lastFrameAtMs = null;
 
     this.worker.onmessage = (event: MessageEvent<RendererWorkerToMainMessage>) => {
       if (isReadyMessage(event.data)) {
@@ -83,11 +95,18 @@ export class RendererWorkerManager {
         }
 
         this.isReady = true;
+        this.protocolVersion = readyMessage.protocolVersion;
+        this.capabilities = [...readyMessage.capabilities];
+        this.handshakeDurationMs = this.startedAtMs === null
+          ? null
+          : Math.max(0, performance.now() - this.startedAtMs);
         this.clearHandshakeTimeout();
+        this.options.onReady?.(this.getHealthSnapshot());
         return;
       }
 
       if (isFrameMessage(event.data)) {
+        this.lastFrameAtMs = performance.now();
         this.options.onFrame(event.data.bitmap);
         return;
       }
@@ -149,6 +168,22 @@ export class RendererWorkerManager {
     this.worker?.terminate();
     this.worker = null;
     this.isReady = false;
+    this.startedAtMs = null;
+    this.handshakeDurationMs = null;
+    this.protocolVersion = null;
+    this.capabilities = [];
+    this.lastFrameAtMs = null;
+  }
+
+  getHealthSnapshot(): RendererWorkerHealthSnapshot {
+    return {
+      rendererId: this.options.rendererId,
+      isReady: this.isReady,
+      protocolVersion: this.protocolVersion,
+      capabilities: [...this.capabilities],
+      handshakeDurationMs: this.handshakeDurationMs,
+      lastFrameAtMs: this.lastFrameAtMs,
+    };
   }
 
   private postMessage(message: RendererWorkerMessage, transfer: Transferable[] = []): void {

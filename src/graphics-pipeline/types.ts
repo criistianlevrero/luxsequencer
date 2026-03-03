@@ -15,6 +15,26 @@ export type RendererWorkerCapability =
   | 'canvas2d'
   | 'uniform-updates';
 
+export interface CompositorSourceMetrics {
+  queuedFrames: number;
+  droppedFrames: number;
+  uploadedFrames: number;
+}
+
+export interface CompositorMetrics {
+  A: CompositorSourceMetrics;
+  B: CompositorSourceMetrics;
+}
+
+export interface RendererWorkerHealthSnapshot {
+  rendererId: string;
+  isReady: boolean;
+  protocolVersion: string | null;
+  capabilities: RendererWorkerCapability[];
+  handshakeDurationMs: number | null;
+  lastFrameAtMs: number | null;
+}
+
 export type RendererWorkerInitMessage = {
   type: 'init';
   canvas: OffscreenCanvas;

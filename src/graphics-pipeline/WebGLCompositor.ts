@@ -1,4 +1,4 @@
-import type { PipelineSource } from './types';
+import type { CompositorMetrics, PipelineSource } from './types';
 
 type PendingFrameMap = Partial<Record<PipelineSource, ImageBitmap>>;
 
@@ -45,6 +45,10 @@ export class WebGLCompositor {
   private textures: TextureMap | null = null;
   private uniforms: UniformLocations | null = null;
   private pendingFrames: PendingFrameMap = {};
+  private metrics: CompositorMetrics = {
+    A: { queuedFrames: 0, droppedFrames: 0, uploadedFrames: 0 },
+    B: { queuedFrames: 0, droppedFrames: 0, uploadedFrames: 0 },
+  };
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -114,11 +118,21 @@ export class WebGLCompositor {
   }
 
   setSourceFrame(source: PipelineSource, bitmap: ImageBitmap): void {
+    this.metrics[source].queuedFrames += 1;
+
     const previous = this.pendingFrames[source];
     if (previous) {
       previous.close();
+      this.metrics[source].droppedFrames += 1;
     }
     this.pendingFrames[source] = bitmap;
+  }
+
+  getMetrics(): CompositorMetrics {
+    return {
+      A: { ...this.metrics.A },
+      B: { ...this.metrics.B },
+    };
   }
 
   resize(width: number, height: number): void {
@@ -197,6 +211,10 @@ export class WebGLCompositor {
     this.program = null;
     this.uniforms = null;
     this.gl = null;
+    this.metrics = {
+      A: { queuedFrames: 0, droppedFrames: 0, uploadedFrames: 0 },
+      B: { queuedFrames: 0, droppedFrames: 0, uploadedFrames: 0 },
+    };
   }
 
   private uploadPendingFrame(source: PipelineSource, texture: WebGLTexture): void {
@@ -209,6 +227,7 @@ export class WebGLCompositor {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pendingFrame);
+    this.metrics[source].uploadedFrames += 1;
 
     pendingFrame.close();
     delete this.pendingFrames[source];
