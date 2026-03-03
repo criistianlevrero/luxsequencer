@@ -12,6 +12,7 @@ import {
 } from '../../../graphics-pipeline';
 import { useTextureStore } from '../../../store';
 import { env } from '../../../config';
+import { validateRendererSdkContract } from '../sdk/validateRendererSdkContract';
 import {
   createDefaultRendererSettings,
   getConcentricCompatibleSettings,
@@ -50,25 +51,6 @@ const WORKER_STALL_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
 
-const parseSemver = (value: string): [number, number, number] => {
-  const match = value.match(/^(\d+)\.(\d+)\.(\d+)/);
-  if (!match) {
-    return [0, 0, 0];
-  }
-
-  return [Number(match[1]), Number(match[2]), Number(match[3])];
-};
-
-const isSemverLess = (a: string, b: string): boolean => {
-  const [aMajor, aMinor, aPatch] = parseSemver(a);
-  const [bMajor, bMinor, bPatch] = parseSemver(b);
-
-  if (aMajor !== bMajor) return aMajor < bMajor;
-  if (aMinor !== bMinor) return aMinor < bMinor;
-  return aPatch < bPatch;
-};
-
-const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 const workerEntryToUrl = (workerEntry: string | URL): string => {
@@ -109,58 +91,6 @@ const calculateSha256Hex = async (input: ArrayBuffer): Promise<string> => {
 
   const digest = await crypto.subtle.digest('SHA-256', input);
   return toHexString(digest);
-};
-
-const validatePackageManifestPolicy = (
-  rendererId: string,
-  manifest?: RendererPackageManifest,
-): string | null => {
-  if (!manifest) {
-    return null;
-  }
-
-  if (manifest.schemaVersion !== '1.0.0') {
-    return `Manifest schema no soportado para ${rendererId}: ${manifest.schemaVersion}`;
-  }
-
-  if (!manifest.packageName || !manifest.packageVersion) {
-    return `Manifest inválido para ${rendererId}: packageName/packageVersion requeridos`;
-  }
-
-  if (manifest.source === 'community') {
-    const checksum = manifest.security?.workerEntrySha256;
-    if (!checksum) {
-      return `Manifest inválido para ${rendererId}: workerEntrySha256 requerido en paquetes community`;
-    }
-
-    if (!SHA256_HEX_REGEX.test(checksum)) {
-      return `Manifest inválido para ${rendererId}: workerEntrySha256 debe ser SHA-256 hex (64 chars)`;
-    }
-
-    const signature = manifest.security?.workerEntrySignature;
-    if (!signature) {
-      return `Manifest inválido para ${rendererId}: workerEntrySignature requerido en paquetes community`;
-    }
-
-    if (signature.algorithm !== 'ECDSA_P256_SHA256') {
-      return `Manifest inválido para ${rendererId}: algoritmo de firma no soportado (${signature.algorithm})`;
-    }
-
-    if (!signature.publicKeyId) {
-      return `Manifest inválido para ${rendererId}: publicKeyId requerido para firma`;
-    }
-
-    if (!signature.valueBase64 || !BASE64_REGEX.test(signature.valueBase64)) {
-      return `Manifest inválido para ${rendererId}: valueBase64 de firma inválido`;
-    }
-
-    const publicKey = resolveCommunityPublicKey(signature.publicKeyId);
-    if (isUntrustedCommunityPublicKey(publicKey)) {
-      return `Manifest inválido para ${rendererId}: ${publicKey.reason}`;
-    }
-  }
-
-  return null;
 };
 
 const validateWorkerEntryChecksum = async (
@@ -629,24 +559,15 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
       await hydrateCommunityTrustStore();
 
-      const manifestPolicyError = validatePackageManifestPolicy(rendererId, packageManifest);
-      if (manifestPolicyError) {
+      const sdkContractError = validateRendererSdkContract({
+        rendererId,
+        workerRequirements,
+        packageManifest,
+        runtimeProtocolVersion: RENDERER_WORKER_PROTOCOL_VERSION,
+      });
+      if (sdkContractError) {
         if (!cancelled) {
-          setUnavailableReason(manifestPolicyError);
-          setIsUnavailable(true);
-          setIsRendererValidated(false);
-        }
-        return;
-      }
-
-      const expectedProtocolVersion = workerRequirements?.protocolVersion ?? RENDERER_WORKER_PROTOCOL_VERSION;
-      const minSdkProtocol = packageManifest?.sdk.minWorkerProtocolVersion;
-
-      if (minSdkProtocol && isSemverLess(expectedProtocolVersion, minSdkProtocol)) {
-        if (!cancelled) {
-          setUnavailableReason(
-            `SDK/protocolo incompatible para ${packageManifest?.packageName ?? rendererId}: runtime=${expectedProtocolVersion}, mínimo requerido=${minSdkProtocol}`,
-          );
+          setUnavailableReason(sdkContractError);
           setIsUnavailable(true);
           setIsRendererValidated(false);
         }

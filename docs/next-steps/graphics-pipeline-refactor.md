@@ -372,7 +372,7 @@ Nota: esta transición aplica a controles custom legacy. La ejecución de render
 
 Cuando esté estable:
 
-- Formalizar Plugin SDK worker-only (protocolo, ciclo de vida, límites).
+- ✅ Formalizar Plugin SDK worker-only (protocolo, ciclo de vida, límites) con validador de contrato en runtime.
 - Separar renderers en repos externos.
 - Endurecer sistema de firma y verificación de paquetes (gobernanza del trust store y distribución segura de claves).
 - Introducir sistema de licencia.
