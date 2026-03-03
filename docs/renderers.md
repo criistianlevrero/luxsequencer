@@ -15,7 +15,7 @@ Archivo principal: `src/components/renderers/index.ts`.
 
 - El registro combina:
   - renderers built-in de core;
-  - renderers externos permitidos por configuración hardcodeada.
+  - renderers externos permitidos por allowlist hardcodeada.
 - La resolución usa selector por `id` y soporte por clave canónica.
 - Para externos, la entrada solo se acepta si:
   1. el `packageManifest` pasa `validateMarketplaceIdentity`, y
