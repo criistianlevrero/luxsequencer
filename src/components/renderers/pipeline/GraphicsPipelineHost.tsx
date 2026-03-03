@@ -65,6 +65,38 @@ const isSemverLess = (a: string, b: string): boolean => {
   return aPatch < bPatch;
 };
 
+const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
+
+const validatePackageManifestPolicy = (
+  rendererId: string,
+  manifest?: RendererPackageManifest,
+): string | null => {
+  if (!manifest) {
+    return null;
+  }
+
+  if (manifest.schemaVersion !== '1.0.0') {
+    return `Manifest schema no soportado para ${rendererId}: ${manifest.schemaVersion}`;
+  }
+
+  if (!manifest.packageName || !manifest.packageVersion) {
+    return `Manifest inválido para ${rendererId}: packageName/packageVersion requeridos`;
+  }
+
+  if (manifest.source === 'community') {
+    const checksum = manifest.security?.workerEntrySha256;
+    if (!checksum) {
+      return `Manifest inválido para ${rendererId}: workerEntrySha256 requerido en paquetes community`;
+    }
+
+    if (!SHA256_HEX_REGEX.test(checksum)) {
+      return `Manifest inválido para ${rendererId}: workerEntrySha256 debe ser SHA-256 hex (64 chars)`;
+    }
+  }
+
+  return null;
+};
+
 const applyRendererUniforms = (
   rendererId: string,
   manager: RendererWorkerManager,
@@ -382,6 +414,13 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
 
   useEffect(() => {
     if (supportsGraphicsPipeline()) {
+      const manifestPolicyError = validatePackageManifestPolicy(rendererId, packageManifest);
+      if (manifestPolicyError) {
+        setUnavailableReason(manifestPolicyError);
+        setIsUnavailable(true);
+        return;
+      }
+
       const expectedProtocolVersion = workerRequirements?.protocolVersion ?? RENDERER_WORKER_PROTOCOL_VERSION;
       const minSdkProtocol = packageManifest?.sdk.minWorkerProtocolVersion;
 
