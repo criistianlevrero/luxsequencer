@@ -9,7 +9,6 @@ import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { renderers } from '../renderers';
 import { CollapsibleSection } from '../ui';
 import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
-import { webglRendererControlSpec, webglCategoryOrder } from '../renderers/scales/scales-declarative-schema';
 import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';
 import type { ControlSection } from '../../types';
 
@@ -45,13 +44,13 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
 
   // Get renderer control spec
   const rendererControlSpec: RendererControlSpec | DeclarativeControlSchema | null = useMemo(() => {
-    switch (renderer) {
-      case 'webgl':
-        return webglRendererControlSpec;
-      // Add other renderers as they're migrated
-      default:
-        return null;
+    const currentRenderer = renderers[renderer];
+    const schema = currentRenderer?.declarativeSchema;
+    if (!schema || typeof schema === 'function') {
+      return null;
     }
+
+    return schema;
   }, [renderer]);
 
   // Render declarative controls if available
@@ -64,7 +63,6 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
         settings={currentSettings}
         onSettingChange={(property, value) => setCurrentSetting(property, value)}
         rendererId={renderer}
-        categoryOrder={renderer === 'webgl' ? webglCategoryOrder : undefined}
       />
     );
   };

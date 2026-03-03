@@ -1,26 +1,117 @@
-import { webglRenderer } from './scales';
-import { concentricRenderer } from './concentric';
-import { dvdScreensaverRenderer } from './dvd-screensaver';
 import type { RendererDefinition } from './types';
 import { buildMarketplaceToolKey, validateMarketplaceIdentity } from './sdk/toolIdentity';
+import { resolveExternalCoreRendererWorkerEntry } from './marketplaceWorkerEntry';
 
 const EmptyExternalRenderer: RendererDefinition['component'] = () => null;
 
-interface HardcodedExternalRendererConfig {
+interface AllowedRendererConfig {
+  id: string;
   key: string;
   name: string;
-  workerEntry: string;
+  workerFileName: string;
+  requiredCapabilities: NonNullable<RendererDefinition['workerRequirements']>['requiredCapabilities'];
   packageManifest: NonNullable<RendererDefinition['packageManifest']>;
   workerRequirements?: RendererDefinition['workerRequirements'];
 }
 
-const HARDCODED_EXTERNAL_RENDERERS: HardcodedExternalRendererConfig[] = [];
+interface ExternalRendererConfig extends AllowedRendererConfig {}
 
-export const renderers: Record<string, RendererDefinition> = {
-  [webglRenderer.id]: webglRenderer,
-  [concentricRenderer.id]: concentricRenderer,
-  [dvdScreensaverRenderer.id]: dvdScreensaverRenderer,
+const ALLOWED_RENDERERS: AllowedRendererConfig[] = [
+  {
+    id: 'webgl',
+    key: 'luxsequencer/core-renderers:renderer/webgl@1',
+    name: 'Escamas WebGL',
+    workerFileName: 'scales.worker.ts',
+    requiredCapabilities: ['offscreen-canvas', 'webgl2', 'uniform-updates'],
+    packageManifest: {
+      schemaVersion: '1.0.0',
+      publisherId: 'luxsequencer',
+      repositoryId: 'core-renderers',
+      packageId: 'builtin-renderers',
+      packageVersion: '0.6.0-beta',
+      tool: {
+        kind: 'renderer',
+        id: 'webgl',
+        versionMajor: 1,
+      },
+      source: 'builtin',
+      sdk: {
+        minWorkerProtocolVersion: '1.0.0',
+      },
+    },
+  },
+  {
+    id: 'concentric',
+    key: 'luxsequencer/core-renderers:renderer/concentric@1',
+    name: 'Concénctrico',
+    workerFileName: 'concentric.worker.ts',
+    requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+    packageManifest: {
+      schemaVersion: '1.0.0',
+      publisherId: 'luxsequencer',
+      repositoryId: 'core-renderers',
+      packageId: 'builtin-renderers',
+      packageVersion: '0.6.0-beta',
+      tool: {
+        kind: 'renderer',
+        id: 'concentric',
+        versionMajor: 1,
+      },
+      source: 'builtin',
+      sdk: {
+        minWorkerProtocolVersion: '1.0.0',
+      },
+    },
+  },
+  {
+    id: 'dvd-screensaver',
+    key: 'luxsequencer/core-renderers:renderer/dvd-screensaver@1',
+    name: 'DVD Screensaver',
+    workerFileName: 'dvd-screensaver.worker.ts',
+    requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+    packageManifest: {
+      schemaVersion: '1.0.0',
+      publisherId: 'luxsequencer',
+      repositoryId: 'core-renderers',
+      packageId: 'builtin-renderers',
+      packageVersion: '0.6.0-beta',
+      tool: {
+        kind: 'renderer',
+        id: 'dvd-screensaver',
+        versionMajor: 1,
+      },
+      source: 'builtin',
+      sdk: {
+        minWorkerProtocolVersion: '1.0.0',
+      },
+    },
+  },
+];
+
+const createAllowedRendererDefinition = (config: AllowedRendererConfig): RendererDefinition => {
+  return {
+    id: config.id,
+    name: config.name,
+    component: EmptyExternalRenderer,
+    workerEntry: resolveExternalCoreRendererWorkerEntry(config.id, config.workerFileName),
+    workerRequirements: {
+      requiredCapabilities: config.requiredCapabilities,
+      ...(config.workerRequirements ?? {}),
+    },
+    packageManifest: config.packageManifest,
+    controlSchema: [],
+  };
 };
+
+export const renderers: Record<string, RendererDefinition> = ALLOWED_RENDERERS.reduce<Record<string, RendererDefinition>>(
+  (acc, rendererConfig) => {
+    acc[rendererConfig.id] = createAllowedRendererDefinition(rendererConfig);
+    return acc;
+  },
+  {},
+);
+
+const HARDCODED_EXTERNAL_RENDERERS: ExternalRendererConfig[] = [];
 
 const BUILTIN_RENDERERS = Object.values(renderers);
 
@@ -34,7 +125,7 @@ const getBuiltinRendererKeyIndex = (): Record<string, RendererDefinition> => {
 };
 
 export const getMarketplaceRendererRegistry = (
-  rendererConfigs: HardcodedExternalRendererConfig[] = HARDCODED_EXTERNAL_RENDERERS,
+  rendererConfigs: ExternalRendererConfig[] = HARDCODED_EXTERNAL_RENDERERS,
 ): Record<string, RendererDefinition> => {
   const registry: Record<string, RendererDefinition> = {};
 
@@ -53,8 +144,11 @@ export const getMarketplaceRendererRegistry = (
       id: tool.key,
       name: tool.name,
       component: EmptyExternalRenderer,
-      workerEntry: tool.workerEntry,
-      workerRequirements: tool.workerRequirements,
+      workerEntry: resolveExternalCoreRendererWorkerEntry(tool.id, tool.workerFileName),
+      workerRequirements: {
+        requiredCapabilities: tool.requiredCapabilities,
+        ...(tool.workerRequirements ?? {}),
+      },
       packageManifest: tool.packageManifest,
       controlSchema: [],
     };

@@ -5,7 +5,8 @@ Este documento describe el estado vigente del sistema de renderers en `0.6-beta`
 ## Resumen
 
 - Controles en modo **declarative-only**.
-- Renderers oficiales (`webgl`, `concentric`, `dvd-screensaver`) con workers externos.
+- El core **no contiene implementación local** de renderers oficiales (`webgl`, `concentric`, `dvd-screensaver`).
+- El core mantiene únicamente: allowlist, identidad canónica, manifest y URL de worker externo.
 - Carga de workers mediante proxy same-origin en desarrollo para evitar `SecurityError` al construir `Worker`.
 - Política de carga externa con allowlist hardcodeada y validación estricta de clave canónica.
 
@@ -14,8 +15,9 @@ Este documento describe el estado vigente del sistema de renderers en `0.6-beta`
 Archivo principal: `src/components/renderers/index.ts`.
 
 - El registro combina:
-  - renderers built-in de core;
-  - renderers externos permitidos por allowlist hardcodeada.
+  - renderers oficiales declarados por allowlist hardcodeada;
+  - renderers externos permitidos por política.
+- Las entradas oficiales de core son definiciones mínimas (sin componente React local) que apuntan a `workerEntry` remoto/proxied.
 - La resolución usa selector por `id` y soporte por clave canónica.
 - Para externos, la entrada solo se acepta si:
   1. el `packageManifest` pasa `validateMarketplaceIdentity`, y
@@ -39,7 +41,7 @@ Campos relevantes de `RendererDefinition`:
 - `workerEntry`
 - `workerRequirements`
 - `packageManifest`
-- `declarativeSchema`
+- `declarativeSchema` (opcional, no usado por las definiciones oficiales del core en el estado actual)
 - `controlSchema` (mantenido por compatibilidad de tipo; en oficiales se usa `[]`)
 
 ## 3) Controles de UI
@@ -97,10 +99,9 @@ Responsabilidades del repo externo:
 
 1. Crear renderer + worker en `core-renderers`.
 2. Definir `packageManifest` válido y clave canónica estable.
-3. Agregar `declarativeSchema` completo (sin custom React legacy).
-4. Exponer worker por URL bajo base de marketplace.
-5. Agregar entrada en allowlist hardcodeada de core.
-6. Validar:
+3. Exponer worker por URL bajo base de marketplace.
+4. Agregar entrada en allowlist hardcodeada de core (`id`, `key`, `workerFileName`, `requiredCapabilities`, `packageManifest`).
+5. Validar:
    - `npm run type-check` en `luxsequencer-core`
    - `npm run validate:catalog` en `core-renderers`
 

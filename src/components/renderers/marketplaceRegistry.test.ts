@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildMarketplaceToolKey } from './sdk/toolIdentity';
-import { getAllRenderers, getMarketplaceRendererRegistry, resolveRendererDefinition } from './index';
-import { webglRenderer } from './scales';
+import { getAllRenderers, getMarketplaceRendererRegistry, renderers, resolveRendererDefinition } from './index';
 
 describe('marketplace renderer registry', () => {
   it('resolves builtin renderer by canonical key', () => {
-    const key = buildMarketplaceToolKey(webglRenderer.packageManifest!);
+    const key = buildMarketplaceToolKey(renderers.webgl.packageManifest!);
     const resolved = resolveRendererDefinition(key);
 
     expect(resolved?.id).toBe('webgl');
@@ -16,9 +15,11 @@ describe('marketplace renderer registry', () => {
 
     const registry = getMarketplaceRendererRegistry([
       {
+        id: 'neon',
         key,
         name: 'Neon',
-        workerEntry: 'https://cdn.example.com/neon.worker.ts',
+        workerFileName: 'neon.worker.ts',
+        requiredCapabilities: ['offscreen-canvas', 'canvas2d'],
         packageManifest: {
           schemaVersion: '1.0.0',
           publisherId: 'visualcrew',
@@ -47,9 +48,11 @@ describe('marketplace renderer registry', () => {
 
     const registry = getMarketplaceRendererRegistry([
       {
+        id: 'neon',
         key: 'visualcrew/lux-pack:renderer/other@1',
         name: 'Neon',
-        workerEntry: 'https://cdn.example.com/neon.worker.ts',
+        workerFileName: 'neon.worker.ts',
+        requiredCapabilities: ['offscreen-canvas', 'canvas2d'],
         packageManifest: {
           schemaVersion: '1.0.0',
           publisherId: 'visualcrew',

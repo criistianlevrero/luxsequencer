@@ -13,8 +13,7 @@ const toSameOriginProxyUrl = (remoteUrl: URL): string => {
 export const resolveExternalCoreRendererWorkerEntry = (
   rendererId: string,
   workerFileName: string,
-  localFallback: URL,
-): string | URL => {
+): string => {
   try {
     const baseUrl = ensureTrailingSlash(env.marketplaceCoreRenderersBaseUrl);
     const resolved = new URL(`${rendererId}/${workerFileName}`, baseUrl);
@@ -25,6 +24,6 @@ export const resolveExternalCoreRendererWorkerEntry = (
 
     return resolved.toString();
   } catch {
-    return localFallback;
+    return `${MARKETPLACE_PROXY_PREFIX}/src/renderers/${rendererId}/${workerFileName}`;
   }
 };

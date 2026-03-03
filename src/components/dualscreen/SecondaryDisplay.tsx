@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useTextureStore } from '../../store';
 import { getAllRenderers, resolveRendererDefinition } from '../renderers';
 import { RendererErrorBoundary } from '../error/RendererErrorBoundary';
+import GraphicsPipelineHost from '../renderers/pipeline/GraphicsPipelineHost';
 
 /**
  * Componente para la ventana secundaria (pantalla de visualización)
@@ -55,8 +56,6 @@ export const SecondaryDisplay: React.FC = () => {
     );
   }
 
-  const RendererComponent = renderer.component;
-
   // Configurar clases CSS según el viewport mode
   const getContainerClasses = () => {
     switch (viewportMode) {
@@ -98,7 +97,13 @@ export const SecondaryDisplay: React.FC = () => {
       {/* Renderer container */}
       <div className={getContainerClasses()}>
         <RendererErrorBoundary renderer={renderer}>
-          <RendererComponent className={getRendererClasses()} />
+          <GraphicsPipelineHost
+            className={getRendererClasses()}
+            rendererId={renderer.id}
+            workerEntry={renderer.workerEntry}
+            workerRequirements={renderer.workerRequirements}
+            packageManifest={renderer.packageManifest}
+          />
         </RendererErrorBoundary>
       </div>
       
