@@ -9,6 +9,9 @@ export const concentricRenderer: RendererDefinition = {
   name: 'Concénctrico',
   component: ConcentricRenderer,
   workerEntry: new URL('./workers/concentric.worker.ts', import.meta.url),
+  workerRequirements: {
+    requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+  },
   controlSchema: getConcentricSchema,
   declarativeSchema: concentricDeclarativeSchema,
 };

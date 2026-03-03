@@ -37,6 +37,7 @@ const PipelineViewportCanvas: React.FC<{ className?: string }> = ({ className })
       className={className}
       rendererId={currentRendererId}
       workerEntry={currentRenderer.workerEntry}
+      workerRequirements={currentRenderer.workerRequirements}
     />
   );
 };

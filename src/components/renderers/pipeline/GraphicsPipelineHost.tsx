@@ -4,7 +4,6 @@ import {
   WebGLCompositor,
   type CompositorMetrics,
   type PipelineSource,
-  type RendererWorkerCapability,
   type RendererWorkerHealthSnapshot,
 } from '../../../graphics-pipeline';
 import { useTextureStore } from '../../../store';
@@ -16,11 +15,13 @@ import {
   getScalesCompatibleSettings,
 } from '../../../utils/settingsMigration';
 import type { DvdScreensaverSettings } from '../../../types';
+import type { RendererWorkerRequirements } from '../types';
 
 interface GraphicsPipelineHostProps {
   className?: string;
   rendererId: string;
   workerEntry: string | URL;
+  workerRequirements?: RendererWorkerRequirements;
 }
 
 interface RuntimeRenderer {
@@ -28,6 +29,7 @@ interface RuntimeRenderer {
   workerEntry: string | URL;
   source: PipelineSource;
   manager: RendererWorkerManager;
+  stallTimeoutMs: number;
 }
 
 const supportsGraphicsPipeline = (): boolean => {
@@ -42,18 +44,6 @@ const TRANSITION_DURATION_MS = 800;
 const WORKER_STALL_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
-
-const getRequiredCapabilities = (rendererId: string): RendererWorkerCapability[] => {
-  if (rendererId === 'webgl') {
-    return ['offscreen-canvas', 'webgl2', 'uniform-updates'];
-  }
-
-  if (rendererId === 'concentric' || rendererId === 'dvd-screensaver') {
-    return ['offscreen-canvas', 'canvas2d', 'uniform-updates'];
-  }
-
-  return ['offscreen-canvas', 'uniform-updates'];
-};
 
 const applyRendererUniforms = (
   rendererId: string,
@@ -117,6 +107,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
   className,
   rendererId,
   workerEntry,
+  workerRequirements,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const compositorRef = useRef<WebGLCompositor | null>(null);
@@ -161,7 +152,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     }
 
     const elapsedSinceFrame = performance.now() - snapshot.lastFrameAtMs;
-    if (elapsedSinceFrame > WORKER_STALL_TIMEOUT_MS) {
+    if (elapsedSinceFrame > runtimeRenderer.stallTimeoutMs) {
       return `Worker detenido (${snapshot.rendererId}) sin frames por ${Math.round(elapsedSinceFrame)}ms`;
     }
 
@@ -213,7 +204,9 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       workerEntry: nextWorkerEntry,
       width,
       height,
-      requiredCapabilities: getRequiredCapabilities(nextRendererId),
+      expectedProtocolVersion: workerRequirements?.protocolVersion,
+      handshakeTimeoutMs: workerRequirements?.handshakeTimeoutMs,
+      requiredCapabilities: workerRequirements?.requiredCapabilities ?? ['offscreen-canvas', 'uniform-updates'],
       onFrame: (bitmap) => compositor.setSourceFrame(source, bitmap),
       onReady: handleWorkerReady,
       onError: (error) => {
@@ -233,6 +226,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
       workerEntry: nextWorkerEntry,
       source,
       manager,
+      stallTimeoutMs: workerRequirements?.stallTimeoutMs ?? WORKER_STALL_TIMEOUT_MS,
     };
   };
 
@@ -423,7 +417,7 @@ const GraphicsPipelineHost: React.FC<GraphicsPipelineHostProps> = ({
     };
 
     syncUniforms(useTextureStore.getState());
-  }, [rendererId, workerEntry]);
+  }, [rendererId, workerEntry, workerRequirements]);
 
   if (isUnavailable) {
     return (

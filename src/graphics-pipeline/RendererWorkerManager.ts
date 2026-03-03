@@ -19,6 +19,7 @@ export interface RendererWorkerManagerOptions {
   onFrame: (bitmap: ImageBitmap) => void;
   onError?: (error: Error) => void;
   onReady?: (snapshot: RendererWorkerHealthSnapshot) => void;
+  expectedProtocolVersion?: string;
   handshakeTimeoutMs?: number;
   requiredCapabilities?: RendererWorkerCapability[];
 }
@@ -58,6 +59,7 @@ export class RendererWorkerManager {
     this.worker.onmessage = (event: MessageEvent<RendererWorkerToMainMessage>) => {
       if (isReadyMessage(event.data)) {
         const readyMessage = event.data;
+        const expectedProtocolVersion = this.options.expectedProtocolVersion ?? RENDERER_WORKER_PROTOCOL_VERSION;
 
         if (readyMessage.rendererId !== this.options.rendererId) {
           this.options.onError?.(
@@ -69,10 +71,10 @@ export class RendererWorkerManager {
           return;
         }
 
-        if (readyMessage.protocolVersion !== RENDERER_WORKER_PROTOCOL_VERSION) {
+        if (readyMessage.protocolVersion !== expectedProtocolVersion) {
           this.options.onError?.(
             new Error(
-              `Renderer worker protocol mismatch for ${this.options.rendererId}: expected ${RENDERER_WORKER_PROTOCOL_VERSION}, got ${readyMessage.protocolVersion}`,
+              `Renderer worker protocol mismatch for ${this.options.rendererId}: expected ${expectedProtocolVersion}, got ${readyMessage.protocolVersion}`,
             ),
           );
           this.dispose();

@@ -9,6 +9,9 @@ export const webglRenderer: RendererDefinition = {
   name: 'Escamas WebGL',
   component: ScalesRenderer,
   workerEntry: new URL('./workers/scales.worker.ts', import.meta.url),
+  workerRequirements: {
+    requiredCapabilities: ['offscreen-canvas', 'webgl2', 'uniform-updates'],
+  },
   controlSchema: getScaleTextureSchema,
   declarativeSchema: webglRendererControlSpec,
 };

@@ -1,6 +1,14 @@
 import React from 'react';
 // FIX: Import shared types from the main `types.ts` file.
 import type { ControlSettings as _ControlSettings, AccordionItem, RendererValidationSpec, DeclarativeControlSchema, RendererControlSpec } from '../../types';
+import type { RendererWorkerCapability } from '../../graphics-pipeline';
+
+export interface RendererWorkerRequirements {
+  requiredCapabilities: RendererWorkerCapability[];
+  protocolVersion?: string;
+  handshakeTimeoutMs?: number;
+  stallTimeoutMs?: number;
+}
 
 // Updated RendererDefinition
 export interface RendererDefinition {
@@ -8,6 +16,7 @@ export interface RendererDefinition {
   name: string;
   component: React.FC<{ className?: string }>;
   workerEntry: string | URL;
+  workerRequirements?: RendererWorkerRequirements;
   controlSchema: AccordionItem[] | (() => AccordionItem[]);
   
   // Phase 1.4: Declarative Control Schema Support
