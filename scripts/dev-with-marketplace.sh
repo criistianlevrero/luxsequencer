@@ -4,12 +4,24 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CORE_DIR="${ROOT_DIR}/luxsequencer-core"
 MARKETPLACE_DIR="${ROOT_DIR}/core-renderers"
+CLEAN_START=false
+
+if [ "${1:-}" = "--clean" ]; then
+  CLEAN_START=true
+fi
 
 PIDS=()
 
 is_running() {
   local pattern="$1"
   pgrep -f "$pattern" >/dev/null 2>&1
+}
+
+kill_if_running() {
+  local pattern="$1"
+  if pgrep -f "$pattern" >/dev/null 2>&1; then
+    pkill -f "$pattern" >/dev/null 2>&1 || true
+  fi
 }
 
 cleanup() {
@@ -30,6 +42,12 @@ fi
 if [ ! -d "$CORE_DIR" ]; then
   echo "Core repo not found: $CORE_DIR"
   exit 1
+fi
+
+if [ "$CLEAN_START" = true ]; then
+  echo "Cleaning existing dev servers..."
+  kill_if_running "${MARKETPLACE_DIR}.*vite"
+  kill_if_running "${CORE_DIR}.*vite"
 fi
 
 if is_running "${MARKETPLACE_DIR}.*vite"; then

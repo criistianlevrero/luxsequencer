@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:all": "bash ./scripts/dev-with-marketplace.sh",
+    "dev:all:clean": "bash ./scripts/dev-with-marketplace.sh --clean",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
