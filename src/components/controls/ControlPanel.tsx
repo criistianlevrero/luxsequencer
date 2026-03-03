@@ -66,8 +66,6 @@ const ControlPanel: React.FC = () => {
       event.target.value = ''; 
   };
   
-    const selectedRenderer = resolveRendererDefinition(renderer);
-    const rendererSchema = selectedRenderer?.controlSchema;
     const selectableRenderers = getSelectableRenderers();
 
   return (
@@ -177,7 +175,7 @@ const ControlPanel: React.FC = () => {
             </div>
         </CollapsibleSection>
         
-        {rendererSchema && <RendererControls schema={rendererSchema} />}
+        <RendererControls />
 
         <CollapsibleSection title={t('project.globalConfiguration')}>
             <div className="space-y-4">
