@@ -2,32 +2,19 @@ import { webglRenderer } from './scales';
 import { concentricRenderer } from './concentric';
 import { dvdScreensaverRenderer } from './dvd-screensaver';
 import type { RendererDefinition } from './types';
-import { buildMarketplaceToolKey } from './sdk/toolIdentity';
-
-const MARKETPLACE_TREE_STORAGE_KEY = 'luxsequencer.marketplace.tree.v1';
-
-interface MarketplaceTreeTool {
-  kind: 'renderer' | 'tool';
-  name: string;
-  packageManifest: RendererDefinition['packageManifest'];
-  workerRequirements?: RendererDefinition['workerRequirements'];
-  workerEntry?: string;
-}
-
-interface MarketplaceTreeRepository {
-  publisherId: string;
-  repositoryId: string;
-  tools: MarketplaceTreeTool[];
-}
-
-interface MarketplaceTree {
-  repositories: MarketplaceTreeRepository[];
-  entitlements?: {
-    allowedToolKeys?: string[];
-  };
-}
+import { buildMarketplaceToolKey, validateMarketplaceIdentity } from './sdk/toolIdentity';
 
 const EmptyExternalRenderer: RendererDefinition['component'] = () => null;
+
+interface HardcodedExternalRendererConfig {
+  key: string;
+  name: string;
+  workerEntry: string;
+  packageManifest: NonNullable<RendererDefinition['packageManifest']>;
+  workerRequirements?: RendererDefinition['workerRequirements'];
+}
+
+const HARDCODED_EXTERNAL_RENDERERS: HardcodedExternalRendererConfig[] = [];
 
 export const renderers: Record<string, RendererDefinition> = {
   [webglRenderer.id]: webglRenderer,
@@ -46,67 +33,31 @@ const getBuiltinRendererKeyIndex = (): Record<string, RendererDefinition> => {
   }, {});
 };
 
-const readMarketplaceTree = (): MarketplaceTree | null => {
-  if (typeof localStorage === 'undefined') {
-    return null;
-  }
-
-  try {
-    const raw = localStorage.getItem(MARKETPLACE_TREE_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as MarketplaceTree;
-    if (!Array.isArray(parsed.repositories)) {
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-};
-
-const getEntitledToolKeys = (tree: MarketplaceTree | null): Set<string> => {
-  const keys = tree?.entitlements?.allowedToolKeys;
-  if (!Array.isArray(keys)) {
-    return new Set<string>();
-  }
-
-  return new Set(keys.filter((value): value is string => typeof value === 'string'));
-};
-
-const getMarketplaceRendererRegistry = (): Record<string, RendererDefinition> => {
-  const tree = readMarketplaceTree();
-  if (!tree) {
-    return {};
-  }
-
-  const entitledToolKeys = getEntitledToolKeys(tree);
+export const getMarketplaceRendererRegistry = (
+  rendererConfigs: HardcodedExternalRendererConfig[] = HARDCODED_EXTERNAL_RENDERERS,
+): Record<string, RendererDefinition> => {
   const registry: Record<string, RendererDefinition> = {};
 
-  tree.repositories.forEach((repository) => {
-    repository.tools.forEach((tool) => {
-      if (tool.kind !== 'renderer' || !tool.packageManifest || !tool.workerEntry) {
-        return;
-      }
+  rendererConfigs.forEach((tool) => {
+    const identityError = validateMarketplaceIdentity(tool.key, tool.packageManifest);
+    if (identityError) {
+      return;
+    }
 
-      const toolKey = buildMarketplaceToolKey(tool.packageManifest);
-      if (!entitledToolKeys.has(toolKey)) {
-        return;
-      }
+    const manifestKey = buildMarketplaceToolKey(tool.packageManifest);
+    if (manifestKey !== tool.key) {
+      return;
+    }
 
-      registry[toolKey] = {
-        id: toolKey,
-        name: tool.name,
-        component: EmptyExternalRenderer,
-        workerEntry: tool.workerEntry,
-        workerRequirements: tool.workerRequirements,
-        packageManifest: tool.packageManifest,
-        controlSchema: [],
-      };
-    });
+    registry[tool.key] = {
+      id: tool.key,
+      name: tool.name,
+      component: EmptyExternalRenderer,
+      workerEntry: tool.workerEntry,
+      workerRequirements: tool.workerRequirements,
+      packageManifest: tool.packageManifest,
+      controlSchema: [],
+    };
   });
 
   return registry;
