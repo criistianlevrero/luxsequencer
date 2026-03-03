@@ -1,5 +1,33 @@
 # Arquitectura del Sistema de Renderers
 
+## Estado Actual (0.6-beta)
+
+> Nota de vigencia: este documento contiene secciones históricas de migración. Para implementación actual, tomar esta sección como fuente principal.
+
+### Controles: modo declarativo-only
+
+- La UI de controles usa exclusivamente `declarativeSchema`.
+- El fallback legacy basado en `controlSchema` fue removido del runtime.
+- Los renderers oficiales (`webgl`, `concentric`, `dvd-screensaver`) se mantienen con `controlSchema: []` solo por compatibilidad de tipo, no para renderizar controles.
+
+### Carga de renderers externos
+
+- La core app aplica una política hardcodeada de herramientas externas permitidas.
+- Cada entrada externa debe pasar validación de identidad canónica (`publisher/repository:kind/tool@major`).
+- La clave declarada debe coincidir exactamente con `buildMarketplaceToolKey(packageManifest)`.
+
+### Workers externos en desarrollo
+
+- Los workers del repo externo se sirven por HTTP desde `core-renderers` (Vite).
+- Para evitar bloqueos `SecurityError` del constructor `Worker` entre puertos/orígenes, la core app usa proxy same-origin:
+  - Base URL recomendada: `/marketplace-core-renderers/src/renderers/`
+  - Proxy dev en core: `/marketplace-core-renderers/* -> http://localhost:4174/*`
+
+### Repositorio externo
+
+- Ruta local actual: `../core-renderers`
+- El layout anterior `marketplace-repos/core-renderers` quedó deprecado y fue removido.
+
 ## Introducción
 
 El sistema de renderers de LuxSequencer está diseñado para ser completamente modular y extensible, permitiendo a desarrolladores terceros crear sus propios motores de renderizado con plena libertad creativa. Cada renderer es un módulo independiente que se integra perfectamente al sistema a través de una interfaz bien definida.
