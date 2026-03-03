@@ -152,6 +152,31 @@ Set to `false` to require manual MIDI connection:
 VITE_MIDI_AUTO_CONNECT=false
 ```
 
+### `VITE_GRAPHICS_PIPELINE_V2`
+
+- **Type:** Boolean (`true` | `false`)
+- **Default:** `false`
+- **Description:** Enables the graphics pipeline v2 (renderer workers + central WebGL compositor)
+
+Use `true` only during migration/testing until worker entrypoints for the target renderer are ready.
+
+```env
+VITE_GRAPHICS_PIPELINE_V2=false
+```
+
+### `VITE_ALLOW_LEGACY_CUSTOM_CONTROLS`
+
+- **Type:** Boolean (`true` | `false`)
+- **Default:** `false`
+- **Description:** Transitional flag to allow legacy `controlSchema` controls with `type: 'custom'`
+
+Recommended value is `false` to enforce the declarative-only policy for renderer controls.
+Enable only as a temporary migration fallback.
+
+```env
+VITE_ALLOW_LEGACY_CUSTOM_CONTROLS=false
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

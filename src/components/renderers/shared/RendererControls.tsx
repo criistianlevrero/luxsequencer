@@ -8,12 +8,14 @@ import { CollapsibleSection, SliderInput } from '../../ui';
 import type { AccordionItem, ControlSection, SeparatorSection, SliderControlConfig, ControlSettings as _ControlSettings } from '../../../types';
 import { getNestedProperty, toLegacySettings as _toLegacySettings, mapPropertyIdToPath } from '../../../utils/settingsMigration';
 import { DeclarativeControlPanel } from '../../declarative/ControlRenderer';
+import { env } from '../../../config';
 
 interface RendererControlsProps {
     schema: AccordionItem[] | (() => AccordionItem[]);
 }
 
 const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
+    const allowLegacyCustomControls = env.allowLegacyCustomControls;
     const {
         currentSettings,
         midiMappings,
@@ -101,6 +103,9 @@ const RendererControls: React.FC<RendererControlsProps> = ({ schema }) => {
                                     );
                                 }
                                 if (control.type === 'custom') {
+                                    if (!allowLegacyCustomControls) {
+                                        return null;
+                                    }
                                     const CustomComponent = control.component;
                                     return <CustomComponent key={control.id} />;
                                 }

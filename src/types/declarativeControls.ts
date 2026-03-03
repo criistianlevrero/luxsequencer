@@ -20,14 +20,17 @@ export type ControlType =
   | 'text';       // New: text input
 
 /**
+ * Strict list of control types allowed for renderer/plugin schemas.
+ * Renderer-authored custom UI components are intentionally not allowed.
+ */
+export type AllowedControlType = ControlType;
+
+/**
  * Main specification for renderer controls
  */
 export interface RendererControlSpec {
-  // 90% of cases: completely declarative standard controls
+  // 100% declarative controls from audited core catalog
   standard: StandardControlSpec[];
-  
-  // 10% of cases: custom components for special cases
-  custom?: CustomControlSpec[];
 }
 
 /**
@@ -50,25 +53,6 @@ export interface StandardControlSpec {
     order?: number;  // Added order support
     presets?: PresetValue[];
     dependencies?: PropertyDependency[];
-  };
-}
-
-/**
- * Custom control specification for special cases
- */
-export interface CustomControlSpec {
-  id: string;
-  component: import('react').FC<{
-    spec: CustomControlSpec;
-    settings: ControlSettings;
-    onChange: (property: string, value: any) => void;
-    context: ControlRenderContext;
-  }>;
-  category: string;
-  label?: string;
-  metadata?: {
-    description?: string;
-    tooltip?: string;
   };
 }
 

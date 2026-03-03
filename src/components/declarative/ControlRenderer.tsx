@@ -2,7 +2,6 @@ import React, { useMemo, useCallback } from 'react';
 import type {
   RendererControlSpec,
   StandardControlSpec,
-  CustomControlSpec,
   ControlType,
   ControlRenderContext,
   BaseControlProps,
@@ -103,8 +102,7 @@ const adaptDeclarativeSchemaToSpec = (schema: DeclarativeControlSchema): Rendere
   });
   
   return {
-    standard: standardControls,
-    custom: [] // No custom controls from declarative schema
+    standard: standardControls
   };
 };
 
@@ -218,19 +216,10 @@ export const useDeclarativeControls = (
   
   // Group controls by category
   const controlsByCategory = useMemo(() => {
-    const categories = new Map<string, (StandardControlSpec | CustomControlSpec)[]>();
+    const categories = new Map<string, StandardControlSpec[]>();
     
     // Process standard controls
     spec.standard.forEach(control => {
-      const category = control.category;
-      if (!categories.has(category)) {
-        categories.set(category, []);
-      }
-      categories.get(category)!.push(control);
-    });
-    
-    // Process custom controls
-    spec.custom?.forEach(control => {
       const category = control.category;
       if (!categories.has(category)) {
         categories.set(category, []);
@@ -288,42 +277,18 @@ export const useDeclarativeControls = (
     );
   }, [settings, onSettingChange, context, rendererId]);
   
-  // Render function for custom controls
-  const renderCustomControl = useCallback((control: CustomControlSpec) => {
-    const Component = control.component;
-    return React.createElement(Component, {
-      key: control.id,
-      spec: control,
-      settings,
-      onChange: onSettingChange,
-      context
-    });
-  }, [settings, onSettingChange, context]);
-  
   // Generate sections
   const sections = useMemo(() => {
     return Array.from(controlsByCategory.entries()).map(([categoryName, controls]) => ({
       title: categoryName,
       defaultOpen: categoryName === 'Basic' || categoryName === 'Colors', // Common categories open by default
-      controls: controls.map(control => {
-        if ('type' in control) {
-          // Standard control
-          return {
-            type: 'rendered' as const,
-            element: renderStandardControl(control),
-            id: control.id as string
-          };
-        } else {
-          // Custom control
-          return {
-            type: 'rendered' as const,
-            element: renderCustomControl(control),
-            id: control.id
-          };
-        }
-      }).filter(c => c.element !== null) // Filter out hidden controls
+      controls: controls.map(control => ({
+        type: 'rendered' as const,
+        element: renderStandardControl(control),
+        id: control.id as string
+      })).filter(c => c.element !== null) // Filter out hidden controls
     }));
-  }, [controlsByCategory, renderStandardControl, renderCustomControl]);
+  }, [controlsByCategory, renderStandardControl]);
   
   return {
     sections,
@@ -368,7 +333,7 @@ export const DeclarativeControlPanel: React.FC<{
   const rendererSpec: RendererControlSpec = useMemo(() => {
     // Check if spec exists and is valid
     if (!spec) {
-      return { standard: [], custom: [] };
+      return { standard: [] };
     }
     
     if (typeof spec === 'object' && 'sections' in spec) {
@@ -378,7 +343,7 @@ export const DeclarativeControlPanel: React.FC<{
       // It's already a RendererControlSpec
       return spec as RendererControlSpec;
     } else {
-      return { standard: [], custom: [] };
+      return { standard: [] };
     }
   }, [spec, rendererId]);
   
