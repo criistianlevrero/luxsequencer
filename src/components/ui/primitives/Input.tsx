@@ -1,5 +1,5 @@
 import React from 'react';
-import { uiDisabledState, uiFieldBase, uiFocusRing } from './tokens';
+import { uiDisabledState, uiFieldBase, uiFocusRing } from '../foundation/tokens';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   inputSize?: 'sm' | 'md';

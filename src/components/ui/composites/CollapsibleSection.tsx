@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDownIcon } from './icons';
+import { ChevronDownIcon } from '../icons';
 
 const CollapsibleSection: React.FC<{ title: string; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, children, defaultOpen = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);

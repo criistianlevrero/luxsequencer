@@ -1,6 +1,6 @@
 import React from 'react';
 import { Switch as HeadlessSwitch } from '@headlessui/react';
-import { uiFocusRing, uiTransitionColors } from './tokens';
+import { uiFocusRing, uiTransitionColors } from '../foundation/tokens';
 
 export interface SwitchProps {
   checked: boolean;

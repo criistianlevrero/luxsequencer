@@ -1,7 +1,7 @@
 import React, { ReactNode, CSSProperties, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Listbox } from '@headlessui/react';
 import { createPortal } from 'react-dom';
-import { ChevronUpDownIcon, CheckIcon } from './icons';
+import { ChevronUpDownIcon, CheckIcon } from '../icons';
 
 export interface SelectOption {
   value: string | number;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { uiDisabledState, uiFocusRing } from './tokens';
+import { uiDisabledState, uiFocusRing } from '../foundation/tokens';
 
 export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
   unstyled?: boolean;

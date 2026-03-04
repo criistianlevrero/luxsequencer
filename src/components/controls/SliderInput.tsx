@@ -1,2 +1,2 @@
-export { default } from '../ui/SliderInput';
-export type { SliderInputProps } from '../ui/SliderInput';
+export { default } from '../ui/composites/SliderInput';
+export type { SliderInputProps } from '../ui/composites/SliderInput';

@@ -15,6 +15,7 @@ Documentación completa del sistema de interfaz de usuario de LuxSequencer, incl
 - [Eventos de Teclado](#eventos-de-teclado)
 - [Accesibilidad](#accesibilidad)
 - [Patrones de Diseño](#patrones-de-diseño)
+- [Propuesta de Arquitectura UI (2026-03)](#propuesta-de-arquitectura-ui-2026-03)
 - [Mejoras Futuras](#mejoras-futuras)
 - [Historial de Refactor UI](#historial-de-refactor-ui)
 
@@ -70,6 +71,84 @@ src/components/
 3. **Props drilling mínimo**: Uso de contexto y gestión de estado centralizada
 4. **Tipado estricto**: Interfaces TypeScript para todos los props
 5. **Accesibilidad first**: ARIA, navegación por teclado, screen readers
+
+---
+
+## Propuesta de Arquitectura UI (2026-03)
+
+Esta propuesta define una separación explícita entre primitivas, componentes compuestos y utilidades de estilo, sin romper la API pública actual.
+
+### Objetivos
+- Reducir acoplamiento entre piezas base y componentes de mayor complejidad.
+- Facilitar mantenibilidad del sistema UI y escalabilidad de nuevos controles.
+- Unificar criterios de uso de Tailwind, DaisyUI y Headless UI.
+- Mantener compatibilidad hacia atrás importando desde `src/components/ui/index.ts`.
+
+### Estructura objetivo
+```text
+src/components/ui/
+├── primitives/          # Bloques base sin lógica de negocio
+│   ├── Button.tsx
+│   ├── Input.tsx
+│   ├── Textarea.tsx
+│   ├── Select.tsx
+│   ├── Switch.tsx
+│   ├── Checkbox.tsx
+│   ├── RadioGroup.tsx
+│   ├── Tooltip.tsx
+│   ├── FieldLabel.tsx
+│   ├── Card.tsx
+│   ├── Sheet.tsx
+│   ├── Tabs.tsx
+│   └── index.ts
+├── composites/          # Reutilizables de media/alta complejidad
+│   ├── AdvancedSelect.tsx
+│   ├── RangeSlider.tsx
+│   ├── ColorPicker.tsx
+│   ├── Vector2DPicker.tsx
+│   ├── SliderInput.tsx
+│   ├── CollapsibleSection.tsx
+│   ├── PanelHeader.tsx
+│   └── index.ts
+├── patterns/            # Bloques de presentación para paneles/debug
+│   ├── Alert.tsx
+│   ├── EmptyState.tsx
+│   ├── ErrorState.tsx
+│   ├── StatTile.tsx
+│   ├── MetricCard.tsx
+│   ├── MiniChartCard.tsx
+│   └── index.ts
+├── foundation/          # Tokens y helpers de estilo compartidos
+│   ├── tokens.ts
+│   └── index.ts
+├── icons.tsx
+├── index.ts             # API pública estable (re-export)
+└── README.md
+```
+
+### Criterios de clasificación
+- **Primitives**: elementos base de formulario/superficie con API genérica.
+- **Composites**: combinan múltiples primitives y manejan interacción más rica.
+- **Patterns**: piezas visuales listas para uso en vistas concretas (dashboard, paneles).
+- **Foundation**: constantes y utilidades de estilos, sin JSX de producto.
+
+### Lineamientos Tailwind, DaisyUI y Headless UI
+- **Tailwind**: mantener utility-first, pero extraer patrones repetidos a tokens semánticos en `foundation/tokens.ts`.
+- **Headless UI**: usarlo para interacciones complejas y accesibles (select, switch, popover/dialog/menu) evitando reimplementar navegación de teclado manual.
+- **DaisyUI**: uso opt-in y consistente. Si se usa, limitarlo a primitives base; evitar mezclar DaisyUI y clases custom distintas para el mismo tipo de control en la misma pantalla.
+
+### Estrategia de barrel exports
+1. Mantener `ui/index.ts` como punto único de import público.
+2. Crear barrels por capa (`primitives/index.ts`, `composites/index.ts`, `patterns/index.ts`, `foundation/index.ts`).
+3. Re-exportar desde `ui/index.ts` para evitar ruptura de imports existentes.
+4. En una fase posterior, restringir export de piezas internas no destinadas a consumo transversal.
+
+### Plan de migración incremental (sin romper imports)
+1. **Fase 1 (estructura)**: crear subcarpetas y sub-barrels, sin cambiar APIs ni comportamiento visual.
+2. **Fase 2 (normalización)**: mover archivos gradualmente por capa y actualizar imports internos del módulo `ui`.
+3. **Fase 3 (tokens)**: consolidar clases repetidas en tokens semánticos y helpers de variantes.
+4. **Fase 4 (documentación)**: mantener sincronizado `docs/ui-system.md` y `src/components/ui/README.md` con inventario y reglas.
+5. **Fase 5 (gobernanza)**: definir checklist de PR para componentes UI (a11y, API pública, pruebas mínimas, i18n).
 
 ---
 

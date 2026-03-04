@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
+import { Button } from '../primitives/Button';
+import { Input } from '../primitives/Input';
 
 export interface ColorPreset {
   name: string;
