@@ -1,5 +1,5 @@
 import React from 'react';
-import { Slider } from '../primitives/Slider';
+import { Slider } from '../primitives';
 
 export interface SliderInputProps {
   label: string;

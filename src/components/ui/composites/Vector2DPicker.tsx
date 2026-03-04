@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FieldLabel } from '../primitives/FieldLabel';
-import { Input } from '../primitives/Input';
+import { FieldLabel, Input } from '../primitives';
 
 export interface Vector2DValue {
   x: number;

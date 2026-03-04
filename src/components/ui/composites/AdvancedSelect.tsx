@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '../primitives/Button';
-import { Input } from '../primitives/Input';
+import { Button, Input } from '../primitives';
 
 export interface AdvancedSelectOption {
   value: any;
