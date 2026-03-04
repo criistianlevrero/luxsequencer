@@ -1,13 +1,17 @@
-export { default as CollapsibleSection } from './CollapsibleSection';
+export {
+	CollapsibleSection,
+	SliderInput,
+	AdvancedSelect,
+	RangeSlider,
+} from '@luxsequencer/ui';
 
-export { default as SliderInput } from './SliderInput';
-export type { SliderInputProps } from './SliderInput';
-
-export { AdvancedSelect } from './AdvancedSelect';
-export type { AdvancedSelectOption, AdvancedSelectProps } from './AdvancedSelect';
-
-export { RangeSlider } from './RangeSlider';
-export type { RangeSliderProps, RangeSliderValue } from './RangeSlider';
+export type {
+	SliderInputProps,
+	AdvancedSelectOption,
+	AdvancedSelectProps,
+	RangeSliderProps,
+	RangeSliderValue,
+} from '@luxsequencer/ui';
 
 export { ColorPicker } from './ColorPicker';
 export type { ColorPickerProps, ColorPreset } from './ColorPicker';

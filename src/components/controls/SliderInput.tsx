@@ -1,2 +1,2 @@
-export { default } from '../ui/composites/SliderInput';
-export type { SliderInputProps } from '../ui/composites/SliderInput';
+export { SliderInput as default } from '@luxsequencer/ui';
+export type { SliderInputProps } from '@luxsequencer/ui';
