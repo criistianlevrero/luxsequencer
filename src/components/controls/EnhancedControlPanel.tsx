@@ -7,7 +7,7 @@ import React, { useMemo } from 'react';
 import { useTextureStore } from '../../store';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { renderers } from '../renderers';
-import { CollapsibleSection } from '../ui';
+import { Card, CollapsibleSection } from '../ui';
 import { DeclarativeControlPanel } from '../declarative/ControlRenderer';
 import type { RendererControlSpec, DeclarativeControlSchema } from '../../types/declarativeControls';
 import type { ControlSection } from '../../types';
@@ -118,7 +118,7 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
   return (
     <div className="space-y-6">
       {/* Header with system info */}
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-600">
+      <Card className="border-gray-600" padding="md">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium text-gray-200">Control System</h3>
@@ -148,7 +148,7 @@ export const EnhancedControlPanel: React.FC<EnhancedControlPanelProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Controls Content */}
       {showComparison ? (

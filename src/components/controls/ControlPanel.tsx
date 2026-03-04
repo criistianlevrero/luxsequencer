@@ -6,7 +6,7 @@ import { getSelectableRenderers, resolveRendererDefinition } from '../renderers'
 import { buildMarketplaceToolKey } from '../renderers/sdk/toolIdentity';
 import MidiLearnButton from '../midi/MidiLearnButton';
 import RendererControls from '../renderers/shared/RendererControls';
-import { Alert, Button, CollapsibleSection, Input, Select } from '../ui';
+import { Alert, Button, CollapsibleSection, FieldLabel, Input, Select } from '../ui';
 
 const ControlPanel: React.FC = () => {
   const { t } = useTranslation();
@@ -212,7 +212,7 @@ const ControlPanel: React.FC = () => {
                         </Alert>
                     ) : midiDevices.length > 0 ? (
                         <div className="space-y-3">
-                             <label htmlFor="midiDevice" className="font-medium text-gray-300">{t('midi.inputDevice')}</label>
+                                <FieldLabel htmlFor="midiDevice" label={t('midi.inputDevice')} />
                                 <Select 
                                     id="midiDevice"
                                     value={selectedMidiDevice || ''}

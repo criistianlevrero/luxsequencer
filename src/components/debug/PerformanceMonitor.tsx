@@ -8,7 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { usePerformanceMonitoring, usePerformanceAlerts } from '../../hooks/usePerformanceMonitoring';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
-import { Alert, Button, Card, CollapsibleSection, PanelHeader, StatTile, Switch } from '../ui';
+import { Alert, Button, Card, CollapsibleSection, FieldLabel, MetricCard, MiniChartCard, PanelHeader, StatTile, Switch } from '../ui';
 import { 
   ConsoleIcon,
   SettingsIcon,
@@ -170,21 +170,21 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
           <h4 className="text-sm font-medium text-gray-200 mb-3">Monitoring Settings</h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">Enable Alerts</label>
+              <FieldLabel label="Enable Alerts" labelClassName="text-gray-400" />
               <Switch
                 checked={settings.enableAlerts}
                 onChange={(checked) => updateSettings({ enableAlerts: checked })}
               />
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">Enable Profiling</label>
+              <FieldLabel label="Enable Profiling" labelClassName="text-gray-400" />
               <Switch
                 checked={settings.enableProfiling}
                 onChange={(checked) => updateSettings({ enableProfiling: checked })}
               />
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">WebGL Profiling</label>
+              <FieldLabel label="WebGL Profiling" labelClassName="text-gray-400" />
               <Switch
                 checked={settings.enableWebGLProfiling}
                 onChange={(checked) => updateSettings({ enableWebGLProfiling: checked })}
@@ -347,16 +347,11 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         <CollapsibleSection title="Renderer Profiling">
           <div className="space-y-2">
             {Object.entries(rendererProfile).map(([rendererId, profile]) => (
-              <div key={rendererId} className="bg-gray-700/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-200 capitalize">
-                    {rendererId} Renderer
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {profile.totalFrames} frames
-                  </span>
-                </div>
-                
+              <MetricCard
+                key={rendererId}
+                title={<span className="capitalize">{rendererId} Renderer</span>}
+                headerRight={<span className="text-xs text-gray-400">{profile.totalFrames} frames</span>}
+              >
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-400">Avg Render: </span>
@@ -371,7 +366,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                     </span>
                   </div>
                 </div>
-              </div>
+              </MetricCard>
             ))}
           </div>
         </CollapsibleSection>
@@ -380,7 +375,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       {/* WebGL Metrics */}
       {metrics?.webgl && (
         <CollapsibleSection title="WebGL Metrics">
-          <div className="bg-gray-700/50 rounded-lg p-3">
+          <MetricCard>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-gray-400">Renderer: </span>
@@ -399,7 +394,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                 <span className="text-gray-200">{metrics.webgl.drawCalls}</span>
               </div>
             </div>
-          </div>
+          </MetricCard>
         </CollapsibleSection>
       )}
     </div>
@@ -431,35 +426,21 @@ const PerformanceCharts: React.FC<{
       const y = 100 - ((point.value - minValue) / range) * 100;
       return `${x},${y}`;
     }).join(' ');
+
+    const title = data === history.fps ? 'FPS' : data === history.memory ? 'Memory' : 'Render Time';
+    const currentLabel = `${recentData[recentData.length - 1]?.value.toFixed(1)}${suffix}`;
+    const minLabel = `${minValue.toFixed(1)}${suffix}`;
+    const maxLabel = `${maxValue.toFixed(1)}${suffix}`;
     
     return (
-      <div className="bg-gray-700/50 rounded-lg p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">
-            {data === history.fps ? 'FPS' : data === history.memory ? 'Memory' : 'Render Time'}
-          </span>
-          <span className="text-sm text-gray-200">
-            {recentData[recentData.length - 1]?.value.toFixed(1)}{suffix}
-          </span>
-        </div>
-        
-        <div className="relative h-16">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <polyline
-              points={points}
-              fill="none"
-              stroke={color}
-              strokeWidth="2"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
-        
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{minValue.toFixed(1)}{suffix}</span>
-          <span>{maxValue.toFixed(1)}{suffix}</span>
-        </div>
-      </div>
+      <MiniChartCard
+        title={title}
+        points={points}
+        stroke={color}
+        currentLabel={currentLabel}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
+      />
     );
   };
   

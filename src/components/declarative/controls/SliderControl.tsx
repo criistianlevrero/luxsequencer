@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Button, Input, Slider } from '../../ui';
+import { Button, FieldLabel, Input, Slider } from '../../ui';
 import type { SliderControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -48,12 +48,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
     <div className="space-y-2">
       {/* Label with tooltip */}
       <div className="flex items-center justify-between">
-        <label className="font-medium text-gray-300 flex items-center gap-2">
-          {spec.label}
-          {spec.metadata?.tooltip && (
-            <TooltipIcon tooltip={spec.metadata.tooltip} />
-          )}
-        </label>
+        <FieldLabel label={spec.label} tooltip={spec.metadata?.tooltip} />
         <div className="flex items-center gap-2">
           <span className="text-sm font-mono bg-gray-700 text-cyan-300 px-2 py-1 rounded">
             {constraints.formatter ? constraints.formatter(safeValue) : safeValue.toString()}
@@ -193,31 +188,6 @@ export const SliderControl: React.FC<SliderControlProps> = ({
         <div className="text-xs text-gray-500 flex items-center gap-1">
           <span>📊</span>
           <span>Logarithmic scale</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/**
- * Tooltip icon component
- */
-const TooltipIcon: React.FC<{ tooltip: string }> = ({ tooltip }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  return (
-    <div 
-      className="relative inline-block"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      <div className="w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center text-xs text-gray-300 cursor-help">
-        ?
-      </div>
-      {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded shadow-lg whitespace-nowrap z-10">
-          {tooltip}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
         </div>
       )}
     </div>

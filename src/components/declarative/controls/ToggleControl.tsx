@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Input, Switch } from '../../ui';
+import React from 'react';
+import { Button, Checkbox, FieldLabel, RadioGroup, Switch } from '../../ui';
 import type { ToggleControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -32,12 +32,7 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="font-medium text-gray-300 flex items-center gap-2">
-            {spec.label}
-            {spec.metadata?.tooltip && (
-              <TooltipIcon tooltip={spec.metadata.tooltip} />
-            )}
-          </label>
+          <FieldLabel label={spec.label} tooltip={spec.metadata?.tooltip} />
           
           <Switch
             checked={value}
@@ -72,50 +67,20 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
   if (style === 'checkbox') {
     return (
       <div className="space-y-3">
-        <label className="flex items-center gap-3 cursor-pointer">
-          <div className="relative">
-            <Input
-              type="checkbox"
-              checked={value}
-              onChange={handleToggle}
-              onKeyDown={handleKeyDown}
-              disabled={disabled}
-              className="sr-only"
-              unstyled
-            />
-            <div
-              className={`
-                w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
-                ${disabled 
-                  ? 'border-gray-600 cursor-not-allowed opacity-50' 
-                  : 'border-gray-500 cursor-pointer hover:border-gray-400'
-                }
-                ${value 
-                  ? 'bg-cyan-600 border-cyan-600' 
-                  : 'bg-transparent'
-                }
-              `}
-            >
-              {value && (
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          <Checkbox
+            checked={value}
+            onChange={onChange}
+            disabled={disabled}
+          />
           
           <div className="flex-1">
-            <div className="font-medium text-gray-300 flex items-center gap-2">
-              {spec.label}
-              {spec.metadata?.tooltip && (
-                <TooltipIcon tooltip={spec.metadata.tooltip} />
-              )}
-            </div>
+            <FieldLabel label={spec.label} tooltip={spec.metadata?.tooltip} />
             {spec.metadata?.description && (
               <p className="text-sm text-gray-400">{spec.metadata.description}</p>
             )}
           </div>
-        </label>
+        </div>
         
         {/* State indicator */}
         {(constraints.onLabel || constraints.offLabel) && (
@@ -134,12 +99,7 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
   if (style === 'button') {
     return (
       <div className="space-y-3">
-        <label className="font-medium text-gray-300 flex items-center gap-2">
-          {spec.label}
-          {spec.metadata?.tooltip && (
-            <TooltipIcon tooltip={spec.metadata.tooltip} />
-          )}
-        </label>
+        <FieldLabel label={spec.label} tooltip={spec.metadata?.tooltip} />
         
         {spec.metadata?.description && (
           <p className="text-sm text-gray-400">{spec.metadata.description}</p>
@@ -166,117 +126,26 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
   if (style === 'radio') {
     return (
       <div className="space-y-3">
-        <label className="font-medium text-gray-300 flex items-center gap-2">
-          {spec.label}
-          {spec.metadata?.tooltip && (
-            <TooltipIcon tooltip={spec.metadata.tooltip} />
-          )}
-        </label>
+        <FieldLabel label={spec.label} tooltip={spec.metadata?.tooltip} />
         
         {spec.metadata?.description && (
           <p className="text-sm text-gray-400">{spec.metadata.description}</p>
         )}
         
-        <div className="flex gap-4">
-          {/* True option */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <div className="relative">
-              <Input
-                type="radio"
-                name={spec.id}
-                checked={value === true}
-                onChange={() => onChange(true)}
-                disabled={disabled}
-                className="sr-only"
-                unstyled
-              />
-              <div
-                className={`
-                  w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors
-                  ${disabled 
-                    ? 'border-gray-600 cursor-not-allowed opacity-50' 
-                    : 'border-gray-500 cursor-pointer hover:border-gray-400'
-                  }
-                  ${value === true 
-                    ? 'border-cyan-600' 
-                    : ''
-                  }
-                `}
-              >
-                {value === true && (
-                  <div className="w-2 h-2 rounded-full bg-cyan-600" />
-                )}
-              </div>
-            </div>
-            <span className="text-sm text-gray-300">
-              {constraints.onLabel || 'Yes'}
-            </span>
-          </label>
-          
-          {/* False option */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <div className="relative">
-              <Input
-                type="radio"
-                name={spec.id}
-                checked={value === false}
-                onChange={() => onChange(false)}
-                disabled={disabled}
-                className="sr-only"
-                unstyled
-              />
-              <div
-                className={`
-                  w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors
-                  ${disabled 
-                    ? 'border-gray-600 cursor-not-allowed opacity-50' 
-                    : 'border-gray-500 cursor-pointer hover:border-gray-400'
-                  }
-                  ${value === false 
-                    ? 'border-cyan-600' 
-                    : ''
-                  }
-                `}
-              >
-                {value === false && (
-                  <div className="w-2 h-2 rounded-full bg-cyan-600" />
-                )}
-              </div>
-            </div>
-            <span className="text-sm text-gray-300">
-              {constraints.offLabel || 'No'}
-            </span>
-          </label>
-        </div>
+        <RadioGroup
+          name={spec.id}
+          value={value}
+          onChange={(nextValue) => onChange(Boolean(nextValue))}
+          disabled={disabled}
+          options={[
+            { label: constraints.onLabel || 'Yes', value: true },
+            { label: constraints.offLabel || 'No', value: false },
+          ]}
+        />
       </div>
     );
   }
 
   // Fallback to switch if unknown style
   return null;
-};
-
-/**
- * Tooltip icon component (shared)
- */
-const TooltipIcon: React.FC<{ tooltip: string }> = ({ tooltip }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  return (
-    <div 
-      className="relative inline-block"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      <div className="w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center text-xs text-gray-300 cursor-help">
-        ?
-      </div>
-      {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded shadow-lg whitespace-nowrap z-10">
-          {tooltip}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-        </div>
-      )}
-    </div>
-  );
 };

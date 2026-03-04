@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTextureStore } from '../../store';
 import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../ui/icons';
 import PropertySequencer from './PropertySequencer';
-import { Button, CollapsibleSection, EmptyState, Input, Select, SequencerCell, SliderInput } from '../ui';
+import { Button, Card, CollapsibleSection, EmptyState, FieldLabel, Input, Select, SequencerCell, SliderInput } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 
@@ -115,12 +115,15 @@ const Sequencer: React.FC = () => {
     return (
         <div className="space-y-3">
             {/* --- TRANSPORT SECTION --- */}
-            <div className="bg-gray-800/50 rounded-lg p-3 space-y-3">
+            <Card tone="subtle" padding="sm" className="space-y-3 border-gray-700 shadow-none">
                 {/* Row 1: Sequence selector - full width on mobile */}
                 <div className="space-y-1.5">
-                    <label htmlFor="sequence-selector" className="font-medium text-gray-300 text-xs block">
-                        {t('sequencer.patterns')}
-                    </label>
+                    <FieldLabel
+                        htmlFor="sequence-selector"
+                        label={t('sequencer.patterns')}
+                        size="xs"
+                        labelClassName="block"
+                    />
                     <div className="flex gap-2">
                         <Select
                             id="sequence-selector"
@@ -163,9 +166,12 @@ const Sequencer: React.FC = () => {
                 {/* New Sequence Input */}
                 {showNewSequenceInput && (
                     <div className="space-y-2">
-                        <label htmlFor="new-sequence-name" className="font-medium text-gray-300 text-xs block">
-                            {t('project.name')}
-                        </label>
+                        <FieldLabel
+                            htmlFor="new-sequence-name"
+                            label={t('project.name')}
+                            size="xs"
+                            labelClassName="block"
+                        />
                         <div className="flex gap-2">
                             <Input
                                 id="new-sequence-name"
@@ -202,9 +208,12 @@ const Sequencer: React.FC = () => {
                 {/* Rename Sequence Input */}
                 {showRenameInput && (
                     <div className="space-y-2">
-                        <label htmlFor="rename-sequence" className="font-medium text-gray-300 text-xs block">
-                            {t('project.name')}
-                        </label>
+                        <FieldLabel
+                            htmlFor="rename-sequence"
+                            label={t('project.name')}
+                            size="xs"
+                            labelClassName="block"
+                        />
                         <div className="flex gap-2">
                             <Input
                                 id="rename-sequence"
@@ -265,9 +274,11 @@ const Sequencer: React.FC = () => {
 
                     {/* Step Count Selector */}
                     <div className="space-y-1.5">
-                        <label className="font-medium text-gray-300 text-xs block">
-                            {t('sequencer.steps')}
-                        </label>
+                        <FieldLabel
+                            label={t('sequencer.steps')}
+                            size="xs"
+                            labelClassName="block"
+                        />
                         <div className="flex flex-wrap gap-2">
                             <div className="bg-gray-900/50 p-1 rounded-lg flex gap-1">
                                 <StepSelectorButton steps={8} />
@@ -298,7 +309,7 @@ const Sequencer: React.FC = () => {
                         />
                     </div>
                 </div>
-            </div>
+            </Card>
 
             {/* --- PATTERN SEQUENCER --- */}
             <CollapsibleSection title={t('sequencer.patterns')} defaultOpen={true}>
