@@ -1,8 +1,10 @@
 import type { RendererDefinition } from './types';
 import { buildMarketplaceToolKey, validateMarketplaceIdentity } from './sdk/toolIdentity';
+import { isMarketplaceLicenseTokenValid } from './sdk/licenseToken';
 import { resolveExternalCoreRendererWorkerEntry } from './marketplaceWorkerEntry';
 import { resolveExternalCoreRendererModuleEntry } from './marketplaceWorkerEntry';
 import type { AccordionItem, ControlSection, DeclarativeControlSchema, RendererControlSpec } from '../../types';
+import { env } from '../../config';
 
 const EmptyExternalRenderer: RendererDefinition['component'] = () => null;
 
@@ -134,7 +136,9 @@ interface AllowedRendererConfig {
   workerRequirements?: RendererDefinition['workerRequirements'];
 }
 
-interface ExternalRendererConfig extends AllowedRendererConfig {}
+interface ExternalRendererConfig extends AllowedRendererConfig {
+  licenseToken?: string;
+}
 
 const ALLOWED_RENDERERS: AllowedRendererConfig[] = [
   {
@@ -258,6 +262,17 @@ export const getMarketplaceRendererRegistry = (
     const manifestKey = buildMarketplaceToolKey(tool.packageManifest);
     if (manifestKey !== tool.key) {
       return;
+    }
+
+    if (env.marketplaceEnforceLicenseTokens && tool.packageManifest.source === 'community') {
+      if (!tool.licenseToken) {
+        return;
+      }
+
+      const isValidToken = isMarketplaceLicenseTokenValid(tool.licenseToken, tool.key);
+      if (!isValidToken) {
+        return;
+      }
     }
 
     registry[tool.key] = {

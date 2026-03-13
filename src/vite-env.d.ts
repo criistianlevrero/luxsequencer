@@ -38,6 +38,8 @@ interface ImportMetaEnv {
   readonly VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS: string;
   /** Base URL for external core-renderers worker files */
   readonly VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL: string;
+  /** Enforce license token validation for community marketplace plugins */
+  readonly VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS: string;
 }
 
 interface ImportMeta {

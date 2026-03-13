@@ -44,6 +44,8 @@ interface EnvConfig {
   communityTrustStoreRevocationCacheTtlMs: number;
   /** Base URL for external core-renderers worker files */
   marketplaceCoreRenderersBaseUrl: string;
+  /** Enforce marketplace community plugin license token validation */
+  marketplaceEnforceLicenseTokens: boolean;
   /** Debug categories for fine-grained control */
   debug: {
     /** Sequencer timing and pattern loading */
@@ -110,6 +112,7 @@ export const env: EnvConfig = {
   communityTrustStoreRevocationUrl: import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_URL,
   communityTrustStoreRevocationCacheTtlMs: parseNumber(import.meta.env.VITE_COMMUNITY_TRUST_STORE_REVOCATION_CACHE_TTL_MS, 120000),
   marketplaceCoreRenderersBaseUrl: import.meta.env.VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL || '/marketplace-core-renderers/src/renderers/',
+  marketplaceEnforceLicenseTokens: parseBoolean(import.meta.env.VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS, true),
   debug: {
     sequencer: parseBoolean(import.meta.env.VITE_DEBUG_SEQUENCER, false),
     animation: parseBoolean(import.meta.env.VITE_DEBUG_ANIMATION, false),
