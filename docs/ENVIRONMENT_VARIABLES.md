@@ -297,6 +297,30 @@ Ejemplos de resolución:
 VITE_MARKETPLACE_CORE_RENDERERS_BASE_URL=http://localhost:4174/src/renderers/
 ```
 
+### `VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS`
+
+- **Type:** Boolean (`true` | `false`)
+- **Default:** `true`
+- **Description:** Enforce license token validation for community marketplace plugins/renderers.
+
+Comportamiento:
+- `true`: plugins/renderers `community` requieren token válido (`pluginKey`, `iat`, `exp`).
+- `false`: se omite validación de token para `community` (útil para desarrollo local de colaboradores).
+- Plugins/renderers `builtin` no dependen de este flag.
+
+Política recomendada:
+- Producción/preview compartidos: `true`.
+- Desarrollo local de colaboradores: `false` solo cuando sea necesario para iteración local.
+- No usar `false` como default de release.
+
+```env
+# Producción
+VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS=true
+
+# Desarrollo local de colaboradores
+VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS=false
+```
+
 ### `VITE_GEMINI_API_KEY`
 
 - **Type:** String

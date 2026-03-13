@@ -121,3 +121,37 @@ Ejemplo de documentación por renderer:
 - Carga remota completa de contexto de performance.
 
 Esa capa se integrará desde un repositorio dedicado en una fase posterior.
+
+## 9) Licencias de marketplace (estado actual y propuesta)
+
+### Estado actual (implementado)
+
+- Los renderers con `packageManifest.source === 'community'` pueden requerir validación de token de licencia.
+- La validación usa claims del token (`pluginKey`, `iat`, `exp`) y se ejecuta en `src/components/renderers/sdk/licenseToken.ts`.
+- El registro de renderers externos aplica esta validación en `src/components/renderers/index.ts`.
+- El comportamiento se controla con `VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS`:
+  - `true` (default): valida token para `community`.
+  - `false`: omite validación para facilitar desarrollo local de colaboradores.
+- Los renderers `builtin` (por ejemplo los del repo `core-renderers`) no dependen del token.
+
+### Motivación del bypass local
+
+- Colaboradores que desarrollan plugins/renderers necesitan levantar `luxsequencer-core` + `core-renderers` en local.
+- Durante esa etapa no siempre existe integración completa con cloud/licencias.
+- Por eso existe un bypass explícito por env var para entorno local.
+
+### Propuesta de evolución (recomendada)
+
+Objetivo: evitar desactivación accidental de seguridad en producción y mantener DX local.
+
+1. Mantener validación de licencia siempre activa para `source: 'community'` en producción.
+2. Reemplazar el bypass global por un modo explícito de desarrollo local, por ejemplo:
+   - `source: 'local-dev'` (o equivalente) para paquetes cargados desde repos de colaboración.
+   - Solo ese `source` puede saltar validación.
+3. Mantener `builtin` como gratuito y sin dependencia de licencia de marketplace.
+4. Agregar guardrails de build/CI para fallar si se intenta release con bypass inseguro activo.
+
+Este enfoque separa claramente:
+- `builtin`: gratis, trusted, sin token.
+- `community`: marketplace, validación obligatoria.
+- `local-dev`: colaboración local, sin fricción de licencias.
