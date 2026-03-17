@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { CompactNumberInput } from '@luxsequencer/ui';
 import { Button, Input } from '../primitives';
 
 export interface ColorPreset {
@@ -243,7 +244,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             {colorMode === 'rgb' && (
               <div className="grid grid-cols-3 gap-1">
                 {(['r', 'g', 'b'] as const).map((channel) => (
-                  <Input
+                  <CompactNumberInput
                     key={channel}
                     type="number"
                     min={0}
@@ -256,9 +257,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                       applyColorByFormat(hexValue);
                     }}
                     disabled={disabled}
-                    className="w-full rounded border border-gray-600 bg-gray-700 px-1 py-1 text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                     placeholder={channel.toUpperCase()}
-                    unstyled
                   />
                 ))}
               </div>
@@ -266,7 +265,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
             {colorMode === 'hsl' && (
               <div className="grid grid-cols-3 gap-1">
-                <Input
+                <CompactNumberInput
                   type="number"
                   min={0}
                   max={360}
@@ -278,12 +277,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                     applyColorByFormat(hexValue);
                   }}
                   disabled={disabled}
-                  className="w-full rounded border border-gray-600 bg-gray-700 px-1 py-1 text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                   placeholder="H"
-                  unstyled
                 />
                 {(['s', 'l'] as const).map((channel) => (
-                  <Input
+                  <CompactNumberInput
                     key={channel}
                     type="number"
                     min={0}
@@ -297,9 +294,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                       applyColorByFormat(hexValue);
                     }}
                     disabled={disabled}
-                    className="w-full rounded border border-gray-600 bg-gray-700 px-1 py-1 text-xs text-gray-200 focus:border-cyan-500 focus:outline-none disabled:opacity-50"
                     placeholder={channel.toUpperCase()}
-                    unstyled
                   />
                 ))}
               </div>

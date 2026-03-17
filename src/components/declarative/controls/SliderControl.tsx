@@ -16,6 +16,8 @@ export const SliderControl: React.FC<SliderControlProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLInputElement>(null);
 
+  const isNumberValue = (input: unknown): input is number => typeof input === 'number' && Number.isFinite(input);
+
   // Calculate if we're near a detent
   const getNearestDetent = useCallback((val: number): number | null => {
     if (!constraints.detents) return null;
@@ -41,7 +43,11 @@ export const SliderControl: React.FC<SliderControlProps> = ({
   }, [onChange]);
 
   // Calculate percentage for visual indicators - handle undefined values
-  const safeValue = value ?? constraints.defaultValue ?? constraints.min;
+  const safeValue = isNumberValue(value)
+    ? value
+    : isNumberValue(constraints.defaultValue)
+      ? constraints.defaultValue
+      : constraints.min;
   const percentage = ((safeValue - constraints.min) / (constraints.max - constraints.min)) * 100;
 
   return (
@@ -106,7 +112,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
         {/* Detents visual indicators */}
         {constraints.detents?.map(detent => {
           const detentPercentage = ((detent - constraints.min) / (constraints.max - constraints.min)) * 100;
-          const isActive = Math.abs(value - detent) < constraints.step;
+          const isActive = isNumberValue(value) && Math.abs(value - detent) < constraints.step;
           
           return (
             <div
@@ -125,7 +131,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
       <div className="flex items-center gap-2">
         <Input
           type="number"
-          value={value}
+          value={safeValue}
           onChange={(e) => {
             const newValue = Number(e.target.value);
             if (newValue >= constraints.min && newValue <= constraints.max) {
@@ -146,7 +152,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
             size="sm"
             onClick={() => {
               const defaultPreset = spec.metadata!.presets!.find(p => p.name.toLowerCase() === 'default');
-              if (defaultPreset) onChange(defaultPreset.value);
+              if (defaultPreset && isNumberValue(defaultPreset.value)) onChange(defaultPreset.value);
             }}
             disabled={disabled}
             className="px-2"
@@ -165,11 +171,15 @@ export const SliderControl: React.FC<SliderControlProps> = ({
               key={preset.name}
               variant="secondary"
               size="sm"
-              onClick={() => handlePresetClick(preset.value)}
+              onClick={() => {
+                if (isNumberValue(preset.value)) {
+                  handlePresetClick(preset.value);
+                }
+              }}
               disabled={disabled}
               className={`
                 text-xs px-2 border
-                ${value === preset.value 
+                ${safeValue === preset.value 
                   ? 'bg-cyan-600 border-cyan-500 text-white'
                   : 'bg-gray-800 border-gray-600 hover:bg-gray-700 text-gray-300'
                 }

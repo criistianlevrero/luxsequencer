@@ -14,6 +14,17 @@ export const RangeControl: React.FC<RangeControlProps> = ({
 }) => {
   const constraints = spec.constraints.range!;
 
+  const isRangeValue = (input: unknown): input is { min: number; max: number } => {
+    return (
+      typeof input === 'object'
+      && input !== null
+      && 'min' in input
+      && 'max' in input
+      && typeof (input as { min: unknown }).min === 'number'
+      && typeof (input as { max: unknown }).max === 'number'
+    );
+  };
+
   // Ensure value is always a valid range
   const rangeValue = useMemo(() => {
     return Array.isArray(value) && value.length === 2 
@@ -111,7 +122,11 @@ export const RangeControl: React.FC<RangeControlProps> = ({
                 key={index}
                 variant="secondary"
                 size="sm"
-                onClick={() => onChange(preset.value)}
+                onClick={() => {
+                  if (isRangeValue(preset.value)) {
+                    onChange(preset.value);
+                  }
+                }}
                 disabled={disabled}
                 className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
               >

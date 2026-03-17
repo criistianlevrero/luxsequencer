@@ -47,15 +47,25 @@ const adaptDeclarativeSchemaToSpec = (schema: DeclarativeControlSchema): Rendere
       // Add type-specific constraints
       switch (control.type) {
         case 'slider':
+          {
+          const sliderDefaultValue = typeof control.defaultValue === 'number'
+            ? control.defaultValue
+            : undefined;
+
+          const sliderFormatter = typeof control.formatter === 'function'
+            ? ((value: number) => String(control.formatter?.(value)))
+            : undefined;
+
           standardControl.constraints.slider = {
             min: control.min || 0,
             max: control.max || 100,
             step: control.step || 1,
-            defaultValue: control.defaultValue,
-            formatter: control.formatter,
+            defaultValue: sliderDefaultValue,
+            formatter: sliderFormatter,
             valueLabels: typeof control.valueLabels === 'function' ? control.valueLabels : undefined
           };
           break;
+          }
         case 'gradient':
           standardControl.constraints.gradient = {
             maxColors: control.maxColors || 10,

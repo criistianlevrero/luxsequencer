@@ -1,203 +1,29 @@
 import type { ControlSettings } from '../types';
+import type {
+  ControlType,
+  PropertyDependency,
+  SliderConstraints as SharedSliderConstraints,
+  ColorConstraints as SharedColorConstraints,
+  GradientConstraints as SharedGradientConstraints,
+  SelectConstraints as SharedSelectConstraints,
+  ToggleConstraints as SharedToggleConstraints,
+  Vector2DConstraints as SharedVector2DConstraints,
+  RangeConstraints as SharedRangeConstraints,
+  TextConstraints as SharedTextConstraints,
+  ControlConstraints as SharedControlConstraints,
+  StandardControlSpec as SharedStandardControlSpec,
+  RendererControlSpec as SharedRendererControlSpec,
+  DeclarativeControlSchema,
+} from '@luxsequencer/contracts/declarative-controls';
 
-// ============================================================================
-// DECLARATIVE CONTROL SYSTEM TYPES
-// ============================================================================
+export type {
+  ControlType,
+  PropertyDependency,
+  DeclarativeControlSchema,
+};
 
-/**
- * Enhanced control types supported by the declarative system
- */
-export type ControlType = 
-  | 'slider' 
-  | 'color' 
-  | 'gradient' 
-  | 'select' 
-  | 'toggle'
-  | 'vector2d'    // New: X,Y control
-  | 'range'       // New: min/max range
-  | 'curve'       // New: animation curve
-  | 'matrix'      // New: matrix of values
-  | 'text';       // New: text input
-
-/**
- * Strict list of control types allowed for renderer/plugin schemas.
- * Renderer-authored custom UI components are intentionally not allowed.
- */
 export type AllowedControlType = ControlType;
 
-/**
- * Main specification for renderer controls
- */
-export interface RendererControlSpec {
-  // 100% declarative controls from audited core catalog
-  standard: StandardControlSpec[];
-}
-
-/**
- * Standard control specification - fully declarative
- */
-export interface StandardControlSpec {
-  id: string;  // Changed from keyof ControlSettings to string to support dotted paths
-  type: ControlType;
-  category: string;
-  label: string;
-  constraints: ControlConstraints;
-  presets?: PresetValue[];  // Added direct presets support
-  
-  // Metadata for automatic generation
-  metadata?: {
-    description?: string;
-    tooltip?: string;
-    units?: string;
-    category?: string;
-    order?: number;  // Added order support
-    presets?: PresetValue[];
-    dependencies?: PropertyDependency[];
-  };
-}
-
-/**
- * Constraints for different control types
- */
-export interface ControlConstraints {
-  slider?: SliderConstraints;
-  color?: ColorConstraints;
-  gradient?: GradientConstraints;
-  select?: SelectConstraints;
-  toggle?: ToggleConstraints;
-  vector2d?: Vector2DConstraints;
-  range?: RangeConstraints;
-  text?: TextConstraints;
-}
-
-/**
- * Advanced slider constraints with new features
- */
-export interface SliderConstraints {
-  min: number;
-  max: number;
-  step: number;
-  defaultValue?: number;  // Added defaultValue for backward compatibility
-  logarithmic?: boolean;
-  formatter: (value: number) => string;
-  valueLabels?: (value: number) => string;  // Added valueLabels support
-  
-  // Advanced characteristics
-  curves?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-  bipolar?: boolean; // For controls that go from -N to +N with 0 in center
-  detents?: number[]; // Values that "attract" the control
-}
-
-/**
- * Color control constraints
- */
-export interface ColorConstraints {
-  format?: 'hex' | 'rgb' | 'hsl';
-  alpha?: boolean;
-  palette?: string[]; // Preset colors
-}
-
-/**
- * Gradient control constraints
- */
-export interface GradientConstraints {
-  minColors: number;
-  maxColors: number;
-  allowHardStops: boolean;
-  supportsHardStops: boolean;  // Keep both for compatibility
-  format?: 'array' | 'object' | 'css';  // Added css format support
-  presetPalettes?: ColorPalette[];
-  colorSpace?: 'rgb' | 'hsl' | 'lab';
-}
-
-/**
- * Select dropdown constraints
- */
-export interface SelectConstraints {
-  options: SelectOption[];
-  searchable?: boolean;
-  multiple?: boolean;
-  multiSelect?: boolean;  // Alias for multiple
-  allowGroups?: boolean;  // Support for grouped options
-  placeholder?: string;   // Placeholder text
-}
-
-/**
- * Toggle/checkbox constraints
- */
-export interface ToggleConstraints {
-  style?: 'switch' | 'checkbox' | 'button';
-  size?: 'sm' | 'md' | 'lg';
-  onLabel?: string;   // Added for backward compatibility
-  offLabel?: string;  // Added for backward compatibility
-}
-
-/**
- * 2D Vector control constraints
- */
-export interface Vector2DConstraints {
-  xRange: [number, number];
-  yRange: [number, number];
-  lockAspectRatio?: boolean;
-  polarMode?: boolean; // Show as radius/angle instead of X/Y
-  gridSnap?: boolean;
-  gridSize?: number;
-}
-
-/**
- * Range (min/max) control constraints
- */
-export interface RangeConstraints {
-  min: number;
-  max: number;
-  step: number;
-  allowOverlap?: boolean;
-  formatter?: (value: number) => string;
-}
-
-/**
- * Text input constraints
- */
-export interface TextConstraints {
-  maxLength?: number;
-  minLength?: number;     // Added minLength
-  pattern?: RegExp;
-  patternError?: string;  // Added custom pattern error message
-  placeholder?: string;
-  multiline?: boolean;
-  validator?: (value: string) => string | true;  // Added custom validator
-  formatter?: (value: string) => string;        // Added formatter
-  allowInvalid?: boolean; // Added allowInvalid flag
-  autoResize?: boolean;   // Added autoResize for textareas
-  showCharacterCount?: boolean; // Added character count display
-  required?: boolean;     // Added required field validation
-  rows?: number;          // Added rows for textarea
-  inputType?: string;     // Added input type (text, email, password, etc.)
-  clearable?: boolean;    // Added clearable button for input
-  formatHints?: string[]; // Added format hints for display
-}
-
-/**
- * Property dependencies for conditional display
- */
-export interface PropertyDependency {
-  property: string;  // Changed from keyof ControlSettings to string for dotted paths
-  condition: (value: any) => boolean;
-  effect: 'show' | 'hide' | 'enable' | 'disable';
-}
-
-/**
- * Preset value for controls
- */
-export interface PresetValue {
-  name: string;
-  value: any;
-  description?: string;
-}
-
-/**
- * Color palette for gradients
- */
 export interface ColorPalette {
   id: string;
   name: string;
@@ -205,20 +31,65 @@ export interface ColorPalette {
   description?: string;
 }
 
-/**
- * Select option
- */
 export interface SelectOption {
-  value: any;
+  value: unknown;
   label: string;
   description?: string;
   icon?: string;
-  group?: string;  // Added group support for option grouping
+  group?: string;
 }
 
-/**
- * Context provided to controls during rendering
- */
+export interface PresetValue {
+  name: string;
+  value: unknown;
+  description?: string;
+}
+
+export type SliderConstraints = Omit<SharedSliderConstraints, 'defaultValue' | 'formatter' | 'valueLabels'> & {
+  defaultValue?: number;
+  formatter?: (value: number) => string;
+  valueLabels?: ((value: number) => string) | Record<number | string, string>;
+};
+export type ColorConstraints = SharedColorConstraints;
+export type ToggleConstraints = SharedToggleConstraints;
+export type Vector2DConstraints = SharedVector2DConstraints;
+export type RangeConstraints = SharedRangeConstraints;
+export type TextConstraints = SharedTextConstraints;
+
+export type GradientConstraints = SharedGradientConstraints & {
+  presetPalettes?: ColorPalette[];
+  colorSpace?: 'rgb' | 'hsl' | 'lab';
+};
+
+export type SelectConstraints = Omit<SharedSelectConstraints, 'options'> & {
+  options: SelectOption[];
+};
+
+export interface ControlConstraints extends Omit<SharedControlConstraints, 'slider' | 'gradient' | 'select'> {
+  slider?: SliderConstraints;
+  gradient?: GradientConstraints;
+  select?: SelectConstraints;
+}
+
+export interface StandardControlSpec extends Omit<SharedStandardControlSpec, 'constraints' | 'presets' | 'metadata'> {
+  id: string;
+  constraints: ControlConstraints;
+  presets?: PresetValue[];
+  metadata?: {
+    description?: string;
+    tooltip?: string;
+    units?: string;
+    category?: string;
+    order?: number;
+    presets?: PresetValue[];
+    dependencies?: PropertyDependency[];
+  };
+}
+
+export interface RendererControlSpec extends Omit<SharedRendererControlSpec, 'standard'> {
+  standard: StandardControlSpec[];
+}
+
 export interface ControlRenderContext {
   settings: ControlSettings;
   rendererId: string;
@@ -226,10 +97,7 @@ export interface ControlRenderContext {
   deviceType?: 'desktop' | 'tablet' | 'mobile';
 }
 
-/**
- * Props passed to control components
- */
-export interface BaseControlProps<T = any> {
+export interface BaseControlProps<T = unknown> {
   spec: StandardControlSpec;
   value: T;
   onChange: (value: T) => void;
@@ -237,7 +105,6 @@ export interface BaseControlProps<T = any> {
   disabled?: boolean;
 }
 
-// Type-specific control props
 export interface SliderControlProps extends BaseControlProps<number> {
   spec: StandardControlSpec & { constraints: { slider: SliderConstraints } };
 }
@@ -246,7 +113,7 @@ export interface ColorControlProps extends BaseControlProps<string> {
   spec: StandardControlSpec & { constraints: { color: ColorConstraints } };
 }
 
-export interface GradientControlProps extends BaseControlProps<any[] | string> {
+export interface GradientControlProps extends BaseControlProps<unknown[] | string> {
   spec: StandardControlSpec & { constraints: { gradient: GradientConstraints } };
 }
 
@@ -254,7 +121,7 @@ export interface Vector2DControlProps extends BaseControlProps<{ x: number; y: n
   spec: StandardControlSpec & { constraints: { vector2d: Vector2DConstraints } };
 }
 
-export interface SelectControlProps extends BaseControlProps<any> {
+export interface SelectControlProps extends BaseControlProps<unknown> {
   spec: StandardControlSpec & { constraints: { select: SelectConstraints } };
 }
 
@@ -268,80 +135,4 @@ export interface RangeControlProps extends BaseControlProps<{ min: number; max: 
 
 export interface TextControlProps extends BaseControlProps<string> {
   spec: StandardControlSpec & { constraints: { text: TextConstraints } };
-}
-
-// ============================================================================
-// DECLARATIVE CONTROL SCHEMA
-// ============================================================================
-
-/**
- * Complete declarative schema for a renderer
- */
-export interface DeclarativeControlSchema {
-  schemaVersion: string;
-  rendererId: string;
-  rendererName: string;
-  description: string;
-  
-  presets?: Array<{
-    id: string;
-    name: string;
-    settings: any;
-  }>;
-  
-  sections: Array<{
-    id: string;
-    title: string;
-    description?: string;
-    defaultOpen?: boolean;
-    controls: Array<{
-      type: ControlType;
-      id: string;
-      label: string;
-      description?: string;
-      constraints?: ControlConstraints;
-      min?: number;
-      max?: number;
-      step?: number;
-      defaultValue?: any;
-      formatter?: (value: any) => string;
-      valueLabels?: Record<number | string, string>;
-      maxColors?: number;
-      minColors?: number;
-      supportsHardStops?: boolean;
-      dependencies?: PropertyDependency[];
-    }>;
-  }>;
-  
-  globalDependencies?: PropertyDependency[];
-  
-  validation?: Array<{
-    property: string;
-    rules: Array<{
-      type: 'range' | 'custom';
-      min?: number;
-      max?: number;
-      validator?: (value: any) => boolean;
-      message: string;
-    }>;
-  }>;
-  
-  metadata?: {
-    version: string;
-    author: string;
-    created: string;
-    lastModified: string;
-    tags: string[];
-    performance: {
-      complexity: 'low' | 'medium' | 'high';
-      gpuIntensive: boolean;
-      recommendedMaxInstances: number;
-    };
-    features: string[];
-    requirements: {
-      webgl?: string;
-      shaderModel?: string;
-      extensions?: string[];
-    };
-  };
 }

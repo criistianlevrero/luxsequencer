@@ -3,6 +3,9 @@ export {
 	SliderInput,
 	AdvancedSelect,
 	RangeSlider,
+	IconActionButton,
+	CompactNumberInput,
+	SegmentedGroup,
 } from '@luxsequencer/ui';
 
 export type {
@@ -11,6 +14,9 @@ export type {
 	AdvancedSelectProps,
 	RangeSliderProps,
 	RangeSliderValue,
+	IconActionButtonProps,
+	CompactNumberInputProps,
+	SegmentedGroupProps,
 } from '@luxsequencer/ui';
 
 export { ColorPicker } from './ColorPicker';

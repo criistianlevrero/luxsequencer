@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExitFullscreenIcon, SettingsIcon, CloseIcon, SequencerIcon, ResetIcon } from '../ui/icons';
-import { Button, Sheet } from '../ui';
+import { IconActionButton, Sheet } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { DrawerStates, DrawerActions } from '../../hooks/useDrawerStates';
 
@@ -38,43 +38,31 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
         }`}
       >
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="circle"
+          <IconActionButton
+            tone="overlay"
             icon={drawers.isDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SettingsIcon className="w-6 h-6" />}
-            iconOnly
             onClick={drawerActions.toggleDrawer}
             aria-label={drawers.isDrawerOpen ? t('ui.closeControls') : t('ui.openControls')}
-            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
-          <Button
-            variant="ghost"
-            size="circle"
+          <IconActionButton
+            tone="overlay"
             icon={drawers.isSequencerDrawerOpen ? <CloseIcon className="w-6 h-6"/> : <SequencerIcon className="w-6 h-6" />}
-            iconOnly
             onClick={drawerActions.toggleSequencerDrawer}
             aria-label={drawers.isSequencerDrawerOpen ? t('ui.closeSequencer') : t('ui.openSequencer')}
-            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="circle"
+          <IconActionButton
+            tone="overlay"
             icon={<ResetIcon className="w-6 h-6" />}
-            iconOnly
             onClick={onReset}
             title={t('ui.resetToDefault')}
-            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
-          <Button
-            variant="ghost"
-            size="circle"
+          <IconActionButton
+            tone="overlay"
             icon={<ExitFullscreenIcon className="w-6 h-6" />}
-            iconOnly
             onClick={onFullscreen}
             aria-label={t('ui.exitFullscreen')}
-            className="bg-gray-800/70 text-white backdrop-blur-sm hover:bg-gray-700/90"
           />
         </div>
       </div>
@@ -88,7 +76,7 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
 
       {/* Bottom Sequencer Drawer */}
       <Sheet side="bottom" open={drawers.isSequencerDrawerOpen}>
-        <div className="p-4 text-gray-200 container mx-auto">
+        <div className="container mx-auto p-4 text-gray-200">
           {sequencerPanel}
         </div>
       </Sheet>

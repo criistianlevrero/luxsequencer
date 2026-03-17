@@ -16,6 +16,19 @@ export const GradientControl: React.FC<GradientControlProps> = ({
 }) => {
   const constraints = spec.constraints.gradient!;
 
+  const isGradientColorArray = (input: unknown): input is GradientColor[] => {
+    return Array.isArray(input) && input.every((item) => (
+      typeof item === 'object'
+      && item !== null
+      && 'id' in item
+      && 'color' in item
+      && 'hardStop' in item
+      && typeof (item as GradientColor).id === 'string'
+      && typeof (item as GradientColor).color === 'string'
+      && typeof (item as GradientColor).hardStop === 'boolean'
+    ));
+  };
+
   // Handle the gradient value conversion
   const handleGradientChange = (newColors: GradientColor[]) => {
     if (disabled) return;
@@ -47,7 +60,7 @@ export const GradientControl: React.FC<GradientControlProps> = ({
 
   // Convert current value to GradientColor array for the editor
   const getGradientColors = (): GradientColor[] => {
-    if (Array.isArray(value)) {
+    if (isGradientColorArray(value)) {
       // Already in the correct format
       return value;
     }
@@ -128,9 +141,30 @@ export const GradientControl: React.FC<GradientControlProps> = ({
           <div className="text-sm text-gray-400 mb-2">Presets</div>
           <div className="grid grid-cols-2 gap-2">
             {spec.presets.map((preset, index) => (
+              (() => {
+                const presetValue = preset.value;
+                const isCssPreset = typeof presetValue === 'string';
+                const isArrayPreset = isGradientColorArray(presetValue);
+                if (!isCssPreset && !isArrayPreset) {
+                  return null;
+                }
+
+                const previewBackground = isCssPreset
+                  ? presetValue
+                  : (() => {
+                      const colors = presetValue;
+                      if (colors.length === 1) return colors[0].color;
+                      const stops = colors.map((c, i) => {
+                        const position = i / (colors.length - 1) * 100;
+                        return `${c.color} ${position}%`;
+                      }).join(', ');
+                      return `linear-gradient(to right, ${stops})`;
+                    })();
+
+                return (
               <Button
                 key={index}
-                onClick={() => onChange(preset.value)}
+                onClick={() => onChange(presetValue)}
                 disabled={disabled}
                 unstyled
                 className={`
@@ -138,19 +172,7 @@ export const GradientControl: React.FC<GradientControlProps> = ({
                   ${disabled && 'opacity-50 cursor-not-allowed'}
                 `}
                 style={{ 
-                  background: typeof preset.value === 'string' 
-                    ? preset.value
-                    : Array.isArray(preset.value) && preset.value.length > 0
-                      ? (() => {
-                          const colors = preset.value as GradientColor[];
-                          if (colors.length === 1) return colors[0].color;
-                          const stops = colors.map((c, i) => {
-                            const position = i / (colors.length - 1) * 100;
-                            return `${c.color} ${position}%`;
-                          }).join(', ');
-                          return `linear-gradient(to right, ${stops})`;
-                        })()
-                      : 'transparent'
+                  background: previewBackground
                 }}
                 title={preset.name}
               >
@@ -158,6 +180,8 @@ export const GradientControl: React.FC<GradientControlProps> = ({
                   {preset.name}
                 </div>
               </Button>
+                );
+              })()
             ))}
           </div>
         </div>

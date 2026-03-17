@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTextureStore } from '../../store';
 import { PlayIcon, StopIcon, PlusIcon, TrashIcon, SettingsIcon } from '../ui/icons';
 import PropertySequencer from './PropertySequencer';
-import { Button, Card, CollapsibleSection, EmptyState, FieldLabel, Input, Select, SequencerCell, SliderInput } from '../ui';
+import { Button, Card, CollapsibleSection, EmptyState, FieldLabel, Input, SegmentedGroup, Select, SequencerCell, SliderInput } from '../ui';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import type { Sequence } from '../../types';
 
@@ -95,7 +95,7 @@ const Sequencer: React.FC = () => {
         setSequencerSteps(newSteps);
     };
 
-    const handleSequenceChange = (key: keyof Sequence, value: any) => {
+    const handleSequenceChange = (key: keyof Sequence, value: Sequence[keyof Sequence]) => {
         updateActiveSequence({ [key]: value });
     };
     
@@ -280,16 +280,16 @@ const Sequencer: React.FC = () => {
                             labelClassName="block"
                         />
                         <div className="flex flex-wrap gap-2">
-                            <div className="bg-gray-900/50 p-1 rounded-lg flex gap-1">
+                            <SegmentedGroup>
                                 <StepSelectorButton steps={8} />
                                 <StepSelectorButton steps={16} />
                                 <StepSelectorButton steps={32} />
-                            </div>
-                            <div className="bg-gray-900/50 p-1 rounded-lg flex gap-1">
+                            </SegmentedGroup>
+                            <SegmentedGroup>
                                 <StepSelectorButton steps={6} />
                                 <StepSelectorButton steps={12} />
                                 <StepSelectorButton steps={24} />
-                            </div>
+                            </SegmentedGroup>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { AccordionItem, RendererValidationSpec, DeclarativeControlSchema, RendererControlSpec } from '../../types';
 import type { RendererWorkerCapability } from '../../graphics-pipeline';
+import type { PackageManifestV1 } from '@luxsequencer/contracts/marketplace';
 
 export interface RendererWorkerRequirements {
   requiredCapabilities: RendererWorkerCapability[];
@@ -9,30 +10,7 @@ export interface RendererWorkerRequirements {
   stallTimeoutMs?: number;
 }
 
-export interface RendererPackageManifest {
-  schemaVersion: '1.0.0';
-  publisherId: string;
-  repositoryId: string;
-  packageId: string;
-  packageVersion: string;
-  tool: {
-    kind: 'renderer' | 'tool';
-    id: string;
-    versionMajor: number;
-  };
-  source: 'builtin' | 'community';
-  sdk: {
-    minWorkerProtocolVersion: string;
-  };
-  security?: {
-    workerEntrySha256?: string;
-    workerEntrySignature?: {
-      algorithm: 'ECDSA_P256_SHA256';
-      publicKeyId: string;
-      valueBase64: string;
-    };
-  };
-}
+export type RendererPackageManifest = PackageManifestV1;
 
 export interface RendererDefinition {
   id: string;

@@ -194,10 +194,14 @@ export const TextControl: React.FC<TextControlProps> = ({
                 key={index}
                 variant="secondary"
                 size="sm"
-                onClick={() => onChange(preset.value)}
+                onClick={() => {
+                  if (typeof preset.value === 'string') {
+                    onChange(preset.value);
+                  }
+                }}
                 disabled={disabled}
                 className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                title={preset.value}
+                title={typeof preset.value === 'string' ? preset.value : preset.name}
               >
                 {preset.name}
               </Button>

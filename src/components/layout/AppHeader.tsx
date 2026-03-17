@@ -1,6 +1,6 @@
 import React from 'react';
 import { FishIcon, EnterFullscreenIcon, ResetIcon } from '../ui/icons';
-import { Button } from '../ui';
+import { IconActionButton } from '../ui';
 import { LanguageSelector } from '../i18n/LanguageSelector';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import packageJson from '../../../package.json';
@@ -27,23 +27,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onFullscreen, onReset }) =
           </div>
           <div className="flex items-center space-x-2">
             <LanguageSelector variant="header" className="min-w-[9rem]" />
-            <Button
-              variant="ghost"
-              size="circle"
+            <IconActionButton
               icon={<ResetIcon className="w-5 h-5" />}
-              iconOnly
               onClick={onReset}
               title={t('ui.resetToDefault')}
-              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
-            <Button
-              variant="ghost"
-              size="circle"
+            <IconActionButton
               icon={<EnterFullscreenIcon className="w-6 h-6" />}
-              iconOnly
               onClick={onFullscreen}
               aria-label={t('ui.enterFullscreen')}
-              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
           </div>
         </div>

@@ -51,8 +51,6 @@ const WORKER_STALL_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
 
-const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-
 const workerEntryToUrl = (workerEntry: string | URL): string => {
   if (typeof workerEntry === 'string') {
     return workerEntry;

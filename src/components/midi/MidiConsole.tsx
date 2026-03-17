@@ -2,7 +2,7 @@
 import React from 'react';
 import { useTranslation } from '../../i18n/hooks/useTranslation';
 import { CloseIcon } from '../ui/icons';
-import { Button, Sheet } from '../ui';
+import { Button, IconActionButton, Sheet } from '../ui';
 import type { MidiLogEntry } from '../../types';
 
 interface MidiConsoleProps {
@@ -35,14 +35,10 @@ const MidiConsole: React.FC<MidiConsoleProps> = ({ isOpen, onClose, log, onClear
             >
               {t('ui.clear')}
             </Button>
-            <Button
-              variant="ghost"
-              size="circle"
+            <IconActionButton
               icon={<CloseIcon className="w-5 h-5" />}
-              iconOnly
               onClick={onClose}
               aria-label={t('ui.closeConsole')}
-              className="text-gray-400 hover:bg-gray-700 hover:text-white"
             />
           </div>
         </header>

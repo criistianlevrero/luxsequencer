@@ -132,10 +132,27 @@ Variable clave para renderers oficiales en desarrollo:
 - i18n: [docs/i18n.md](docs/i18n.md)
 - Doble pantalla: [docs/doble-pantalla.md](docs/doble-pantalla.md)
 
+## Contratos compartidos
+
+Este repo consume contratos de tipos desde `@luxsequencer/contracts` (origen local: `../luxsequencer-contracts`).
+
+Reglas para mantener consistencia entre repos:
+
+- No duplicar contratos de dominio/API en `core` si ya existen en `@luxsequencer/contracts`.
+- Usar `src/types/*` solo como adaptadores locales para tipos internos de UI/estado.
+- Ante cambios de contrato, actualizar primero `luxsequencer-contracts` y luego consumidores.
+
+Referencia de imports:
+
+- `import type { DeclarativeControlSchema } from '@luxsequencer/contracts/declarative-controls'`
+- `import type { PackageManifestV1 } from '@luxsequencer/contracts/marketplace'`
+- `import type { ApiError } from '@luxsequencer/contracts/api'`
+
 ## Repos relacionados
 
 - Core app: `luxsequencer-core` (este repo)
 - Marketplace oficial de renderers: `../core-renderers`
+- Contratos compartidos: `../luxsequencer-contracts`
 
 ## Licencia
 
