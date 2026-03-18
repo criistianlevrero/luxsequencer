@@ -23,13 +23,13 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
 
       <main className="flex-grow container mx-auto p-3 md:p-4">
         <div className="grid gap-4 items-start grid-cols-1 lg:grid-cols-3">
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1" padding="none">
             {controlPanel}
           </Card>
           
           <div className="lg:col-span-2 flex flex-col gap-4">
             {viewportSection}
-            <Card>
+            <Card padding="none">
               {sequencerPanel}
             </Card>
           </div>

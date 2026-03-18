@@ -115,6 +115,7 @@ const Sequencer: React.FC = () => {
     return (
         <div className="space-y-3">
             {/* --- TRANSPORT SECTION --- */}
+            <div className="px-4 pt-4">
             <Card tone="subtle" padding="sm" className="space-y-3 border-gray-700 shadow-none">
                 {/* Row 1: Sequence selector - full width on mobile */}
                 <div className="space-y-1.5">
@@ -251,11 +252,11 @@ const Sequencer: React.FC = () => {
                     {/* Play/Stop button */}
                     <Button
                         variant="primary"
-                        size="lg"
+                        size="lg-icon"
                         icon={isSequencerPlaying ? <StopIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
                         iconOnly
                         onClick={() => setIsSequencerPlaying(!isSequencerPlaying)}
-                        className="w-12 h-12 mx-auto sm:mx-0"
+                        className="mx-auto sm:mx-0"
                         aria-label={isSequencerPlaying ? t('sequencer.stop') : t('sequencer.play')}
                     />
 
@@ -311,6 +312,7 @@ const Sequencer: React.FC = () => {
                 </div>
             </Card>
 
+            </div>
             {/* --- PATTERN SEQUENCER --- */}
             <CollapsibleSection title={t('sequencer.patterns')} defaultOpen={true}>
                 <div className="relative">

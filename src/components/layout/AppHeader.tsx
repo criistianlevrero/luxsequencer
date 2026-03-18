@@ -25,8 +25,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onFullscreen, onReset }) =
               </h1>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <LanguageSelector variant="header" className="min-w-[9rem]" />
+          <div className="flex items-center gap-3">
+            <LanguageSelector variant="header" />
             <IconActionButton
               icon={<ResetIcon className="w-5 h-5" />}
               onClick={onReset}

@@ -22,13 +22,14 @@ export const LanguageSelector: React.FC<{ className?: string; variant?: 'default
   ];
 
   return (
-    <Select
-      value={locale}
-      onChange={(value) => setLocale(value as LocaleCode)}
-      options={options}
-      variant={variant}
-      className={className}
-      size="sm"
-    />
+    <div className={className}>
+      <Select
+        value={locale}
+        onChange={(value) => setLocale(value as LocaleCode)}
+        options={options}
+        variant={variant}
+        size="sm"
+      />
+    </div>
   )
 }

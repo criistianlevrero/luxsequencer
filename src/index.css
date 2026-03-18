@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import '@luxsequencer/ui/styles.css';
 
+@source '../node_modules/@luxsequencer/ui/dist/**/*.{js,cjs,mjs}';
+@source '../node_modules/@luxsequencer/ui/src/**/*.{ts,tsx,js,jsx}';
+
 @plugin 'daisyui' {
   themes: false;
 }
