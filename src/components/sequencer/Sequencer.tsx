@@ -268,7 +268,7 @@ const Sequencer: React.FC = () => {
                             min={30}
                             max={240}
                             step={1}
-                            onChange={(e) => setSequencerBpm(Number(e.target.value))}
+                            onChange={(value) => setSequencerBpm(value)}
                             valueFormatter={(value) => value.toFixed(0)}
                         />
                     </div>
@@ -305,7 +305,7 @@ const Sequencer: React.FC = () => {
                             min={0}
                             max={8}
                             step={0.25}
-                            onChange={(e) => handleSequenceChange('interpolationSpeed', Number(e.target.value))}
+                            onChange={(value) => handleSequenceChange('interpolationSpeed', value)}
                             valueFormatter={(value) => (value === 0 ? t('common.instant') : value.toFixed(2))}
                         />
                     </div>

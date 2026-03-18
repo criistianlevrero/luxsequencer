@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Button, FieldLabel, Input, Slider } from '../../ui';
+import { Button, FieldLabel, Input } from '../../ui';
 import type { SliderControlProps } from '../../../types/declarativeControls';
 
 /**
@@ -72,7 +72,8 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
       {/* Slider container with detents */}
       <div className="relative">
-        <Slider
+        <input
+          type="range"
           ref={sliderRef}
           min={constraints.min}
           max={constraints.max}
@@ -98,7 +99,6 @@ export const SliderControl: React.FC<SliderControlProps> = ({
                   #374151 ${percentage}%, #374151 100%)`
               : `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${percentage}%, #374151 ${percentage}%, #374151 100%)`
           }}
-          unstyled
         />
 
         {/* Center mark for bipolar sliders */}

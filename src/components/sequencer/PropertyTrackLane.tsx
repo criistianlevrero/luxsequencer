@@ -208,7 +208,7 @@ const PropertyTrackLane: React.FC<PropertyTrackLaneProps> = ({ track }) => {
                      <SliderInput
                         label={`Paso ${selectedStep + 1}`}
                         value={selectedKeyframe.value}
-                        onChange={(e) => updateKeyframeValue(track.id, selectedStep, Number(e.target.value))}
+                        onChange={(value) => updateKeyframeValue(track.id, selectedStep, value)}
                         min={controlInfo.min}
                         max={controlInfo.max}
                         step={controlInfo.step}
