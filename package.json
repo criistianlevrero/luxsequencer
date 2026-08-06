@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
-    "@luxsequencer/contracts": "file:../luxsequencer-contracts",
-    "@luxsequencer/ui": "file:../lux-ui",
+    "@luxsequencer/contracts": "^0.1.0",
+    "@luxsequencer/ui": "^0.1.0",
     "immer": "^10.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

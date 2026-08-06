@@ -26,12 +26,12 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
       resolve: {
+        // `dedupe` garantiza una sola copia de React aunque lux-ui traiga la suya
+        // como devDependency. Con npm workspaces el hoisting ya deja una única
+        // copia en la raíz, así que no hace falta apuntar a rutas concretas.
         dedupe: ['react', 'react-dom', '@headlessui/react'],
         alias: {
           '@': path.resolve(__dirname, '.'),
-          react: path.resolve(__dirname, 'node_modules/react'),
-          'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-          '@headlessui/react': path.resolve(__dirname, 'node_modules/@headlessui/react'),
         }
       }
     };

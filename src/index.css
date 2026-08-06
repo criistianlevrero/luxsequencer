@@ -1,8 +1,7 @@
 @import 'tailwindcss';
+/* styles.css declara su propio @source, así que las clases de los componentes
+   de lux-ui entran al build sin que core tenga que saber dónde está el paquete. */
 @import '@luxsequencer/ui/styles.css';
-
-@source '../node_modules/@luxsequencer/ui/dist/**/*.{js,cjs,mjs}';
-@source '../node_modules/@luxsequencer/ui/src/**/*.{ts,tsx,js,jsx}';
 
 @plugin 'daisyui' {
   themes: false;
