@@ -377,6 +377,16 @@ export const createDefaultRendererSettings = (rendererId: string): WebGLSettings
         globalSpeed: 1,
         globalRotationSpeed: 1
       } as DvdScreensaverSettings;
+    case 'diagnostic-fps':
+      return {
+        targetFps: 60,
+        fpsSmoothingSamples: 45,
+        dataSmoothingSamples: 45,
+        stallThresholdMs: 120,
+        graphRangeMs: 200,
+        payloadBytes: 0,
+        signalCount: 4,
+      } as Record<string, unknown>;
       
     default:
       return {} as Record<string, unknown>;
@@ -395,6 +405,7 @@ export const createInitialSettings = (): ControlSettings => {
 
   const renderer: RendererSettings = {
     scales: createDefaultRendererSettings('scales'),
+    'diagnostic-fps': createDefaultRendererSettings('diagnostic-fps'),
     concentric: createDefaultRendererSettings('concentric'),
     'dvd-screensaver': createDefaultRendererSettings('dvd-screensaver'),
   };

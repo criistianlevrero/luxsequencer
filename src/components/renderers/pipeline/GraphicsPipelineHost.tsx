@@ -51,6 +51,8 @@ const WORKER_STALL_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const DEBUG_METRICS_LOG_INTERVAL_MS = 5000;
 
+const diagnosticConfigCache = new WeakMap<RendererWorkerManager, string>();
+
 const workerEntryToUrl = (workerEntry: string | URL): string => {
   if (typeof workerEntry === 'string') {
     return workerEntry;
@@ -234,6 +236,68 @@ const applyRendererUniforms = (
   state: ReturnType<typeof useTextureStore.getState>,
 ): void => {
   if (rendererId !== 'webgl') {
+    if (rendererId === 'diagnostic-fps') {
+      const diagnosticSettings = (getNestedProperty(
+        state.currentSettings,
+        'renderer.diagnostic-fps',
+      ) as {
+        targetFps?: number;
+        fpsSmoothingSamples?: number;
+        dataSmoothingSamples?: number;
+        stallThresholdMs?: number;
+        graphRangeMs?: number;
+        payloadBytes?: number;
+        signalCount?: number;
+      } | undefined) ?? {
+        targetFps: 60,
+        fpsSmoothingSamples: 45,
+        dataSmoothingSamples: 45,
+        stallThresholdMs: 120,
+        graphRangeMs: 200,
+        payloadBytes: 0,
+        signalCount: 4,
+      };
+
+      const now = performance.now();
+      const signalCount = Math.max(1, Math.min(32, Math.round(diagnosticSettings.signalCount ?? 4)));
+      const payloadBytes = Math.max(0, Math.min(65536, Math.round(diagnosticSettings.payloadBytes ?? 0)));
+      const signals = Array.from({ length: signalCount }, (_, index) => {
+        const phase = now * 0.0025 * (index + 1);
+        return Math.sin(phase) * 0.7 + Math.cos(phase * 0.37) * 0.3;
+      });
+      const probeX = Math.sin(now * 0.0019) * 0.9;
+      const probeZ = Math.cos(now * 0.0013) * 0.9;
+      const payload = payloadBytes > 0 ? 'x'.repeat(payloadBytes) : '';
+
+      const configPayload = {
+        targetFps: diagnosticSettings.targetFps ?? 60,
+        fpsSmoothingSamples: diagnosticSettings.fpsSmoothingSamples ?? 45,
+        dataSmoothingSamples: diagnosticSettings.dataSmoothingSamples ?? 45,
+        stallThresholdMs: diagnosticSettings.stallThresholdMs ?? 120,
+        graphRangeMs: diagnosticSettings.graphRangeMs ?? 200,
+      };
+      const serializedConfig = JSON.stringify(configPayload);
+
+      if (diagnosticConfigCache.get(manager) !== serializedConfig) {
+        diagnosticConfigCache.set(manager, serializedConfig);
+        manager.updateUniform('targetFps', configPayload.targetFps);
+        manager.updateUniform('fpsSmoothingSamples', configPayload.fpsSmoothingSamples);
+        manager.updateUniform('dataSmoothingSamples', configPayload.dataSmoothingSamples);
+        manager.updateUniform('stallThresholdMs', configPayload.stallThresholdMs);
+        manager.updateUniform('graphRangeMs', configPayload.graphRangeMs);
+      }
+
+      manager.updateUniform('pipelineDataProbe', {
+        sequence: now,
+        timestampMs: now,
+        x: probeX,
+        z: probeZ,
+        signals,
+        payload,
+      });
+      return;
+    }
+
     if (rendererId === 'concentric') {
       const concentricSettings = getConcentricCompatibleSettings(state.currentSettings);
 

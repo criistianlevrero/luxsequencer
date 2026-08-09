@@ -25,6 +25,10 @@ const BUILTIN_SCHEMA_MODULES: Record<string, { fileName: string; exportName: str
     fileName: 'scales-declarative-schema.ts',
     exportName: 'webglRendererControlSpec',
   },
+  'diagnostic-fps': {
+    fileName: 'diagnostic-fps-declarative-schema.ts',
+    exportName: 'diagnosticFpsDeclarativeSchema',
+  },
   concentric: {
     fileName: 'concentric-declarative-schema.ts',
     exportName: 'concentricDeclarativeSchema',
@@ -156,6 +160,29 @@ const ALLOWED_RENDERERS: AllowedRendererConfig[] = [
       tool: {
         kind: 'renderer',
         id: 'webgl',
+        versionMajor: 1,
+      },
+      source: 'builtin',
+      sdk: {
+        minWorkerProtocolVersion: '1.0.0',
+      },
+    },
+  },
+  {
+    id: 'diagnostic-fps',
+    key: 'luxsequencer/core-renderers:renderer/diagnostic-fps@1',
+    name: 'Diagnóstico FPS/Data',
+    workerFileName: 'diagnostic-fps.worker.ts',
+    requiredCapabilities: ['offscreen-canvas', 'canvas2d', 'uniform-updates'],
+    packageManifest: {
+      schemaVersion: '1.0.0',
+      publisherId: 'luxsequencer',
+      repositoryId: 'core-renderers',
+      packageId: 'builtin-renderers',
+      packageVersion: '0.6.0-beta',
+      tool: {
+        kind: 'renderer',
+        id: 'diagnostic-fps',
         versionMajor: 1,
       },
       source: 'builtin',
