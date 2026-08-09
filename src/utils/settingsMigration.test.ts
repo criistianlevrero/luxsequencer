@@ -25,8 +25,6 @@ describe('settingsMigration', () => {
       scaleBorderWidth: 1,
       gradientColors: [{ id: 'g1', color: '#ff0000', hardStop: false }],
       backgroundGradientColors: [{ id: 'bg1', color: '#000000', hardStop: false }],
-      centerOffset: { x: 0, y: 0 },
-      scaleRange: { min: 1, max: 1 },
     };
 
     const normalized = normalizeSettings(legacy);
@@ -75,8 +73,6 @@ describe('settingsMigration', () => {
       scaleBorderWidth: 0,
       gradientColors: [],
       backgroundGradientColors: [],
-      centerOffset: { x: 0, y: 0 },
-      scaleRange: { min: 1, max: 1 },
     };
 
     const migrated = migrateLegacySettings(legacy);

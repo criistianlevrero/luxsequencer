@@ -47,8 +47,6 @@ export interface WebGLSettings {
   scaleBorderColor: string;
   scaleBorderWidth: number;
   gradientColors: GradientColor[];
-  centerOffset: { x: number; y: number };
-  scaleRange: { min: number; max: number };
 }
 
 // Concentric renderer specific settings
@@ -131,8 +129,6 @@ export interface LegacyControlSettings {
   scaleBorderWidth: number;
   gradientColors: GradientColor[];
   backgroundGradientColors: GradientColor[];
-  centerOffset: { x: number; y: number };
-  scaleRange: { min: number; max: number };
   
   // Concentric renderer settings
   concentric_repetitionSpeed?: number;
