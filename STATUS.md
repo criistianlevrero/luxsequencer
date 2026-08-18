@@ -81,6 +81,13 @@ como gate por configuración. `.github/` sólo contiene `copilot-instructions.md
    identidad canónica, manifests y firma que el repo construyó alrededor. La rama de
    `diagnostic-fps` además **genera datos** en el core (`:261-297`).
 
+   **Subido de prioridad el 2026-08-18.** La P1 de la auditoría —si el marketplace de terceros
+   seguía siendo objetivo— quedó contestada que **sí, y es el centro del producto**. Con eso C1
+   deja de ser una deuda arquitectónica entre otras y pasa a ser **el hueco que bloquea todo el
+   resto del plan**: un tercero no puede publicar un renderer funcional aunque supere la cadena
+   completa de validación. Es H1 de
+   `docs/next-steps/marketplace-de-terceros.md` en el repo de workspace.
+
 2. **C2 — Cinco tests en rojo y ningún gate que los frene.** 5/88 desde hace meses, con dos
    causas raíz. Sin CI, y con el lint inutilizable como gate por `--max-warnings 0` contra 260
    warnings.

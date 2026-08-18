@@ -115,43 +115,63 @@ Ejemplo de documentación por renderer:
    - `npm run type-check` en `luxsequencer-core`
    - `npm run validate:catalog` en `core-renderers`
 
-## 8) Fuera de alcance actual
+## 8) Fuera de alcance *de este archivo* — no del producto
 
-- Marketplace dinámico de compra/entitlements en runtime.
-- Carga remota completa de contexto de performance.
+> **Corregido el 2026-08-18.** Esta sección decía que el marketplace dinámico de compra y
+> entitlements en runtime estaba "fuera de alcance" y que "esa capa se integrará desde un
+> repositorio dedicado en una fase posterior". Eso ya no describe el rumbo: **el marketplace de
+> terceros es el objetivo central del producto**, y la capa vive en `luxsequencer-cloud`, no en un
+> repositorio dedicado por crear.
 
-Esa capa se integrará desde un repositorio dedicado en una fase posterior.
+Lo que sigue fuera del alcance de **este documento**, que describe el sistema de renderers dentro
+de la core app:
 
-## 9) Licencias de marketplace (estado actual y propuesta)
+- El flujo de compra y la gestión de titularidad, que son de `luxsequencer-cloud`.
+- La carga remota completa de contexto de performance.
 
-### Estado actual (implementado)
+Arquitectura objetivo punta a punta y huecos: `docs/next-steps/marketplace-de-terceros.md` en el
+repo de workspace.
 
-- Los renderers con `packageManifest.source === 'community'` pueden requerir validación de token de licencia.
-- La validación usa claims del token (`pluginKey`, `iat`, `exp`) y se ejecuta en `src/components/renderers/sdk/licenseToken.ts`.
-- El registro de renderers externos aplica esta validación en `src/components/renderers/index.ts`.
-- El comportamiento se controla con `VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS`:
-  - `true` (default): valida token para `community`.
-  - `false`: omite validación para facilitar desarrollo local de colaboradores.
-- Los renderers `builtin` (por ejemplo los del repo `core-renderers`) no dependen del token.
+## 9) Licencias de marketplace
 
-### Motivación del bypass local
+> **Construido e inactivo.** Verificado el 2026-08-18. Una versión anterior de esta sección se
+> titulaba "Estado actual (implementado)" y describía en presente un mecanismo que no corre.
 
-- Colaboradores que desarrollan plugins/renderers necesitan levantar `luxsequencer-core` + `core-renderers` en local.
-- Durante esa etapa no siempre existe integración completa con cloud/licencias.
-- Por eso existe un bypass explícito por env var para entorno local.
+### Por qué no corre
 
-### Propuesta de evolución (recomendada)
+El registro de renderers externos itera `HARDCODED_EXTERNAL_RENDERERS`, que es `[]`
+(`src/components/renderers/index.ts:265`). El cuerpo del bucle —y con él toda la rama de licencias
+de `:294`— **no se ejecuta en ninguna corrida real**. La maquinaria existe y tiene tests
+(`marketplaceRegistry.test.ts` cubre token faltante y token válido), pero está apagada.
 
-Objetivo: evitar desactivación accidental de seguridad en producción y mantener DX local.
+### Qué sobrevive y qué no
 
-1. Mantener validación de licencia siempre activa para `source: 'community'` en producción.
-2. Reemplazar el bypass global por un modo explícito de desarrollo local, por ejemplo:
-   - `source: 'local-dev'` (o equivalente) para paquetes cargados desde repos de colaboración.
-   - Solo ese `source` puede saltar validación.
-3. Mantener `builtin` como gratuito y sin dependencia de licencia de marketplace.
-4. Agregar guardrails de build/CI para fallar si se intenta release con bypass inseguro activo.
+La arquitectura de entrega decidida el 2026-08-18 separa dos cosas que esta sección mezclaba:
 
-Este enfoque separa claramente:
-- `builtin`: gratis, trusted, sin token.
-- `community`: marketplace, validación obligatoria.
-- `local-dev`: colaboración local, sin fricción de licencias.
+- **Verificación de firma y checksum del código entregado** — el trust store
+  (`src/graphics-pipeline/communityTrustStore.ts`, 919 líneas con 285 de tests), más
+  `workerEntrySha256` y `workerEntrySignature` validados en `GraphicsPipelineHost.tsx:101` y
+  `:131`. **Sobrevive y es requisito**: se va a ejecutar código de terceros en el browser del
+  usuario, y hay que poder confirmar que los bytes son auténticos.
+
+- **Token de licencia validado en el cliente** — `isMarketplaceLicenseTokenValid`
+  (`src/components/renderers/sdk/licenseToken.ts`). **Superado.** Si cloud entrega los bytes sólo
+  a quien compró, un chequeo de titularidad dentro del cliente no controla nada. Que la función
+  decodifique el payload base64 y **nunca verifique la firma criptográfica** deja de ser un bug a
+  corregir: es una pieza a retirar.
+
+El flag `VITE_MARKETPLACE_ENFORCE_LICENSE_TOKENS` y su bypass global se reemplazan por un
+`source: 'local-dev'` explícito en el manifest. Es lo que ya recomendaba la "Propuesta de
+evolución" de esta misma sección, y quedó confirmado como el camino.
+
+### Dónde está lo vigente
+
+- Decisión de entrega: `docs/decisiones/2026-08-18-entrega-de-renderers.md` en el repo de
+  workspace.
+- Plan y huecos ordenados: `docs/next-steps/marketplace-de-terceros.md`, también en el workspace.
+- Decisión del flag: [`docs/decisiones/2026-08-06-flag-desarrollo-renderers.md`](decisiones/2026-08-06-flag-desarrollo-renderers.md).
+
+**El bloqueante real del marketplace no es la seguridad.** Es que
+`applyRendererUniforms` (`GraphicsPipelineHost.tsx:233`) hardcodea los uniforms de cada renderer
+con una cadena de `if` por id: un tercero no puede publicar un renderer funcional aunque supere
+toda esta cadena de validación. Ver H1 del plan.
