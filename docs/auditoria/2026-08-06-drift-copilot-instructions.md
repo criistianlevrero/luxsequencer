@@ -1,8 +1,15 @@
-> **Estado**: VIGENTE · **Fecha**: 2026-08-06 · **Última verificación**: 2026-08-12
+> **Estado**: ✅ **RESUELTO 2026-08-18** · **Fecha**: 2026-08-06
+>
+> Los dos documentos se corrigieron. Se conserva este informe como registro de qué decía cada uno
+> y por qué importaba; **no describe el estado actual del repo**.
 >
 > 🚚 Mudado desde `docs/auditoria/2026-08-06-drift-por-proyecto.md` de la raíz el 2026-08-12,
 > durante la auditoría de Fase 2 de este repo. Reverificado entero contra el código en esa
 > sesión; ninguna de las afirmaciones cambió, y se agregaron dos hallazgos nuevos (§1.3 y §2.2).
+>
+> Reverificado una tercera vez el 2026-08-18, antes de corregir. Ver "Qué se hizo" al final:
+> aparecieron cuatro hallazgos más, y **una afirmación de este informe resultó incorrecta**
+> (§2.1, `AdvancedSelect`).
 
 # Drift en la documentación para agentes de `luxsequencer-core`
 
@@ -114,11 +121,51 @@ Lo que el README describe como la arquitectura de UI de core es, en realidad, la
 
 *(Hallazgo agregado el 2026-08-12.)*
 
-## Qué hacer
+## Qué se hizo — 2026-08-18
 
-No se corrigió ninguno de los dos documentos, por la regla de no arreglar documentación sobre la
-marcha. Quedan anotados acá y en el `STATUS.md` de este repo como pendientes de recorte.
+Los dos documentos se corrigieron. La reverificación previa encontró más de lo registrado arriba.
 
-Prioridad: `copilot-instructions.md` primero. Es el que los agentes leen automáticamente, y su
-drift no es cosmético — induce a construir contra una arquitectura que fue explícitamente
-removida.
+### Corrección a este informe: §2.1 se pasó de largo
+
+Este documento afirmaba que `composites/` "no tiene `AdvancedSelect`". **Es incorrecto.**
+`AdvancedSelect` sí está disponible desde `composites/`, re-exportado de `@luxsequencer/ui`
+(`src/components/ui/composites/index.ts`). Lo que dejó de existir es la *implementación local*, no
+el componente. La afirmación correcta es que `composites/` tiene 2 componentes locales
+(`ColorPicker`, `Vector2DPicker`) y re-exporta 7 de la librería compartida.
+
+También se verificó la afirmación de DaisyUI del mismo README, que este informe no cubría: es
+**correcta**. `daisyui@^5.5.19` está en `package.json` y se carga desde `src/index.css`.
+
+### Hallazgos nuevos en `copilot-instructions.md`
+
+| Ubicación | Decía | Realidad |
+|---|---|---|
+| `:188` | "Cross-renderer UI components in `components/shared/`" | Ese directorio no existe. Es `src/components/renderers/shared/` |
+| `:266` | "Empty `RecordingPanel.tsx` and `recording.slice.ts`" | `recording.slice.ts` sí está vacío (0 bytes); `RecordingPanel.tsx` no existe en el repo |
+| `:87-97` | Diagrama del pipeline: "Renderer component reads currentSettings → WebGL: upload uniforms" | El dibujado ocurre en el worker; el main thread compone el `ImageBitmap` |
+| todos los enlaces | Escritos relativos a la raíz del repo (`docs/…`, `README.md`) | El archivo vive en `.github/`, así que **ningún enlace resolvía**. Corregidos a `../docs/…` |
+
+El último es el más silencioso de los cuatro: el documento se presentaba como índice de la base de
+conocimientos y ninguno de sus 20 punteros funcionaba.
+
+### Criterio aplicado
+
+Arreglo quirúrgico, no reescritura: la mayor parte del documento pasó la verificación —las
+versiones de las 8 dependencias, el puerto 3000, la existencia de los 7 documentos enlazados, y
+las secciones de MIDI, sequencers, store e i18n—, y reescribir habría tirado contenido correcto.
+
+Donde el conocimiento ya vivía en `docs/`, el documento ahora **apunta en vez de repetir**. El
+caso central es `docs/renderers.md`, que estaba sano, era la fuente de verdad del sistema de
+renderers, y `copilot-instructions.md` no lo mencionaba: por eso mantenía una copia propia y
+desactualizada del contrato.
+
+Se agregó además la sección que faltaba por completo: que el repo es parte de un ecosistema de
+cinco, que ningún renderer vive acá, y el orden de arranque en dev.
+
+### Lo que queda pendiente
+
+`docs/renderers.md` § 9 describe la validación de licencias de marketplace como implementada, pero
+la rama es inalcanzable: `HARDCODED_EXTERNAL_RENDERERS` es `[]`
+(`src/components/renderers/index.ts:265`). Ya está capturado en
+[la decisión del flag](../decisiones/2026-08-06-flag-desarrollo-renderers.md); no se tocó en esta
+pasada.

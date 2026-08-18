@@ -8,49 +8,83 @@
 ## Project Overview
 Real-time visual pattern generator for VJs and visual artists. React 19 + Vite application with modular renderer system (WebGL), professional MIDI integration, dual sequencers, internationalization, dual-screen support, and state persistence.
 
-**Current Version**: Development (package.json shows v0.0.0)
+**Current Version**: `0.6-beta` (`package.json`), matching the working branch of the same name.
 **Tech Stack**: React 19.2.0, Zustand 5.0.8, Immer 10.2.0, TypeScript, Vite 6.2.0, Tailwind CSS, Headless UI 2.2.9
+
+## This repo is part of a five-repo ecosystem
+
+**Read this before assuming anything lives in this repo.** `luxsequencer-core` is a git submodule
+of a private workspace repo that spans five projects, unified by an npm workspace:
+
+| Repo | What it holds |
+|---|---|
+| `luxsequencer-core` | this app — the sequencer, the store, the UI shell |
+| `core-renderers` | **all four official renderers**, as external workers |
+| `lux-ui` | shared component library (`@luxsequencer/ui`) |
+| `luxsequencer-contracts` | shared types (`@luxsequencer/contracts`) |
+| `luxsequencer-cloud` | accounts, saved performances, marketplace |
+
+Two consequences that change how you work in this repo:
+
+1. **No renderer is implemented here.** They live in `core-renderers` and run as workers. See
+   [Renderer Architecture](../docs/renderers.md).
+2. **Dev needs two servers, in order**: `core-renderers` on port 4174 **first**, then this app on
+   3000, which proxies it at `/marketplace-core-renderers` (`vite.config.ts`). The shortcut is
+   `npm run dev:all`. Port 4174 returning 404 at `/` is intentional — it has no `index.html`.
+
+The workspace-level index (topology, cross-repo decisions, operational traps) is the `CLAUDE.md`
+of the parent workspace repo. Do not duplicate its content here.
 
 ## Documentation Reference
 The project has comprehensive documentation that should be referenced rather than duplicated:
 
-- **[README.md](README.md)**: Project overview, installation, and setup
-- **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)**: Complete environment configuration system
-- **[UI System Guide](docs/ui-system.md)**: Component architecture, icons, design patterns
-- **[Internationalization Guide](docs/i18n.md)**: i18n system with Rosetta (English/Spanish)
-- **[Dual Screen System](docs/doble-pantalla.md)**: Multi-window display architecture
-- **[Recording System Planning](docs/next-steps/sistema-de-grabacion.md)**: Future recording/video export system
+- **[README.md](../README.md)**: Project overview, installation, and setup
+- **[Renderer Architecture](../docs/renderers.md)**: **the source of truth for the renderer system**
+- **[Environment Variables Guide](../docs/ENVIRONMENT_VARIABLES.md)**: Complete environment configuration system
+- **[UI System Guide](../docs/ui-system.md)**: Component architecture, icons, design patterns
+- **[Internationalization Guide](../docs/i18n.md)**: i18n system with Rosetta (English/Spanish)
+- **[Dual Screen System](../docs/doble-pantalla.md)**: Multi-window display architecture
+- **[Testing Guide](../docs/testing.md)**: Test setup and conventions
+- **[Recording System Planning](../docs/next-steps/sistema-de-grabacion.md)**: Future recording/video export system
 
 ## Architecture
 
 ### State Management (Zustand + Immer)
-See **[Store Architecture Guide](docs/store-architecture.md)** for complete documentation of:
+See **[Store Architecture Guide](../docs/store-architecture.md)** for complete documentation of:
 - Slice-based architecture and state structure
 - Animation system with priority-based control
 - Event flows and conflict resolution
 - All store slices (project, sequencer, midi, animation, etc.)
 
-### Renderer Plugin System
-Renderers are **completely independent modules** registered in `components/renderers/index.ts`:
+### Renderer System
 
-```typescript
-export interface RendererDefinition {
-  id: string;
-  name: string;
-  component: React.FC<{ className?: string }>;
-  controlSchema: ControlSection[];
-}
-```
+**Full documentation: [docs/renderers.md](../docs/renderers.md).** It is the source of truth and is
+kept current; do not restate its contents here. What follows is only what you need to avoid the
+most common wrong turn.
 
-**Available renderers** (src/components/renderers/):
-- `webgl/`: WebGL shader-based scale texture (primary renderer)
-- `concentric/`: Hexagonal concentric patterns
+**This repo contains no renderer implementations.** The four official renderers (`webgl`,
+`concentric`, `dvd-screensaver`, `diagnostic-fps`) live in the `core-renderers` repo and execute
+as **web workers**. `src/components/renderers/` holds `index.ts` (the registry), `pipeline/`,
+`sdk/`, `shared/` and `types.ts` — and no renderers.
 
-**Control Schema Pattern**: Each renderer defines controls via `ControlSection[]` arrays. The system supports:
-- `type: 'slider'`: Declarative sliders with min/max/formatter
-- `type: 'custom'`: React components (e.g., `GradientEditor`)
+What core keeps for each official renderer is a minimal entry: allowlist, canonical identity,
+manifest, and the external worker URL. Consequently:
 
-See **[UI System Guide](docs/ui-system.md)** for complete component architecture details.
+- `component` is `EmptyExternalRenderer = () => null` for every official entry
+  (`src/components/renderers/index.ts:9`, applied at `:246`). **The React component draws
+  nothing.** Drawing happens in the worker; the main thread composites the result.
+- `controlSchema` is `[]` for every official entry (`:253`). Real controls arrive as declarative
+  schemas from `core-renderers`.
+- The full `RendererDefinition` contract is in `src/components/renderers/types.ts` — read it
+  there. It has eleven fields, and `workerEntry` is the one that matters most.
+
+**Controls are declarative-only.** `RendererControls` renders `DeclarativeControlPanel` and
+nothing else; there is no runtime fallback to a legacy React schema. A renderer must **not**
+inject React components as controls — that is the explicit policy in
+[graphics-pipeline-refactor.md § 11.1](../docs/next-steps/graphics-pipeline-refactor.md). If you find
+code handling `type: 'custom'`, it is a leftover, not a pattern to follow.
+
+See **[UI System Guide](../docs/ui-system.md)** for component architecture details.
 
 ### MIDI Integration
 - **Web MIDI API**: Browser-native MIDI support with auto-connect (configurable via `VITE_MIDI_AUTO_CONNECT`)
@@ -60,9 +94,9 @@ See **[UI System Guide](docs/ui-system.md)** for complete component architecture
 - **Debug mode**: Enable `VITE_DEBUG_MIDI=true` for message logging
 - **Console integration**: Built-in MIDI console for debugging (MidiConsole component)
 
-**Priority system details**: See [Store Architecture Guide](docs/store-architecture.md#sistema-de-prioridades-de-eventos)
+**Priority system details**: See [Store Architecture Guide](../docs/store-architecture.md#sistema-de-prioridades-de-eventos)
 
-See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for MIDI configuration options.
+See **[Environment Variables Guide](../docs/ENVIRONMENT_VARIABLES.md)** for MIDI configuration options.
 
 ### Interaction Flows
 
@@ -73,7 +107,7 @@ See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for MIDI co
 4. **Sequencer trigger**: Step sequencer loads pattern on beat with animation
 
 #### Control Priority System
-See **[Store Architecture Guide](docs/store-architecture.md#sistema-de-prioridades-de-eventos)** for complete documentation of priority system, conflict resolution, and animation flows.
+See **[Store Architecture Guide](../docs/store-architecture.md#sistema-de-prioridades-de-eventos)** for complete documentation of priority system, conflict resolution, and animation flows.
 
 ### Pattern System
 - **Patterns as snapshots**: Complete `ControlSettings` state stored per pattern
@@ -81,26 +115,34 @@ See **[Store Architecture Guide](docs/store-architecture.md#sistema-de-prioridad
 - **Dirty state tracking**: User edits trigger save prompts
 - **MIDI integration**: Pattern creation via note holds, loading via note taps
 
-**Technical details**: See [Store Architecture Guide](docs/store-architecture.md#flujo-de-eventos-principal) for animation flows and interpolation system.
+**Technical details**: See [Store Architecture Guide](../docs/store-architecture.md#flujo-de-eventos-principal) for animation flows and interpolation system.
 
 ### Real-Time Rendering Pipeline
+
+The drawing does **not** happen in a React component. Since the worker-only refactor:
+
 ```
 User Input/MIDI → setCurrentSetting() → Zustand state update
                      ↓
-                useTextureStore subscription triggers re-render
+                GraphicsPipelineHost pushes uniforms over postMessage
                      ↓
-                Renderer component reads currentSettings
+                RendererWorkerManager → worker (in core-renderers)
                      ↓
-                WebGL: Upload uniforms → Fragment shader execution
+                Worker draws and returns an ImageBitmap per frame
                      ↓
-                RequestAnimationFrame continues animation loop
+                WebGLCompositor paints it on the main thread
 ```
+
+Files: `src/components/renderers/pipeline/GraphicsPipelineHost.tsx` and
+`src/graphics-pipeline/RendererWorkerManager.ts`. Protocol, handshake and frame loop are
+documented in [docs/renderers.md § 4](../docs/renderers.md).
 
 **Performance notes**:
 - Zustand uses `shallow` equality to prevent unnecessary re-renders
-- WebGL shaders update uniforms each frame without DOM manipulation
 - Gradient arrays converted to flat RGB arrays for shader uniform limits (max 10 colors)
-- Texture rotation runs in independent RAF loop from `initializeProject()`
+- Uniforms are currently pushed on **every** store change, without a selector
+  (`GraphicsPipelineHost.tsx:557-559`). Measured, open investigation:
+  [docs/next-steps/pipeline-cadence.md](../docs/next-steps/pipeline-cadence.md)
 
 ### Dual Sequencer System
 The app has **two independent sequencers** running simultaneously:
@@ -140,7 +182,7 @@ Built-in i18n system with Rosetta:
 - **Hook-based**: `useTranslation()` hook for components
 - **Automatic persistence**: Language selection saved to localStorage
 
-Refer to **[UI System Guide](docs/ui-system.md)** and **[i18n Guide](docs/i18n.md)** for detailed information.
+Refer to **[UI System Guide](../docs/ui-system.md)** and **[i18n Guide](../docs/i18n.md)** for detailed information.
 
 ## Development Workflows
 
@@ -152,40 +194,30 @@ npm run preview  # Preview production build
 ```
 
 ### Environment Configuration
-See **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** for complete configuration options:
+See **[Environment Variables Guide](../docs/ENVIRONMENT_VARIABLES.md)** for complete configuration options:
 - `VITE_DEBUG_MODE`: Enable debug overlay
 - `VITE_DEBUG_MIDI`, `VITE_DEBUG_SEQUENCER`: Specific debug categories
 - `VITE_MIDI_AUTO_CONNECT`: Auto-connect MIDI devices
 - `VITE_MAX_FPS`: Performance limiting
 
 ### Adding New Renderers
-1. Create folder in `components/renderers/yourname/`
-2. Implement component with `useTextureStore` subscription
-3. Define `controlSchema: ControlSection[]` 
-4. Export `RendererDefinition`
-5. Register in `components/renderers/index.ts`
 
-**Example schema**:
-```typescript
-export const yourSchema: ControlSection[] = [
-  {
-    title: "Section Title",
-    defaultOpen: true,
-    controls: [
-      { type: 'slider', id: 'property', label: 'Label', min: 0, max: 100 },
-      { type: 'custom', id: 'customId', component: YourComponent }
-    ]
-  }
-];
-```
+**Most of this work does not happen in this repo.** A renderer is built in `core-renderers` as a
+worker; core only gains an allowlist entry. The step-by-step checklist —including the canonical
+key format and the two validation commands— is
+[docs/renderers.md § 7](../docs/renderers.md).
+
+Do **not** create a folder under `src/components/renderers/` with a React component that draws.
+That was the pre-refactor architecture and it was removed deliberately.
 
 ## Key Conventions
 
 ### Project Architecture
 - **Zustand slices**: State divided into specialized domains (project, sequencer, midi, etc.)
 - **TypeScript strict mode**: Full type coverage with interfaces for all data structures
-- **Component isolation**: Renderer-specific logic stays within renderer directories
-- **Shared components**: Cross-renderer UI components in `components/shared/`
+- **Component isolation**: Renderer-specific logic lives in `core-renderers`, not here
+- **Shared components**: `src/components/renderers/shared/` holds the cross-renderer UI (today,
+  `RendererControls.tsx`). There is no `src/components/shared/`.
 
 ### Adding New Features
 1. **Control Settings**: Add to `ControlSettings` interface in `types.ts` + store defaults
@@ -210,7 +242,7 @@ export const yourSchema: ControlSection[] = [
 3. **Respect priority system**: ControlSource enum defines animation cancellation rules
 4. **Handle dual screen sync**: State changes broadcast to secondary window automatically
 
-**Complete store documentation**: See [Store Architecture Guide](docs/store-architecture.md) for detailed state management patterns, animation system, and event flows.
+**Complete store documentation**: See [Store Architecture Guide](../docs/store-architecture.md) for detailed state management patterns, animation system, and event flows.
 
 ### Performance & Rendering  
 5. **WebGL shader limits**: 10 colors max per gradient (uniform array size)
@@ -238,7 +270,7 @@ export const yourSchema: ControlSection[] = [
 ## Debugging & Development
 
 ### Debug System  
-- **Environment variables**: Fine-grained debug categories (see [Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md))
+- **Environment variables**: Fine-grained debug categories (see [Environment Variables Guide](../docs/ENVIRONMENT_VARIABLES.md))
 - **Debug overlay**: Real-time metrics (FPS, sequencer state, animation count)
 - **MIDI console**: Built-in MIDI message inspector
 - **Console logging**: Category-specific debug output
@@ -261,6 +293,7 @@ export const yourSchema: ControlSection[] = [
 - `vite.config.ts`: Build configuration with React and SVGR plugins
 - Documentation in `docs/` directory (see reference links above)
 
-**Future systems** (placeholder implementations):
+**Future systems**:
 - Recording system architecture planned in `docs/next-steps/sistema-de-grabacion.md`
-- Empty `RecordingPanel.tsx` and `recording.slice.ts` await implementation
+- `src/store/slices/recording.slice.ts` exists and is **0 bytes**. There is no `RecordingPanel.tsx`
+  anywhere in the repo — the placeholder was removed, the slice was not.

@@ -121,9 +121,13 @@ como gate por configuración. `.github/` sólo contiene `copilot-instructions.md
   sueltos que ya no es la topología vigente; lista 3 renderers oficiales cuando son 4; afirma
   GPL-3.0 con un `LICENSE` vacío; y publica `npm run test`, que se cuelga en modo watch.
 
-- **`.github/copilot-instructions.md` y `src/components/ui/README.md` sin corregir.** Los dos
-  describen arquitectura removida, y el primero es el que los agentes leen automáticamente. Ver
-  [drift de copilot-instructions](docs/auditoria/2026-08-06-drift-copilot-instructions.md).
+- ~~**`.github/copilot-instructions.md` y `src/components/ui/README.md` sin corregir.**~~
+  ✅ **Corregidos el 2026-08-18.** Los dos describían arquitectura removida, y el primero es el
+  que los agentes leen automáticamente. Se aplicó arreglo quirúrgico: donde el conocimiento ya
+  vivía en `docs/`, ahora se apunta en vez de duplicar. Se agregó el contexto de ecosistema, que
+  faltaba entero, y se corrigieron los 20 enlaces del documento, que no resolvían porque estaban
+  escritos relativos a la raíz del repo y el archivo vive en `.github/`. Detalle en
+  [el informe de drift](docs/auditoria/2026-08-06-drift-copilot-instructions.md).
 
 - **`docs/next-steps/graphics-pipeline-refactor.md` está mal archivado.** ~90% describe trabajo
   terminado (fases 1 a 4 marcadas "completada") y contiene dos afirmaciones de funcionalidad
